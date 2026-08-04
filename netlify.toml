@@ -1,0 +1,66 @@
+[build]
+  # Strona jest w pełni statyczna — brak build-stepu, brak npm.
+  publish = "."
+  command = ""
+
+# ---------------------------------------------------------------------------
+# Nagłówki bezpieczeństwa — wszystkie ścieżki
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    # CSP dopasowane do faktycznego stacku:
+    #  - script-src 'self' + 'unsafe-inline' — własny app.js ORAZ inline'owe bloki
+    #    <script type="application/ld+json"> (JSON-LD) i ewentualny inline bootstrap
+    #    języka/preloadera. Bez 'unsafe-inline' Chrome zgłasza naruszenie na JSON-LD.
+    #    Docelowo można to zacieśnić hashami — patrz README, sekcja "Co warto dorobić".
+    #  - style-src 'unsafe-inline' — krytyczny CSS inline w <head> + style ustawiane
+    #    z JS (transform smooth-scrolla, parallax).
+    #  - fonts.googleapis.com to arkusz CSS (style-src), fonts.gstatic.com to pliki
+    #    woff2 (font-src). Muszą być oba, inaczej fonty nie wstaną.
+    #  - instagram.com / cdninstagram.com — embed rolek w sekcji MOTION (embed.js
+    #    ładuje iframe z instagram.com i zdjęcia z cdninstagram.com). Wpisy działają
+    #    tylko, gdy w app.js uzupełnisz tablicę REELS; puste = nic się nie ładuje.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.instagram.com https://platform.instagram.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src 'self' https://www.instagram.com https://graph.instagram.com; frame-src https://www.instagram.com; child-src https://www.instagram.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+# ---------------------------------------------------------------------------
+# Cache — zasoby niezmienne
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ---------------------------------------------------------------------------
+# Cache — HTML zawsze świeży
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# CSS i JS nie mają hasha w nazwie, więc NIE mogą być immutable — inaczej po
+# aktualizacji strony klient zobaczy stary wygląd. Krótki cache z rewalidacją.
+[[headers]]
+  for = "/assets/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"

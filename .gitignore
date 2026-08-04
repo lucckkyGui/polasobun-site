@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+*.log
+.vscode/
+
+# wewnętrzne briefy — nie publikować
+BRIEF.md
+BRIEF-V2.md

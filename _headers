@@ -1,0 +1,31 @@
+# Netlify / Cloudflare Pages — nagłówki HTTP.
+# Odpowiednik sekcji [[headers]] w netlify.toml. Trzymaj oba pliki zgodne;
+# przy konflikcie na Netlify wygrywa netlify.toml.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.instagram.com https://platform.instagram.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.cdninstagram.com https://*.fbcdn.net; connect-src 'self' https://www.instagram.com https://graph.instagram.com; frame-src https://www.instagram.com; child-src https://www.instagram.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+# Zdjęcia i fonty — nazwy się nie zmieniają w obrębie wersji, cache na rok.
+/assets/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML zawsze świeży.
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+# CSS/JS bez hasha w nazwie — krótki cache z rewalidacją.
+/assets/css/*
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/assets/js/*
+  Cache-Control: public, max-age=3600, must-revalidate
