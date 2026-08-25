@@ -98,6 +98,7 @@
   /* --spacing-* → p-*, gap-*, m-* … (wartości spoza skali 4px) */
   --spacing-stack: 9px;
   --spacing-tight: 10px;
+  --spacing-header: 22px;
   --spacing-card: 24px;
   --spacing-gutter: 26px;
   --spacing-section: 60px;
@@ -130,6 +131,20 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-flip: 350ms;
+}
+
+/* ─── Filtrowanie siatki ─────────────────────────────────────────────────── */
+/* Mechanizm 1:1 z makiety: display:none, żadnego przejścia.
+   Wrapper dostaje data-filter, kafel data-cat z listą tagów. */
+
+/* Celowo POZA @layer — styl bez warstwy wygrywa w kaskadzie z każdą
+   warstwą Tailwinda. W @layer components przegrywał z utility `block`
+   z warstwy utilities i filtrowanie nie działało. */
+
+[data-filter='commercial'] [data-cat]:not([data-cat~='commercial']),
+[data-filter='portraits'] [data-cat]:not([data-cat~='portraits']),
+[data-filter='food'] [data-cat]:not([data-cat~='food']) {
+  display: none;
 }
 
 /* ─── Reset / baza ───────────────────────────────────────────────────────── */

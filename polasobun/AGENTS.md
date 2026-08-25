@@ -4,6 +4,11 @@
 Astro 7 (static), React islands, Tailwind 4, Motion. Deploy: Cloudflare Pages.
 Node >= 22.12.0 (wymagane przez Astro 7).
 
+typescript jest przypięty do ^6 CELOWO. `astro check` nie działa
+z natywnym kompilatorem TypeScript 7 — nie wystawia programmatic API,
+którego wymaga (withastro/roadmap#1321). Nie bumpować bez sprawdzenia,
+że check nadal przechodzi; inaczej build wywali się na starcie.
+
 ## Twarde reguły
 - Animujemy WYŁĄCZNIE transform i opacity. Nigdy width/height/blur/box-shadow/background.
 - Zdjęcia zawsze przez astro:assets, nigdy surowy <img src>.
@@ -37,6 +42,13 @@ Easingi mają własne nazwy, żeby nie nadpisywać wbudowanych:
 Przestrzenie --radius-*, --shadow-*, --inset-shadow-*, --drop-shadow-*
 są wykasowane (: initial) — brak zaokrągleń i cieni jest wymuszony na
 poziomie tokenów, nie tylko umową.
+
+## Tailwind 4 — kaskada warstw
+Reguły filtrowania siatki (display:none po data-filter) leżą w global.css
+POZA @layer. To celowe: styl bez warstwy wygrywa w kaskadzie z każdą
+warstwą Tailwinda. W @layer components przegrywały z utility `block`
+z warstwy utilities i filtrowanie po cichu nie działało — data-filter
+się przełączał, a kafle zostawały widoczne.
 
 ## Astro 7 — pułapki
 - Kompilator w Rust jest ścisły, nie naprawia niepoprawnego HTML
