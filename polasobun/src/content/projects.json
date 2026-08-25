@@ -1,0 +1,17 @@
+[
+  { "slug": "pandora",       "title": "PANDORA",       "client": "Pandora",       "year": null, "role": null, "tags": ["beauty","still-life"] },
+  { "slug": "rimmel",        "title": "RIMMEL",        "client": "Rimmel",        "year": null, "role": null, "tags": ["beauty"] },
+  { "slug": "allegro",       "title": "ALLEGRO",       "client": "Allegro",       "year": null, "role": null, "tags": ["lifestyle"] },
+  { "slug": "cropp",         "title": "CROPP",         "client": "Cropp",         "year": null, "role": null, "tags": ["fashion"] },
+  { "slug": "wojas",         "title": "WOJAS",         "client": "Wojas",         "year": null, "role": null, "tags": ["fashion"] },
+  { "slug": "rko-by-rylko",  "title": "RKO BY RYŁKO",  "client": "Ryłko",         "year": null, "role": null, "tags": ["fashion"] },
+  { "slug": "henderson",     "title": "HENDERSON",     "client": "Henderson",     "year": null, "role": null, "tags": ["fashion"] },
+  { "slug": "lech-easy",     "title": "LECH EASY",     "client": "Lech",          "year": null, "role": null, "tags": ["lifestyle","food"] },
+  { "slug": "pudliszki",     "title": "PUDLISZKI",     "client": "Pudliszki",     "year": null, "role": null, "tags": ["food"] },
+  { "slug": "dobra-kaloria", "title": "DOBRA KALORIA", "client": "Dobra Kaloria", "year": null, "role": null, "tags": ["food"] },
+  { "slug": "kodano-optyk",  "title": "KODANO OPTYK",  "client": "Kodano",        "year": null, "role": null, "tags": ["beauty"] },
+  { "slug": "medity",        "title": "MEDITY",        "client": "Medity",        "year": null, "role": null, "tags": ["lifestyle"] },
+  { "slug": "fanadise",      "title": "JOANNA JĘDRZEJCZYK × FANADISE", "client": "Fanadise", "year": null, "role": null, "tags": ["sport","portrait"] },
+  { "slug": "bybianco",      "title": "BAZIÓŁKA AW",   "client": "By Bianco",     "year": null, "role": null, "tags": ["fashion"] },
+  { "slug": "mardosz",       "title": "MARDOSZ & HAIR BAND", "client": "Mardosz", "year": null, "role": null, "tags": ["beauty"] }
+]

@@ -1,0 +1,162 @@
+@import "tailwindcss" source(none);
+
+/* Skanujemy WYŁĄCZNIE src/. Bez tego Tailwind zaciąga nazwy klas
+   z przykładów w plikach SKILL.md pod .agents/skills/ do produkcyjnego CSS. */
+@source "../**/*.{astro,html,js,jsx,ts,tsx}";
+
+/* ─── Satoshi (Fontshare), self-hosted z public/fonts/ ───────────────────── */
+
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/Satoshi-Black.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Tokeny generujące utility (Tailwind 4 theme namespaces) ────────────── */
+
+@theme {
+  /* --color-* → bg-*, text-*, border-* */
+  --color-bg: #fbfbfa;
+  --color-surface: #111110;
+  --color-text: #111110;
+  --color-body: #3a3a36;
+  --color-muted: #8a8a84;
+  --color-border: #e2e2df;
+  --color-accent: #111110;
+
+  /* na ciemnym tle — rewers kafla */
+  --color-on-dark: #fbfbfa;
+  --color-on-dark-muted: #c8c8c2;
+  --color-on-dark-subtle: #a3a39d;
+  --color-on-dark-faint: #9a9a94;
+
+  /* --font-* → font-* */
+  --font-sans: 'Satoshi', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+
+  /* --text-* → text-* (rozmiar) */
+  --text-micro: 10px;
+  --text-label: 11px;
+  --text-wordmark: 15px;
+  --text-body-sm: 16px;
+  --text-body: 17px;
+  --text-body-lg: 19px;
+  --text-lead: 20px;
+  --text-title: 26px;
+  --text-display: 56px;
+  --text-display-lg: 64px;
+
+  /* --tracking-* → tracking-* */
+  --tracking-display: -0.035em;
+  --tracking-title: -0.02em;
+  --tracking-caps: 0.1em;
+  --tracking-meta: 0.16em;
+  --tracking-index: 0.2em;
+  --tracking-wordmark: 0.24em;
+  --tracking-nav: 0.3em;
+
+  /* --leading-* → leading-* */
+  --leading-title: 1.04;
+  --leading-caps: 1.5;
+  --leading-copy: 1.6;
+  --leading-prose: 1.62;
+
+  /* --spacing-* → p-*, gap-*, m-* … (wartości spoza skali 4px) */
+  --spacing-stack: 9px;
+  --spacing-tight: 10px;
+  --spacing-card: 24px;
+  --spacing-gutter: 26px;
+  --spacing-section: 60px;
+  --spacing-block: 90px;
+  --spacing-page-end: 120px;
+
+  /* --ease-* → ease-* (własne nazwy, wbudowanych nie nadpisujemy) */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --perspective-* → perspective-* */
+  --perspective-flip: 1800px;
+
+  /* --aspect-* → aspect-* */
+  --aspect-tile: 4 / 5;
+
+  /* bez zaokrągleń i cieni — kasujemy całe przestrzenie nazw */
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+}
+
+/* ─── Tokeny BEZ przestrzeni nazw w Tailwind 4 ───────────────────────────── */
+/* transition-duration nie ma namespace'u — to zwykłe zmienne CSS.
+   Użycie: duration-[var(--duration-flip)] */
+
+:root {
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-flip: 350ms;
+}
+
+/* ─── Reset / baza ───────────────────────────────────────────────────────── */
+/* Preflight Tailwinda robi właściwy reset; poniżej tylko warstwa projektu. */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+}
+
+/* Twarda reguła: każda animacja respektuje prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
