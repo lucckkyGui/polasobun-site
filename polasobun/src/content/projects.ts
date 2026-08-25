@@ -1,24 +1,19 @@
 import data from './projects.json';
 
-/** Kategorie kampanii. Rozszerzaj wyłącznie razem z projects.json. */
-export type ProjectTag =
-  | 'beauty'
-  | 'fashion'
-  | 'food'
-  | 'lifestyle'
-  | 'portrait'
-  | 'sport'
-  | 'still-life';
+/**
+ * Filtry na stronie: ALL / COMMERCIAL / PORTRAITS / FOOD.
+ * ALL nie jest tagiem — to brak filtra.
+ * Projekt może mieć więcej niż jeden tag (np. Pudliszki: commercial + food).
+ */
+export type ProjectTag = 'commercial' | 'portraits' | 'food';
 
 export interface Project {
   /** Musi odpowiadać nazwie folderu w src/assets/photos/. */
   slug: string;
   title: string;
   client: string;
-  /** null dopóki klientka nie uzupełni danych. */
+  /** null dopóki klientka nie poda roku. Nigdy nie zgadujemy. */
   year: number | null;
-  /** null dopóki klientka nie uzupełni danych. */
-  role: string | null;
   tags: ProjectTag[];
 }
 

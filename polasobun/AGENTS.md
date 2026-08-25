@@ -55,6 +55,9 @@ poziomie tokenów, nie tylko umową.
 - getImage() rzuca błędem po stronie klienta — tylko w kodzie serwerowym.
 - Style responsywne obrazów idą przez klasy z hashem i atrybuty data-*,
   nie inline style (zgodność z CSP).
+- Okładki siatki: Astro 6+ przycina domyślnie i NIGDY nie skaluje w górę.
+  Nie używaj miniatur jako źródła. Po wygenerowaniu sprawdź kadrowanie
+  okładek — przy aspect-ratio 4/5 kadr powstaje automatycznie.
 - Astro.glob() usunięte — tylko import.meta.glob().
 - getStaticPaths() nie może zwracać params typu number. Slug zawsze string.
 - W getStaticPaths() nie ma obiektu Astro. Zamiast Astro.site →
@@ -67,6 +70,23 @@ src/content/projects.json — jeden wpis = jedna kampania.
 src/content/projects.ts — typ Project + eksport `projects`.
 src/assets/photos/<slug>/ — zdjęcia projektu. 01.jpg to zawsze okładka.
 Nazwa folderu MUSI odpowiadać slugowi.
+src/assets/photos/_portraits/ i _food/ — zdjęcia spoza nazwanych kampanii.
+
+year pochodzi wyłącznie od klientki lub z jej istniejącej strony.
+Nigdy nie uzupełniaj danymi z makiety ani wnioskowaniem.
+Lata w Portfolio.dc.html to placeholdery narzędzia do makiet — nie dane.
+Sprawdzone 2026-08-25: polasobun.com nie podaje nigdzie roku realizacji,
+więc wszystkie year są null.
+
+## Taksonomia — decyzja ostateczna
+Filtry: ALL / COMMERCIAL / PORTRAITS / FOOD.
+ALL nie jest tagiem, tylko brakiem filtra.
+Pole tags przyjmuje wyłącznie: commercial | portraits | food.
+Projekt może mieć więcej niż jeden tag (np. Pudliszki: commercial + food).
+Tagi beauty/fashion/lifestyle/sport/still-life zostały usunięte — nie wracaj
+do nich i nie migruj ich do pola pomocniczego.
+Wygląd, typografia i zachowanie paska filtrów: dokładnie z makiety Design.
+Zmieniamy wyłącznie etykiety i logikę filtrowania.
 
 ## Kolejność prac — nie wyprzedzaj
 1. siatka statyczna
@@ -77,4 +97,4 @@ Nazwa folderu MUSI odpowiadać slugowi.
 
 ## Zasady pracy
 - Jedno zadanie na raz. Nie dokładaj funkcji, o które nie prosiłem.
-- Po każdym etapie: npm run build musi przechodzić.
+- Po każdym etapie: npm run build musi przechodzić (odpala astro check).
