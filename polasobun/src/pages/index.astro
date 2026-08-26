@@ -66,24 +66,27 @@ for (const project of projects) {
 }
 
 /**
- * Animacja wejścia. Dwa kadry mocno graficzne, wysokokontrastowe —
+ * Animacja wejścia — JEDEN kadr. Mocno graficzny i wysokokontrastowy:
  * split-flap rozbija zdjęcie na kafelki, więc czytelna plama koloru
  * działa lepiej niż subtelny portret.
  */
-const INTRO = [
-  { slug: 'rimmel', photo: '01.jpg', focusY: 30 },
-  { slug: 'allegro', photo: '01.jpg', focusY: 50 },
-];
+const INTRO = { slug: 'rimmel', photo: '01.jpg', focusY: 30 };
 
-const introImages = await Promise.all(
-  INTRO.map(async ({ slug, photo, focusY }) => {
-    const entry = bySlug.get(slug)?.find((p) => p.name === photo);
-    if (!entry) throw new Error(`Brak zdjęcia ${slug}/${photo} do animacji wejścia`);
-    // Canvas potrzebuje URL-a, ale zdjęcie i tak przechodzi przez astro:assets.
-    const optimized = await getImage({ src: entry.img, width: 1920, format: 'webp' });
-    return { src: optimized.src, focusY };
-  }),
-);
+const introEntry = bySlug.get(INTRO.slug)?.find((p) => p.name === INTRO.photo);
+if (!introEntry) {
+  throw new Error(`Brak zdjęcia ${INTRO.slug}/${INTRO.photo} do animacji wejścia`);
+}
+/*
+ * Dwa warianty. Wcześniej szło jedno 1920 px i ważyło 525 kB — największy
+ * pojedynczy zasób strony, serwowany także na ekran 412 px szerokości.
+ * Canvas nigdy nie jest większy niż okno, a split-flap tnie kadr na kafelki.
+ * Canvas potrzebuje URL-a, ale zdjęcie i tak przechodzi przez astro:assets.
+ */
+const [introMaly, introDuzy] = await Promise.all([
+  getImage({ src: introEntry.img, width: 900, format: 'webp' }),
+  getImage({ src: introEntry.img, width: 1800, format: 'webp' }),
+]);
+const introImage = { maly: introMaly.src, duzy: introDuzy.src, focusY: INTRO.focusY };
 
 /** Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie). */
 const TILE_WIDTH = 800;
@@ -100,7 +103,7 @@ const EAGER_COUNT = 2;
 ---
 
 <Base title="Pola Sobuń">
-  <Intro client:load images={introImages} />
+  <Intro client:load image={introImage} />
 
   <Gallery client:load wordmark="Pola Sobuń">
     {

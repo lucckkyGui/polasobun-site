@@ -39,6 +39,26 @@ preloadu i zejściu z EAGER_COUNT do 2:
 font-display: swap i tak pokazuje tekst od razu w foncie zastępczym.
 Przy portfolio fotograficznym obraz wygrywa z tekstem.
 
+inlineStylesheets: 'always' w astro.config. Arkusz ma ~12 kB, próg Astro
+to 4 kB, więc bez tego był osobnym blokującym żądaniem. Po wstrzyknięciu:
+zero żądań CSS, FCP 668-1028 ms zamiast ~1557 ms szacowanych przez
+narzędzie. Koszt: 18 stron niesie własną kopię, HTML łącznie 65 -> 126 kB
+po gzipie, index.html 13 -> 17 kB.
+
+UWAGA, efekt uboczny: wstrzyknięty CSS sprawia, że @font-face jest
+parsowany natychmiast, więc fonty startują w 630-970 ms zamiast 1672 ms
+i wracają do walki o pasmo z obrazem LCP (2348-2445 ms zamiast 1964 ms).
+Lokalnie wychodzi z tego wymiana, nie wygrana. Zostawione włączone przy
+założeniu, że to artefakt lokalnego serwera (HTTP/1.1, bez kompresji) —
+na produkcji jest h2, brotli i CDN, a tam ten sam obraz schodził w 0,4 ms.
+JEŚLI pomiar produkcyjny pokaże inaczej, wyłączenie to jedna linia.
+
+Na stronie głównej ŻADEN widoczny tekst nie używa wagi 400, a
+Satoshi-Regular.woff2 i tak się pobiera — sprawdzone, wszystkie elementy
+o tej wadze to <style> i <script>. Nie udało się tego wyeliminować.
+Waga 400 jest realnie używana na stronach projektów (wartości faktów),
+więc deklaracji nie usuwaj.
+
 OSTRZEŻENIE METODOLOGICZNE: lokalny `npm run preview` to hałaśliwe
 stanowisko — dla tej samej wersji render delay wychodził 57, 90 i 386 ms,
 a LCP 1293 i 2409 ms. Nie przypisuj zmian pojedynczym przebiegom.
@@ -231,10 +251,12 @@ NIE przepisuj go i nie "poprawiaj". Żeby go zaktualizować, pobierz
 ponownie z MCP. Zostawiony jest w nim nieużywany prop `animate` —
 to jedyny hint z astro check i pochodzi z oryginału.
 
-src/components/Intro.tsx to NASZA warstwa spinająca. Komponent Originkit
-cykluje w nieskończoność i nie ma callbacku końca, więc moment oddania
-sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
-= 4400 ms, po czym kurtyna schodzi TWARDYM CIĘCIEM — bez wygaszania.
+src/components/Intro.tsx to NASZA warstwa spinająca. Intro pokazuje JEDEN
+kadr w trybie FlipImage `mode="single"` — komponent wtedy nie cykluje,
+tylko ląduje i zostaje. Odpada przez to cała klasa problemów z odmierzaniem
+cudzego zegara przez wiele przejść. Czas: (duration + delay) = 2200 ms,
+po czym kurtyna schodzi TWARDYM CIĘCIEM — bez wygaszania.
+Zmierzone od zbudowania canvasu do zniknięcia kurtyny: 2172-2200 ms.
 350 ms zaniku po 4,4 s split-flapa nic nie wnosiło, a dokładało easing
 i przekroczenie budżetu 300 ms na UI. Zmierzone po zmianie: ostatnia
 klatka z kurtyną przy opacity 1, następna bez niej, zero klatek
@@ -243,7 +265,7 @@ Stałe DURATION_S/DELAY_S
 w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
 rozjadą się i przejście utnie animację w połowie.
 
-TRZY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
+CZTERY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
 1. Zdjęcia są preloadowane PRZED montażem FlipImage. Komponent startuje
    swój zegar dopiero po onload, więc bez preloadu sieć zjadała budżet.
 2. Odliczanie startuje dopiero, gdy płótno dostanie DOKŁADNIE wymiary
@@ -251,7 +273,12 @@ TRZY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
    z zerem — puste płótno ma domyślnie 300×150, więc `canvas.width > 0`
    spełnia się już przy montażu i NICZEGO nie wykrywa. Ten błąd był tu
    przez jedną iterację i dawał złudzenie naprawy.
-3. Rozmiar mierzymy raz i zamrażamy. cardWidth/cardHeight są w deps
+3. Bezpiecznik czekania na canvas MUSI być na setTimeout, nie wewnątrz
+   pętli rAF. requestAnimationFrame NIE CHODZI w ukrytej karcie, więc
+   warunek sprawdzany w jego wnętrzu nigdy się nie wykona i kurtyna wisi
+   w tle w nieskończoność. Wykryte przypadkiem — panel przeglądarki był
+   ukryty i intro zawisło na stałe.
+4. Rozmiar mierzymy raz i zamrażamy. cardWidth/cardHeight są w deps
    efektu FlipImage — reagowanie na resize restartuje animację od zera,
    podczas gdy zewnętrzne odliczanie biegnie dalej.
 Objaw wszystkich trzech błędów jest ten sam i mylący: animacja wygląda
@@ -290,10 +317,14 @@ Intro renderuje null na serwerze — bez JS-u strona jest od razu
 użyteczna i nic jej nie zasłania. Kosztem jest mgnienie siatki przed
 pojawieniem się nakładki.
 
-Zdjęcia do animacji wybrane w index.astro (stała INTRO): rimmel/01
-i allegro/01 — mocno graficzne, wysokokontrastowe. Split-flap rozbija
-kadr na kafelki, więc czytelna plama koloru działa lepiej niż subtelny
-portret. Zmiana to podmiana slugu w INTRO.
+Zdjęcie wybrane w index.astro (stała INTRO): rimmel/01 — mocno graficzne,
+wysokokontrastowe. Split-flap rozbija kadr na kafelki, więc czytelna plama
+koloru działa lepiej niż subtelny portret. Zmiana to podmiana slugu.
+
+Generowane są DWA warianty: 900 px i 1800 px, wybierane po
+szerokość_okna × dpr z progiem 1100. Wcześniej szło jedno 1920 px ważące
+525 kB — największy pojedynczy zasób strony, serwowany także na ekran
+412 px. Po zmianie na telefonie schodzi 128 kB, czyli o 76% mniej.
 
 ## Wejście kafli — stagger
 Odpalane atrybutem `data-enter`, który Intro ustawia na `[data-filter]`
