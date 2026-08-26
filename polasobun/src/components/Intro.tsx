@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import FlipImage from './originkit/image-flipper';
 
 export interface IntroImage {
@@ -21,13 +21,43 @@ const PLAY_MS = PHOTOS * (DURATION_S + DELAY_S) * 1000;
 /** Zgodne z --duration-flip. */
 const FADE_MS = 350;
 
-/**
- * Bezpiecznik: gdyby któreś zdjęcie nie doszło, nie blokujemy strony
- * w nieskończoność — po tym czasie ruszamy tak czy inaczej.
- */
+/** Gdyby zdjęcie nie doszło — nie blokujemy strony w nieskończoność. */
 const MAX_PRELOAD_MS = 6000;
+/** Gdyby build() nigdy nie wystartował — odliczamy mimo wszystko. */
+const MAX_CANVAS_WAIT_MS = 3000;
+
+/** Intro to zachwyt dla pierwszego kontaktu, nie podatek od każdego wejścia. */
+const SESSION_KEY = 'polasobun:intro-played';
 
 type Phase = 'idle' | 'playing' | 'leaving' | 'done';
+
+function alreadyPlayed(): boolean {
+  try {
+    return window.sessionStorage.getItem(SESSION_KEY) === '1';
+  } catch {
+    // Tryb prywatny albo zablokowane storage — trudno, pokażemy raz więcej.
+    return false;
+  }
+}
+
+function markPlayed(): void {
+  try {
+    window.sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {
+    // Bez znaczenia dla działania animacji.
+  }
+}
+
+/**
+ * Wymiary, jakie FlipImage nadaje płótnu w swoim build().
+ * UWAGA: samo `canvas.width > 0` NIE jest sygnałem startu — puste płótno
+ * ma domyślnie 300×150 (sprawdzone w przeglądarce), więc taki warunek
+ * spełnia się już przy montażu i nic nie wykrywa.
+ */
+function builtCanvasSize(width: number, height: number) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  return { width: Math.round(width * dpr), height: Math.round(height * dpr) };
+}
 
 interface Props {
   images: IntroImage[];
@@ -36,62 +66,78 @@ interface Props {
 /**
  * Animacja wejścia: dwa zdjęcia w split-flapie, potem odsłonięcie siatki.
  *
- * Na serwerze renderuje null — dzięki temu bez JS-u strona jest od razu
- * użyteczna i nic jej nie zasłania. Przy prefers-reduced-motion animacja
- * nie startuje w ogóle (canvas chodzi na requestAnimationFrame, więc
- * globalny bezpiecznik z global.css by go nie zatrzymał).
+ * Na serwerze renderuje null — bez JS-u strona jest od razu użyteczna
+ * i nic jej nie zasłania. Przy prefers-reduced-motion oraz przy powtórnym
+ * wejściu w tej samej sesji animacja nie startuje w ogóle.
  */
 export default function Intro({ images }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [ready, setReady] = useState(false);
+  const [started, setStarted] = useState(false);
   const overlayRef = useRef<HTMLDivElement | null>(null);
 
   const srcKey = images.map(({ src }) => src).join('|');
 
+  const skip = useCallback(() => {
+    setPhase((current) => (current === 'playing' ? 'leaving' : current));
+  }, []);
+
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (alreadyPlayed() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setPhase('done');
       return;
     }
+    markPlayed();
 
-    const measure = () => setSize({ w: window.innerWidth, h: window.innerHeight });
-    measure();
-    window.addEventListener('resize', measure);
+    /*
+     * Rozmiar mierzymy RAZ i zamrażamy. cardWidth/cardHeight są w deps
+     * efektu FlipImage — reagowanie na resize restartowałoby animację od
+     * zera, podczas gdy zewnętrzne odliczanie biegłoby dalej.
+     */
+    setSize({ w: window.innerWidth, h: window.innerHeight });
     setPhase('playing');
-
-    return () => window.removeEventListener('resize', measure);
   }, []);
 
+  /** Ucieczka klawiaturą. Kliknięcie w kurtynę robi to samo. */
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') skip();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase, skip]);
+
   /**
-   * Zdjęcia muszą być w cache ZANIM ruszy odliczanie. FlipImage startuje
-   * swój zegar dopiero po onload, więc odmierzanie od montażu powodowało,
-   * że przy wolniejszej sieci drugi kadr nie zdążył się pokazać —
-   * zmierzone na produkcji: canvas znikał w 4639 ms, a pierwszy kadr
-   * składał się dopiero ~3000 ms.
+   * Zdjęcia muszą być w cache ZANIM zamontujemy FlipImage — komponent
+   * startuje swój zegar dopiero po onload. Jeśli któreś nie dojdzie,
+   * pomijamy animację zamiast odtwarzać zepsutą.
    */
   useEffect(() => {
     if (phase !== 'playing') return;
 
     let alive = true;
     let settled = 0;
-    const finish = () => {
+    let failed = false;
+    const guard = window.setTimeout(() => {
       if (alive) setReady(true);
-    };
-    const guard = window.setTimeout(finish, MAX_PRELOAD_MS);
+    }, MAX_PRELOAD_MS);
 
     for (const { src } of images) {
       const preload = new Image();
       preload.crossOrigin = 'anonymous';
-      const tick = () => {
+      const tick = (ok: boolean) => {
+        if (!ok) failed = true;
         settled += 1;
-        if (settled === images.length) {
-          window.clearTimeout(guard);
-          finish();
-        }
+        if (settled !== images.length) return;
+        window.clearTimeout(guard);
+        if (!alive) return;
+        if (failed) setPhase('done');
+        else setReady(true);
       };
-      preload.onload = tick;
-      preload.onerror = tick;
+      preload.onload = () => tick(true);
+      preload.onerror = () => tick(false);
       preload.src = src;
     }
 
@@ -102,43 +148,46 @@ export default function Intro({ images }: Props) {
   }, [phase, srcKey]);
 
   /**
-   * Odliczanie startuje dopiero, gdy canvas NAPRAWDĘ zaczyna rysować, a nie
-   * gdy skończy się preload. FlipImage nadaje płótnu wymiary w swoim build(),
-   * czyli po hydratacji wyspy i dekodowaniu obrazu — ta zwłoka potrafi zjeść
-   * kilkaset ms. Licząc od preloadu drugi kadr nie mieścił się w oknie
-   * i animacja kończyła się na pierwszym zdjęciu.
-   *
-   * Zależy tylko od `ready` — dołożenie `phase` skasowałoby timer 'done'
-   * w momencie przejścia w 'leaving'.
+   * Odliczanie startuje dopiero, gdy FlipImage wykona build() — czyli gdy
+   * płótno dostanie DOKŁADNIE wymiary wyliczone z cardWidth × dpr.
+   * Porównanie z konkretną wartością, nie z zerem: puste płótno ma 300×150.
    */
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !size) return;
 
+    const expected = builtCanvasSize(size.w, size.h);
+    const deadline = performance.now() + MAX_CANVAS_WAIT_MS;
     let raf = 0;
-    let toLeaving = 0;
-    let toDone = 0;
 
-    const start = () => {
-      toLeaving = window.setTimeout(() => setPhase('leaving'), PLAY_MS);
-      toDone = window.setTimeout(() => setPhase('done'), PLAY_MS + FADE_MS);
-    };
-
-    const waitForCanvas = () => {
+    const check = () => {
       const canvas = overlayRef.current?.querySelector('canvas');
-      if (canvas && canvas.width > 0) {
-        start();
+      const built =
+        canvas && canvas.width === expected.width && canvas.height === expected.height;
+      if (built || performance.now() > deadline) {
+        setStarted(true);
         return;
       }
-      raf = requestAnimationFrame(waitForCanvas);
+      raf = requestAnimationFrame(check);
     };
-    raf = requestAnimationFrame(waitForCanvas);
+    raf = requestAnimationFrame(check);
 
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(toLeaving);
-      window.clearTimeout(toDone);
-    };
-  }, [ready]);
+    return () => cancelAnimationFrame(raf);
+  }, [ready, size]);
+
+  useEffect(() => {
+    if (!started) return;
+    const timer = window.setTimeout(
+      () => setPhase((current) => (current === 'playing' ? 'leaving' : current)),
+      PLAY_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [started]);
+
+  useEffect(() => {
+    if (phase !== 'leaving') return;
+    const timer = window.setTimeout(() => setPhase('done'), FADE_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
 
   /** Blokada przewijania tylko na czas animacji. */
   useEffect(() => {
@@ -156,21 +205,22 @@ export default function Intro({ images }: Props) {
     <div
       ref={overlayRef}
       aria-hidden="true"
-      className={`bg-surface fixed inset-0 z-50 grid place-items-center overflow-hidden transition-opacity ease-exit duration-[var(--duration-flip)] ${
+      onClick={skip}
+      className={`bg-surface fixed inset-0 z-50 grid cursor-pointer place-items-center overflow-hidden transition-opacity ease-enter duration-[var(--duration-flip)] ${
         phase === 'leaving' ? 'opacity-0' : 'opacity-100'
       }`}
     >
       {ready && (
-      <FlipImage
-        mode="multi"
-        images={images.map(({ src, focusY }) => ({ image: src, focusY }))}
-        cardWidth={size.w}
-        cardHeight={size.h}
-        tiles={Math.max(24, Math.round(size.w / 26))}
-        angle={77}
-        flip={50}
-        transition={{ duration: DURATION_S, ease: 'linear', delay: DELAY_S }}
-      />
+        <FlipImage
+          mode="multi"
+          images={images.map(({ src, focusY }) => ({ image: src, focusY }))}
+          cardWidth={size.w}
+          cardHeight={size.h}
+          tiles={Math.max(24, Math.round(size.w / 26))}
+          angle={77}
+          flip={50}
+          transition={{ duration: DURATION_S, ease: 'linear', delay: DELAY_S }}
+        />
       )}
     </div>
   );

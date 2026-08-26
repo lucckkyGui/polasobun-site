@@ -53,6 +53,11 @@ Easingi mają własne nazwy, żeby nie nadpisywać wbudowanych:
   ease-exit   wyjścia    cubic-bezier(0.7, 0, 0.84, 0)
   ease-move   ruch A→B   cubic-bezier(0.65, 0, 0.35, 1)
 
+--ease-exit NIE NADAJE SIĘ NA UI. To czysty ease-in: startuje wolno
+dokładnie w momencie, w którym użytkownik patrzy. Zarezerwowany wyłącznie
+pod ruch fizycznie opuszczający ekran. Wchodzące I wychodzące elementy
+interfejsu biorą ease-enter.
+
 Przestrzenie --radius-*, --shadow-*, --inset-shadow-*, --drop-shadow-*
 są wykasowane (: initial) — brak zaokrągleń i cieni jest wymuszony na
 poziomie tokenów, nie tylko umową.
@@ -177,16 +182,25 @@ sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
 w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
 rozjadą się i przejście utnie animację w połowie.
 
-DWA punkty zaczepienia, oba wywalczone bólem — nie upraszczaj ich:
+TRZY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
 1. Zdjęcia są preloadowane PRZED montażem FlipImage. Komponent startuje
    swój zegar dopiero po onload, więc bez preloadu sieć zjadała budżet.
-2. Odliczanie startuje dopiero, gdy canvas ma niezerową szerokość, czyli
-   gdy FlipImage wykonał swój build(). Między preloadem a pierwszą klatką
-   mija hydratacja wyspy i dekodowanie obrazu — kilkaset ms, które
-   wystarczały, żeby drugi kadr nie zdążył się pokazać.
-Objaw obu błędów jest ten sam i mylący: animacja wygląda dobrze, tylko
-kończy się na pierwszym zdjęciu. Po każdej zmianie w tym pliku sprawdź
-zrzutami co sekundę, że OBA kadry są widoczne przed odsłonięciem siatki.
+2. Odliczanie startuje dopiero, gdy płótno dostanie DOKŁADNIE wymiary
+   cardWidth × dpr, czyli gdy FlipImage wykonał build(). Nie porównuj
+   z zerem — puste płótno ma domyślnie 300×150, więc `canvas.width > 0`
+   spełnia się już przy montażu i NICZEGO nie wykrywa. Ten błąd był tu
+   przez jedną iterację i dawał złudzenie naprawy.
+3. Rozmiar mierzymy raz i zamrażamy. cardWidth/cardHeight są w deps
+   efektu FlipImage — reagowanie na resize restartuje animację od zera,
+   podczas gdy zewnętrzne odliczanie biegnie dalej.
+Objaw wszystkich trzech błędów jest ten sam i mylący: animacja wygląda
+dobrze, tylko kończy się na pierwszym zdjęciu. Po każdej zmianie w tym
+pliku sprawdź zrzutami co sekundę, że OBA kadry są widoczne przed
+odsłonięciem siatki.
+
+Intro odtwarza się RAZ NA SESJĘ (sessionStorage `polasobun:intro-played`).
+Pomijanie: kliknięcie w kurtynę albo Escape. Jeśli któreś zdjęcie się nie
+załaduje, animacja jest pomijana w całości zamiast odtwarzana zepsuta.
 
 Trzy świadome wyjątki od twardych reguł:
 1. Animacja jest rysowana na canvasie, nie na transform/opacity.
