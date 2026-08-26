@@ -267,12 +267,41 @@ bezpieczniku, który i tak nie tyka animation-delay.
 
 Bez JS-u atrybut nie powstaje i kafle są po prostu widoczne.
 
+## Przejścia filtrów
+Przenika CAŁA siatka, nie pojedyncze kafle. Przy 374 kaflach osobne
+przejścia oznaczałyby 374 warstwy kompozycji naraz; tu przenika jeden
+element. Sam dobór kafli robi nadal reguła display:none po data-filter
+(mechanizm 1:1 z makiety) — podmieniamy atrybut w połowie przenikania,
+gdy siatka ma opacity 0, więc twarde cięcie nigdy nie trafia w oko.
+
+Wyjście 100 ms, wejście 180 ms (--duration-filter-out / -in). Asymetria
+celowa: po kliknięciu stara zawartość jest już nieistotna, nowa
+potrzebuje chwili na odczytanie. Razem 280 ms, pod budżetem 300 ms.
+
+Podświetlenie w pasku reaguje NATYCHMIAST — stan `pending` trzyma wybór
+zanim trafi on do siatki. Bez tego kontrolka spóźniałaby się o 100 ms
+względem kliknięcia.
+
+Przerywalne: kolejne kliknięcie kasuje oczekujący timeout i retarguje
+trwające przenikanie. Zmierzone — trzy kliknięcia w 80 ms dają JEDNĄ
+podmianę zawartości, od razu na finalny wybór.
+
+data-enter jest zdejmowany po zakończeniu staggeru (patrz Intro.tsx).
+Element wracający z display:none restartuje animację CSS, więc bez tego
+każdy powrót do ALL odtwarzałby wejście kafli równocześnie z przejściem
+filtrów. Zweryfikowane: po powrocie do ALL zero animacji na kaflach.
+
+Przenikanie zostaje przy prefers-reduced-motion — opacity jest na białej
+liście globalnego bezpiecznika i zgodnie ze standardem przejścia
+pomagające zrozumieć zmianę stanu mają zostać. Ruchu tu nie ma.
+
 ## Kolejność prac — nie wyprzedzaj
 1. siatka statyczna ✔
 2. wejście kafli (stagger) ✔
-3. hover flip
-4. przejścia filtrów
-5. review-animations
+3. hover flip — POMINIĘTY świadomą decyzją. Wymagałby powrotu do rewersu
+   kafla z makiety, którego przy siatce statycznej nie budowaliśmy.
+4. przejścia filtrów ✔
+5. review-animations ✔ (przeprowadzone, wszystkie uwagi zamknięte)
 
 ## Zasady pracy
 - Jedno zadanie na raz. Nie dokładaj funkcji, o które nie prosiłem.

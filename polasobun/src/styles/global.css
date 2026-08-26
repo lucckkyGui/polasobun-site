@@ -135,6 +135,11 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-flip: 350ms;
+
+  /* Przejście filtrów. Wyjście jest szybsze: w momencie kliknięcia stara
+     zawartość jest już nieistotna, nowa potrzebuje chwili na odczytanie. */
+  --duration-filter-out: 100ms;
+  --duration-filter-in: 180ms;
 }
 
 /* ─── Filtrowanie siatki ─────────────────────────────────────────────────── */

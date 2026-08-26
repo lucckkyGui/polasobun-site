@@ -24,6 +24,13 @@ const MAX_PRELOAD_MS = 6000;
 /** Gdyby build() nigdy nie wystartował — odliczamy mimo wszystko. */
 const MAX_CANVAS_WAIT_MS = 3000;
 
+/**
+ * Ile trwa stagger wejścia kafli — ostatnie opóźnienie 550 ms plus czas
+ * trwania 250 ms, z zapasem. Musi zgadzać się z regułami tile-enter
+ * w global.css.
+ */
+const STAGGER_TOTAL_MS = 1000;
+
 /** Intro to zachwyt dla pierwszego kontaktu, nie podatek od każdego wejścia. */
 const SESSION_KEY = 'polasobun:intro-played';
 
@@ -214,7 +221,21 @@ export default function Intro({ images }: Props) {
    */
   useEffect(() => {
     if (phase !== 'done') return;
-    document.querySelector('[data-filter]')?.setAttribute('data-enter', '');
+    const grid = document.querySelector('[data-filter]');
+    if (!grid) return;
+    grid.setAttribute('data-enter', '');
+
+    /*
+     * Atrybut zdejmujemy po zakończeniu staggeru. Element wracający
+     * z display:none restartuje swoją animację CSS, więc gdyby data-enter
+     * został na stałe, każdy powrót do zakładki ALL odtwarzałby wejście
+     * kafli od nowa — na dodatek równocześnie z przejściem filtrów.
+     */
+    const cleanup = window.setTimeout(
+      () => grid.removeAttribute('data-enter'),
+      STAGGER_TOTAL_MS,
+    );
+    return () => window.clearTimeout(cleanup);
   }, [phase]);
 
   /** Blokada przewijania tylko na czas animacji. */
