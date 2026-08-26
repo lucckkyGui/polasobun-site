@@ -1,5 +1,5 @@
 ---
-import { Image, getImage } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
 import Intro from '../components/Intro';
@@ -143,24 +143,30 @@ const [introMaly, introDuzy] = await Promise.all([
 const introImage = { maly: introMaly.src, duzy: introDuzy.src, focusY: INTRO.focusY };
 
 /**
- * Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie).
+ * Dwa poziomy jakości. Powód jest w pomiarze, nie w wadze: na łączu
+ * o opóźnieniu 576 ms transfer ogranicza LICZBA OBROTÓW, nie bajty.
+ * Kafel 1000 px potrzebuje ~4 obrotów (~2,3 s), kafel 400 px mieści się
+ * w jednym–dwóch. Dlatego HTML niesie lekki, a ostry dochodzi później.
  *
- * 1000 px to ŚWIADOMY kompromis, nie dopasowanie do urządzenia. Kafel przy
- * jednej kolumnie zajmuje 430 pt x dpr 3 = 1290 px, więc 1300 px dawało
- * skalowanie 0,99x, piksel w piksel — ale start strony ważył wtedy 4381 kB
- * przy 23 obrazach i na wolnym łączu kosztował ~330 ms LCP. 1000 px to
- * skalowanie 1,29x W GÓRĘ na iPhonie i około 40% mniej bajtów.
- *
- * Granica jest twarda: NIE schodzić niżej. Przy 800 px skalowanie sięga
- * 1,61x i zdjęcia widocznie miękną — to był stan sprzed jednej kolumny.
- *
- * Nie da się tu użyć widths + sizes: responsywny srcset wyklucza się
- * z kadrowaniem po stronie serwera (aspectRatio nie istnieje w tej wersji
- * Astro, a bez width+height serwis nie przycina do 4:5 i poziome źródła
- * musiałby rozciągać CSS). Jedna szerokość obsługuje więc wszystkie ekrany.
+ * Proporcja obu musi być identyczna (4:5), inaczej podmiana przesunie
+ * układ i CLS przestanie być zerowy.
  */
-const TILE_WIDTH = 1000;
-const TILE_HEIGHT = 1250;
+const LEKKI = { width: 400, height: 500 };
+const OSTRY = { width: 1000, height: 1250 };
+
+/**
+ * Warianty liczone raz, w kolejności zgodnej z `tiles` — markup sięga
+ * po indeks, więc obie tablice muszą pozostać równoległe.
+ */
+const warianty = await Promise.all(
+  tiles.map(async (tile) => {
+    const [lekki, ostry] = await Promise.all([
+      getImage({ src: tile.img, ...LEKKI, format: 'webp' }),
+      getImage({ src: tile.img, ...OSTRY, format: 'webp' }),
+    ]);
+    return { lekki: lekki.src, ostry: ostry.src };
+  }),
+);
 
 /**
  * Ile kafli ładujemy od razu. Przy JEDNEJ kolumnie na telefonie widać
@@ -178,12 +184,16 @@ const EAGER_COUNT = 4;
   <Gallery client:load wordmark="Pola Sobuń">
     {
       tiles.map((tile, index) => {
-        const picture = (
-          <Image
-            src={tile.img}
-            format="webp"
-            width={TILE_WIDTH}
-            height={TILE_HEIGHT}
+        // width/height opisują wariant OSTRY, nie ten w src: docelowym stanem
+        // kafla jest wersja ostra, a obie mają tę samą proporcję 4:5, więc
+        // przeglądarka i tak dostaje poprawny format do rezerwacji miejsca.
+        // Rozmiar na ekranie i tak narzuca CSS (aspect-tile + w-full).
+        const img = (
+          <img
+            src={warianty[index].lekki}
+            data-pelny={warianty[index].ostry}
+            width={OSTRY.width}
+            height={OSTRY.height}
             alt={tile.alt}
             loading={index < EAGER_COUNT ? 'eager' : 'lazy'}
             fetchpriority={index === 0 ? 'high' : undefined}
@@ -193,13 +203,13 @@ const EAGER_COUNT = 4;
 
         return tile.href ? (
           <a href={tile.href} data-cat={tile.cats} class="bg-surface overflow-hidden">
-            {picture}
+            {img}
             <span class="text-on-dark-muted text-label block font-medium uppercase leading-none tracking-meta px-card py-tight">
               {tile.caption}
             </span>
           </a>
         ) : (
-          <div data-cat={tile.cats} class="bg-surface overflow-hidden">{picture}</div>
+          <div data-cat={tile.cats} class="bg-surface overflow-hidden">{img}</div>
         );
       })
     }
