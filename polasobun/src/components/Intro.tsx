@@ -2,9 +2,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import FlipImage from './originkit/image-flipper';
 
 export interface IntroImage {
-  /** URL z astro:assets (getImage) — canvas potrzebuje stringa, nie ImageMetadata. */
-  src: string;
+  /** URL-e z astro:assets (getImage) — canvas potrzebuje stringa, nie ImageMetadata. */
+  maly: string;
+  duzy: string;
   focusY?: number;
+}
+
+/**
+ * Powyżej tylu pikseli urządzenia bierzemy wariant duży. Canvas i tak
+ * nigdy nie jest większy niż okno, a split-flap tnie kadr na kafelki,
+ * więc nadmiarowa rozdzielczość jest tu czystą stratą pasma.
+ */
+const PROG_DUZEGO_WARIANTU = 1100;
+
+function wybierzWariant(image: IntroImage, szerokoscOkna: number): string {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  return szerokoscOkna * dpr > PROG_DUZEGO_WARIANTU ? image.duzy : image.maly;
 }
 
 /**
@@ -14,10 +27,14 @@ export interface IntroImage {
  */
 const DURATION_S = 1.2;
 const DELAY_S = 1;
-const PHOTOS = 2;
 
-/** Kadr ląduje po DURATION, potem trzyma DELAY. Dwa kadry = 2 × (1,2 + 1) s. */
-const PLAY_MS = PHOTOS * (DURATION_S + DELAY_S) * 1000;
+/**
+ * Jeden kadr: ląduje po DURATION, trzyma DELAY, potem twarde cięcie.
+ * FlipImage w trybie "single" nie cykluje — ląduje i zostaje — więc
+ * odpada cała klasa problemów z odmierzaniem cudzego zegara przez
+ * dwa przejścia.
+ */
+const PLAY_MS = (DURATION_S + DELAY_S) * 1000;
 
 /** Gdyby zdjęcie nie doszło — nie blokujemy strony w nieskończoność. */
 const MAX_PRELOAD_MS = 6000;
@@ -89,24 +106,24 @@ function builtCanvasSize(width: number, height: number) {
 }
 
 interface Props {
-  images: IntroImage[];
+  image: IntroImage;
 }
 
 /**
- * Animacja wejścia: dwa zdjęcia w split-flapie, potem odsłonięcie siatki.
+ * Animacja wejścia: jedno zdjęcie w split-flapie, potem odsłonięcie siatki.
  *
  * Na serwerze renderuje null — bez JS-u strona jest od razu użyteczna
  * i nic jej nie zasłania. Przy prefers-reduced-motion oraz przy powtórnym
  * wejściu w tej samej sesji animacja nie startuje w ogóle.
  */
-export default function Intro({ images }: Props) {
+export default function Intro({ image }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const overlayRef = useRef<HTMLDivElement | null>(null);
 
-  const srcKey = images.map(({ src }) => src).join('|');
+  const src = size ? wybierzWariant(image, size.w) : null;
 
   const skip = useCallback(() => {
     setPhase((current) => (current === 'playing' ? 'done' : current));
@@ -139,42 +156,35 @@ export default function Intro({ images }: Props) {
   }, [phase, skip]);
 
   /**
-   * Zdjęcia muszą być w cache ZANIM zamontujemy FlipImage — komponent
-   * startuje swój zegar dopiero po onload. Jeśli któreś nie dojdzie,
-   * pomijamy animację zamiast odtwarzać zepsutą.
+   * Zdjęcie musi być w cache ZANIM zamontujemy FlipImage — komponent
+   * startuje swój zegar dopiero po onload. Jeśli nie dojdzie, pomijamy
+   * animację zamiast odtwarzać zepsutą.
    */
   useEffect(() => {
-    if (phase !== 'playing') return;
+    if (phase !== 'playing' || !src) return;
 
     let alive = true;
-    let settled = 0;
-    let failed = false;
     const guard = window.setTimeout(() => {
       if (alive) setReady(true);
     }, MAX_PRELOAD_MS);
 
-    for (const { src } of images) {
-      const preload = new Image();
-      preload.crossOrigin = 'anonymous';
-      const tick = (ok: boolean) => {
-        if (!ok) failed = true;
-        settled += 1;
-        if (settled !== images.length) return;
-        window.clearTimeout(guard);
-        if (!alive) return;
-        if (failed) setPhase('done');
-        else setReady(true);
-      };
-      preload.onload = () => tick(true);
-      preload.onerror = () => tick(false);
-      preload.src = src;
-    }
+    const preload = new Image();
+    preload.crossOrigin = 'anonymous';
+    preload.onload = () => {
+      window.clearTimeout(guard);
+      if (alive) setReady(true);
+    };
+    preload.onerror = () => {
+      window.clearTimeout(guard);
+      if (alive) setPhase('done');
+    };
+    preload.src = src;
 
     return () => {
       alive = false;
       window.clearTimeout(guard);
     };
-  }, [phase, srcKey]);
+  }, [phase, src]);
 
   /**
    * Odliczanie startuje dopiero, gdy FlipImage wykona build() — czyli gdy
@@ -185,22 +195,38 @@ export default function Intro({ images }: Props) {
     if (!ready || !size) return;
 
     const expected = builtCanvasSize(size.w, size.h);
-    const deadline = performance.now() + MAX_CANVAS_WAIT_MS;
     let raf = 0;
+    let odpalone = false;
+
+    const start = () => {
+      if (odpalone) return;
+      odpalone = true;
+      setStarted(true);
+    };
 
     const check = () => {
       const canvas = overlayRef.current?.querySelector('canvas');
-      const built =
-        canvas && canvas.width === expected.width && canvas.height === expected.height;
-      if (built || performance.now() > deadline) {
-        setStarted(true);
+      if (canvas && canvas.width === expected.width && canvas.height === expected.height) {
+        start();
         return;
       }
       raf = requestAnimationFrame(check);
     };
     raf = requestAnimationFrame(check);
 
-    return () => cancelAnimationFrame(raf);
+    /*
+     * Bezpiecznik MUSI być na setTimeout, nie wewnątrz pętli rAF.
+     * requestAnimationFrame nie chodzi w ukrytej karcie, więc warunek
+     * sprawdzany w jego wnętrzu nigdy by się nie wykonał i kurtyna
+     * wisiałaby w tle w nieskończoność. setTimeout jest w tle dławiony,
+     * ale się odpala.
+     */
+    const bezpiecznik = window.setTimeout(start, MAX_CANVAS_WAIT_MS);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(bezpiecznik);
+    };
   }, [ready, size]);
 
   useEffect(() => {
@@ -281,10 +307,11 @@ export default function Intro({ images }: Props) {
       onClick={skip}
       className="bg-surface fixed inset-0 z-50 grid cursor-pointer place-items-center overflow-hidden"
     >
-      {ready && (
+      {ready && src && (
         <FlipImage
-          mode="multi"
-          images={images.map(({ src, focusY }) => ({ image: src, focusY }))}
+          mode="single"
+          singleImage={src}
+          singleFocusY={image.focusY}
           cardWidth={size.w}
           cardHeight={size.h}
           tiles={tileColumns(size.w, size.h)}

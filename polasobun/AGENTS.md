@@ -251,10 +251,12 @@ NIE przepisuj go i nie "poprawiaj". Żeby go zaktualizować, pobierz
 ponownie z MCP. Zostawiony jest w nim nieużywany prop `animate` —
 to jedyny hint z astro check i pochodzi z oryginału.
 
-src/components/Intro.tsx to NASZA warstwa spinająca. Komponent Originkit
-cykluje w nieskończoność i nie ma callbacku końca, więc moment oddania
-sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
-= 4400 ms, po czym kurtyna schodzi TWARDYM CIĘCIEM — bez wygaszania.
+src/components/Intro.tsx to NASZA warstwa spinająca. Intro pokazuje JEDEN
+kadr w trybie FlipImage `mode="single"` — komponent wtedy nie cykluje,
+tylko ląduje i zostaje. Odpada przez to cała klasa problemów z odmierzaniem
+cudzego zegara przez wiele przejść. Czas: (duration + delay) = 2200 ms,
+po czym kurtyna schodzi TWARDYM CIĘCIEM — bez wygaszania.
+Zmierzone od zbudowania canvasu do zniknięcia kurtyny: 2172-2200 ms.
 350 ms zaniku po 4,4 s split-flapa nic nie wnosiło, a dokładało easing
 i przekroczenie budżetu 300 ms na UI. Zmierzone po zmianie: ostatnia
 klatka z kurtyną przy opacity 1, następna bez niej, zero klatek
@@ -263,7 +265,7 @@ Stałe DURATION_S/DELAY_S
 w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
 rozjadą się i przejście utnie animację w połowie.
 
-TRZY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
+CZTERY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
 1. Zdjęcia są preloadowane PRZED montażem FlipImage. Komponent startuje
    swój zegar dopiero po onload, więc bez preloadu sieć zjadała budżet.
 2. Odliczanie startuje dopiero, gdy płótno dostanie DOKŁADNIE wymiary
@@ -271,7 +273,12 @@ TRZY punkty zaczepienia, każdy wywalczony bólem — nie upraszczaj ich:
    z zerem — puste płótno ma domyślnie 300×150, więc `canvas.width > 0`
    spełnia się już przy montażu i NICZEGO nie wykrywa. Ten błąd był tu
    przez jedną iterację i dawał złudzenie naprawy.
-3. Rozmiar mierzymy raz i zamrażamy. cardWidth/cardHeight są w deps
+3. Bezpiecznik czekania na canvas MUSI być na setTimeout, nie wewnątrz
+   pętli rAF. requestAnimationFrame NIE CHODZI w ukrytej karcie, więc
+   warunek sprawdzany w jego wnętrzu nigdy się nie wykona i kurtyna wisi
+   w tle w nieskończoność. Wykryte przypadkiem — panel przeglądarki był
+   ukryty i intro zawisło na stałe.
+4. Rozmiar mierzymy raz i zamrażamy. cardWidth/cardHeight są w deps
    efektu FlipImage — reagowanie na resize restartuje animację od zera,
    podczas gdy zewnętrzne odliczanie biegnie dalej.
 Objaw wszystkich trzech błędów jest ten sam i mylący: animacja wygląda
@@ -310,10 +317,14 @@ Intro renderuje null na serwerze — bez JS-u strona jest od razu
 użyteczna i nic jej nie zasłania. Kosztem jest mgnienie siatki przed
 pojawieniem się nakładki.
 
-Zdjęcia do animacji wybrane w index.astro (stała INTRO): rimmel/01
-i allegro/01 — mocno graficzne, wysokokontrastowe. Split-flap rozbija
-kadr na kafelki, więc czytelna plama koloru działa lepiej niż subtelny
-portret. Zmiana to podmiana slugu w INTRO.
+Zdjęcie wybrane w index.astro (stała INTRO): rimmel/01 — mocno graficzne,
+wysokokontrastowe. Split-flap rozbija kadr na kafelki, więc czytelna plama
+koloru działa lepiej niż subtelny portret. Zmiana to podmiana slugu.
+
+Generowane są DWA warianty: 900 px i 1800 px, wybierane po
+szerokość_okna × dpr z progiem 1100. Wcześniej szło jedno 1920 px ważące
+525 kB — największy pojedynczy zasób strony, serwowany także na ekran
+412 px. Po zmianie na telefonie schodzi 128 kB, czyli o 76% mniej.
 
 ## Wejście kafli — stagger
 Odpalane atrybutem `data-enter`, który Intro ustawia na `[data-filter]`
