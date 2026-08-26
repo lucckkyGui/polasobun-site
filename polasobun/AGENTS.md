@@ -9,6 +9,19 @@ z natywnym kompilatorem TypeScript 7 — nie wystawia programmatic API,
 którego wymaga (withastro/roadmap#1321). Nie bumpować bez sprawdzenia,
 że check nadal przechodzi; inaczej build wywali się na starcie.
 
+## Deploy
+Docelowa produkcja: Cloudflare Pages (bez zmian).
+
+Środowisko do weryfikacji stoi na Vercelu — projekt `polasobun-site`
+podpięty do repo lucckkyGui/polasobun-site, root directory `polasobun`,
+production branch `main`. Podgląd jest publiczny (Vercel Authentication
+wyłączone) — świadoma decyzja, żeby dało się wysłać link klientce.
+
+Root directory MUSI zostać `polasobun` — projekt Astro siedzi
+w podkatalogu, obok starej strony statycznej w roocie repo.
+Na `main` nie ma jeszcze katalogu polasobun/, więc build produkcyjny
+przejdzie dopiero po zmergowaniu PR-a.
+
 ## Twarde reguły
 - Animujemy WYŁĄCZNIE transform i opacity. Nigdy width/height/blur/box-shadow/background.
 - Zdjęcia zawsze przez astro:assets, nigdy surowy <img src>.
