@@ -176,14 +176,22 @@
   }
 }
 
-/* Twarda reguła: każda animacja respektuje prefers-reduced-motion. */
+/* Twarda reguła: każda animacja respektuje prefers-reduced-motion.
+   Ale „mniej i łagodniej", nie zero — przejścia opacity i koloru pomagają
+   zrozumieć zmianę stanu i zostają. Znika wyłącznie ruch.
+
+   Nadpisujemy TYLKO transition-property, nigdy transition-duration.
+   Domyślne transition-duration to 0s, więc elementy, które nie deklarują
+   żadnego przejścia, pozostają nietknięte — nie dokładamy im przejść.
+   Elementy, które przejście mają, tracą z niego transform i pokrewne. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    transition-property: opacity, color, background-color, border-color,
+      outline-color, text-decoration-color, fill, stroke !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }

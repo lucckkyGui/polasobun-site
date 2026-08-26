@@ -29,6 +29,24 @@ const MAX_CANVAS_WAIT_MS = 3000;
 /** Intro to zachwyt dla pierwszego kontaktu, nie podatek od każdego wejścia. */
 const SESSION_KEY = 'polasobun:intro-played';
 
+/**
+ * Górny limit kafli przerysowywanych w KAŻDEJ klatce. Bez niego przy
+ * 1440 px i DPR 2 wychodziło ~1870 wywołań drawImage na klatkę, na głównym
+ * wątku, dokładnie wtedy gdy strona pobiera zdjęcia siatki.
+ */
+const MAX_TILES = 900;
+
+/**
+ * FlipImage przyjmuje liczbę KOLUMN i sam wylicza wiersze z proporcji
+ * płótna, więc łączna liczba kafli ≈ kolumny² × (wysokość / szerokość).
+ * Stąd pierwiastek przy przeliczaniu budżetu na kolumny.
+ */
+function tileColumns(width: number, height: number): number {
+  const byDensity = Math.round(width / 26);
+  const byBudget = Math.floor(Math.sqrt((MAX_TILES * width) / height));
+  return Math.max(12, Math.min(byDensity, byBudget));
+}
+
 type Phase = 'idle' | 'playing' | 'leaving' | 'done';
 
 function alreadyPlayed(): boolean {
@@ -199,6 +217,30 @@ export default function Intro({ images }: Props) {
     };
   }, [phase]);
 
+  /**
+   * Treść pod kurtyną nie może łapać fokusu — bez tego Tab wchodzi
+   * w przyciski filtrów schowane pod nieprzezroczystą nakładką.
+   * `inert` zdejmuje je z kolejności tabulacji i z drzewa dostępności.
+   * Wyłączamy rodzeństwo nakładki, nie jej samej ani jej przodków.
+   */
+  useEffect(() => {
+    if (phase !== 'playing' && phase !== 'leaving') return;
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    const disabled: HTMLElement[] = [];
+    for (const child of Array.from(document.body.children)) {
+      if (!(child instanceof HTMLElement)) continue;
+      if (child.contains(overlay) || child.inert) continue;
+      child.inert = true;
+      disabled.push(child);
+    }
+
+    return () => {
+      for (const element of disabled) element.inert = false;
+    };
+  }, [phase]);
+
   if (phase === 'idle' || phase === 'done' || !size) return null;
 
   return (
@@ -216,7 +258,7 @@ export default function Intro({ images }: Props) {
           images={images.map(({ src, focusY }) => ({ image: src, focusY }))}
           cardWidth={size.w}
           cardHeight={size.h}
-          tiles={Math.max(24, Math.round(size.w / 26))}
+          tiles={tileColumns(size.w, size.h)}
           angle={77}
           flip={50}
           transition={{ duration: DURATION_S, ease: 'linear', delay: DELAY_S }}

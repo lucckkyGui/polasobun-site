@@ -27,7 +27,11 @@ przejdzie dopiero po zmergowaniu PR-a.
 - Zdjęcia zawsze przez astro:assets, nigdy surowy <img src>.
 - Zdjęcia dynamiczne (ze slugu) — WYŁĄCZNIE przez import.meta.glob z eager: true.
   Ścieżka jako string NIE zostanie zoptymalizowana i wysypie się na produkcji.
-- Każda animacja respektuje prefers-reduced-motion.
+- Każda animacja respektuje prefers-reduced-motion. Bezpiecznik w global.css
+  nadpisuje TYLKO transition-property, nigdy transition-duration: domyślne
+  transition-duration to 0s, więc elementy bez własnych przejść pozostają
+  nietknięte. Nadpisanie duration dokładałoby przejścia tam, gdzie ich nie
+  było. Ruch znika, przejścia opacity i koloru zostają.
 - Zero zależności poza: astro, react, tailwind, motion. Pytaj przed dodaniem czegokolwiek.
 - Brak zaokrągleń, cieni i gradientów.
 - Animacja wejścia jest zaakceptowana i wdrożona (patrz niżej). Poza nią
@@ -201,6 +205,18 @@ odsłonięciem siatki.
 Intro odtwarza się RAZ NA SESJĘ (sessionStorage `polasobun:intro-played`).
 Pomijanie: kliknięcie w kurtynę albo Escape. Jeśli któreś zdjęcie się nie
 załaduje, animacja jest pomijana w całości zamiast odtwarzana zepsuta.
+
+Liczba kafli jest ograniczona budżetem MAX_TILES = 900 na klatkę.
+FlipImage przyjmuje liczbę KOLUMN i sam wylicza wiersze z proporcji
+płótna, więc łączna liczba kafli ≈ kolumny² × (wysokość / szerokość) —
+stąd pierwiastek w tileColumns(). Bez tego limitu przy 2560×1440 i DPR 2
+wychodziło 5390 wywołań drawImage na klatkę, na głównym wątku, dokładnie
+gdy strona pobiera zdjęcia siatki. Po limicie: 880. Nie podnoś MAX_TILES
+bez sprawdzenia na dwurdzeniowej maszynie.
+
+Treść pod kurtyną dostaje `inert` na czas animacji — bez tego Tab wchodzi
+w przyciski filtrów schowane pod nieprzezroczystą nakładką. Wyłączane jest
+rodzeństwo nakładki w <body>, nigdy ona sama ani jej przodkowie.
 
 Trzy świadome wyjątki od twardych reguł:
 1. Animacja jest rysowana na canvasie, nie na transform/opacity.
