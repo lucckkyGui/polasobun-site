@@ -177,6 +177,17 @@ sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
 w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
 rozjadą się i przejście utnie animację w połowie.
 
+DWA punkty zaczepienia, oba wywalczone bólem — nie upraszczaj ich:
+1. Zdjęcia są preloadowane PRZED montażem FlipImage. Komponent startuje
+   swój zegar dopiero po onload, więc bez preloadu sieć zjadała budżet.
+2. Odliczanie startuje dopiero, gdy canvas ma niezerową szerokość, czyli
+   gdy FlipImage wykonał swój build(). Między preloadem a pierwszą klatką
+   mija hydratacja wyspy i dekodowanie obrazu — kilkaset ms, które
+   wystarczały, żeby drugi kadr nie zdążył się pokazać.
+Objaw obu błędów jest ten sam i mylący: animacja wygląda dobrze, tylko
+kończy się na pierwszym zdjęciu. Po każdej zmianie w tym pliku sprawdź
+zrzutami co sekundę, że OBA kadry są widoczne przed odsłonięciem siatki.
+
 Trzy świadome wyjątki od twardych reguł:
 1. Animacja jest rysowana na canvasie, nie na transform/opacity.
    Split-flapa nie da się zrobić inaczej. Samo wygaszenie nakładki
