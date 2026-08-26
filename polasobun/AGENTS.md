@@ -99,17 +99,24 @@ Warunki A — mobile 412x915, Slow 4G, 4x CPU (te same co baseline):
 
 Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU:
 
-  LCP                        572 ms
-  CLS                        0.00
-  kolumny                    2 x 215 px
-  skalowanie obrazu          0,81x w dół   (przed: 1,61x W GÓRĘ)
-  kafli na ekranie           8             (przed: 2)
-  ekranów do przewinięcia    84            (przed: 186)
+  metryka                    na starcie      teraz
+  LCP                        —               572 ms
+  CLS                        —               0.00
+  kolumny                    1               2 x 215 px
+  skalowanie obrazu          1,61x W GÓRĘ    0,81x w dół
+  kafli na ekranie           2               8
+  ekranów do przewinięcia    186             16
+  kafli w DOM                374             280
+  kafli w widoku ALL         359             101
 
-Test przewijania, 8 ekranów po kolei, liczba pustych kafli w widoku:
-  0, 0, 1, 0, 0, 0, 0, 0
-Jeden kafel na osiem ekranów, przy przewijaniu skokami po całym ekranie,
-czyli ostrzej niż realnym przesuwaniem palcem.
+Test przewijania, 10 ekranów po kolei, liczba pustych kafli w widoku:
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Ani jednego, przy przewijaniu skokami po całym ekranie — ostrzej niż
+realnym przesuwaniem palcem. Przed round-robinem i limitem wychodziło
+0,0,1,0,0,0,0,0 przy 8 ekranach.
+
+Skrócenie ze 186 ekranów na 16 to głównie zasługa MAX_W_ALL, nie
+optymalizacji technicznych: ALL pokazuje 101 kafli zamiast 359.
 
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
 że content-visibility działa — to własność dokumentu, nie pomiaru.
