@@ -1,5 +1,5 @@
 ---
-import { Picture, getImage } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
 import Intro from '../components/Intro';
@@ -179,9 +179,9 @@ const EAGER_COUNT = 4;
     {
       tiles.map((tile, index) => {
         const picture = (
-          <Picture
+          <Image
             src={tile.img}
-            formats={['webp']}
+            format="webp"
             width={TILE_WIDTH}
             height={TILE_HEIGHT}
             alt={tile.alt}
