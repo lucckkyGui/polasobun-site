@@ -39,56 +39,62 @@ interface Tile {
 const tiles: Tile[] = [];
 
 /**
- * Ile zdjęć z JEDNEJ sesji trafia do widoku ALL. Reszta zdjęć tej sesji
- * zostaje dostępna na jej stronie /work/<slug>, a jeśli sesja ma tag
- * portraits albo food — także w tamtej zakładce.
- *
- * ALL ma być przeglądem pojedynczych kadrów z różnych sesji, nie
- * archiwum. Przy 17 sesjach limit 6 daje 101 kafli.
- */
-const MAX_W_ALL = 6;
-
-/**
  * 1. Kafle zdjęć — ALL, PORTRAITS, FOOD. Bez podpisów i bez linków.
  *    `commercial` celowo odfiltrowane: zakładka COMMERCIAL pokazuje
  *    okładki kampanii, nie pojedyncze zdjęcia.
  *
- *    Kolejność to ROUND-ROBIN po sesjach: najpierw pierwsze zdjęcie
- *    z każdej sesji, potem drugie z każdej, i tak dalej. Dzięki temu dwa
- *    sąsiednie kafle nigdy nie pochodzą z tej samej sesji — wcześniej
- *    szło folder po folderze i wychodziło po kilkanaście kadrów z rzędu
- *    z jednej kampanii.
+ *    DWA PRZEBIEGI, w tej kolejności:
  *
- *    Zdjęcie poza limitem ALL, które nie ma też tagu portraits ani food,
- *    nie trafiłoby do ŻADNEJ zakładki — pomijamy je, żeby nie ciążyło
- *    w DOM-ie. Zostaje widoczne na stronie swojej kampanii.
- */
-/*
- * Okładka (01.jpg) jest POMIJANA w kolejkach zdjęć. Pokazuje ją zakładka
- * COMMERCIAL jako kafel kampanii, więc gdyby wchodziła też do ALL, ten sam
- * kadr witałby użytkownika dwa razy i marnował miejsce, które może pokazać
- * coś nowego. Kolekcje (_portraits, _food) nie mają kafla kampanii, więc
- * u nich okładka zostaje.
+ *    a) kadry z pola `featured` — wybrane ręcznie z arkuszy stykowych,
+ *       round-robinem po sesjach. Runda zerowa to najmocniejszy kadr
+ *       KAŻDEJ sesji, więc pierwszy ekran ALL to same petardy, każda
+ *       z innej sesji. To one dostają eager i stagger wejścia.
+ *
+ *    b) reszta zdjęć — bez tagu `all`, więc niewidoczne w ALL, ale nadal
+ *       obecne w PORTRAITS i FOOD. Zdjęcie, które nie ma ani `featured`,
+ *       ani tagu portraits/food, nie trafiłoby do żadnej zakładki —
+ *       jest pomijane i zostaje na stronie swojej kampanii.
+ *
+ *    Okładka (01.jpg) nie wchodzi do ALL: pokazuje ją kafel kampanii
+ *    w COMMERCIAL, więc w ALL witałaby drugi raz. Kolekcje (_portraits,
+ *    _food) nie mają kafla kampanii, więc u nich okładka może zostać.
  */
 const kolejki = projects.map((project) => {
   const wszystkie = bySlug.get(project.slug) ?? [];
-  return {
-    project,
-    zdjecia: project.collection ? wszystkie : wszystkie.slice(1),
-  };
+  const wybrane = (project.featured ?? [])
+    .map((nazwa) => wszystkie.find((z) => z.name === nazwa))
+    .filter((z): z is (typeof wszystkie)[number] => z !== undefined);
+  const wybraneNazwy = new Set(wybrane.map((z) => z.name));
+  const reszta = wszystkie.filter(
+    (z) => !wybraneNazwy.has(z.name) && (project.collection || z.name !== '01.jpg'),
+  );
+  return { project, wybrane, reszta };
 });
-const najdluzszaSesja = Math.max(...kolejki.map((k) => k.zdjecia.length));
 
-for (let runda = 0; runda < najdluzszaSesja; runda++) {
-  for (const { project, zdjecia } of kolejki) {
-    const zdjecie = zdjecia[runda];
+/** a) featured, round-robinem — najmocniejsze kadry na pierwszym ekranie. */
+const najwiecejWybranych = Math.max(...kolejki.map((k) => k.wybrane.length));
+for (let runda = 0; runda < najwiecejWybranych; runda++) {
+  for (const { project, wybrane } of kolejki) {
+    const zdjecie = wybrane[runda];
     if (!zdjecie) continue;
+    const widoki: string[] = ['all', ...project.tags.filter((tag) => tag !== 'commercial')];
+    tiles.push({
+      key: `${project.slug}/${zdjecie.name}`,
+      img: zdjecie.img,
+      cats: widoki.join(' '),
+      alt: project.title,
+    });
+  }
+}
 
-    // string[], nie ProjectTag[] — 'all' jest widokiem, nie tagiem w danych.
+/** b) reszta — tylko dla PORTRAITS i FOOD. */
+const najdluzszaReszta = Math.max(...kolejki.map((k) => k.reszta.length));
+for (let runda = 0; runda < najdluzszaReszta; runda++) {
+  for (const { project, reszta } of kolejki) {
+    const zdjecie = reszta[runda];
+    if (!zdjecie) continue;
     const widoki: string[] = project.tags.filter((tag) => tag !== 'commercial');
-    if (runda < MAX_W_ALL) widoki.unshift('all');
     if (!widoki.length) continue;
-
     tiles.push({
       key: `${project.slug}/${zdjecie.name}`,
       img: zdjecie.img,

@@ -278,12 +278,23 @@ wychodziło po kilkanaście kadrów z rzędu z tej samej kampanii.
 Zweryfikowane po zmianie: w widoku ALL ZERO sąsiadujących kafli z tej
 samej sesji.
 
-MAX_W_ALL = 6 — tyle zdjęć z jednej sesji trafia do widoku ALL.
-Przy 17 sesjach daje to 101 kafli. ALL ma być przeglądem pojedynczych
-kadrów z różnych sesji, nie archiwum.
+O tym, co trafia do ALL, decyduje pole `featured` w projects.json —
+lista nazw plików w kolejności od najmocniejszego kadru. Wybrane RĘCZNIE
+z arkuszy stykowych (skrypt generujący je: patrz historia gita), po
+sześć na sesję poza allegro, które ma tylko cztery kadry poza okładką.
+Kryterium: czytelność z kafla wielkości znaczka — mocna plama koloru,
+jeden czytelny bohater, kontrast. Nie „ładne zdjęcie", tylko „widać je
+z daleka".
 
-Zdjęcie poza limitem ALL, które nie ma też tagu portraits ani food, nie
-trafiłoby do żadnej zakładki — jest POMIJANE w renderowaniu siatki.
+Kolejność renderowania to DWA przebiegi:
+  a) featured, round-robinem po sesjach. Runda zerowa to najmocniejszy
+     kadr KAŻDEJ z 17 sesji, więc pierwszy ekran ALL to same petardy,
+     każda z innej sesji. To one dostają eager i stagger wejścia.
+  b) reszta zdjęć, bez tagu `all` — niewidoczne w ALL, ale nadal obecne
+     w PORTRAITS i FOOD.
+
+Zdjęcie bez `featured` i bez tagu portraits/food nie trafiłoby do żadnej
+zakładki — jest POMIJANE w renderowaniu siatki.
 Zostaje widoczne na stronie swojej kampanii /work/<slug>, która pokazuje
 cały folder. Dzięki temu DOM spadł z 374 kafli na 280.
 
