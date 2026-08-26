@@ -21,5 +21,16 @@ const { title } = Astro.props;
   <body class="bg-bg text-text font-sans">
     <slot />
     <SpeedInsights />
+    <script>
+      /*
+       * Blokada menu kontekstowego na zdjęciach. DETERENT, nie
+       * zabezpieczenie — patrz CLAUDE.md. Zdejmuje najprostszą ścieżkę
+       * („Zapisz obraz jako"), nie rusza reszty strony, żeby kopiowanie
+       * tekstu i menu przeglądarki nadal działały normalnie.
+       */
+      document.addEventListener('contextmenu', (event) => {
+        if (event.target instanceof HTMLImageElement) event.preventDefault();
+      });
+    </script>
   </body>
 </html>
