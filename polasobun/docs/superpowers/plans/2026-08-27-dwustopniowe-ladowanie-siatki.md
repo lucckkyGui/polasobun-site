@@ -877,6 +877,12 @@ Musi zawierać, w stylu pozostałych wpisów (fakt, liczba, przestroga):
 - że obserwator startuje **po** `load` i dlaczego wcześniejszy start zabiłby zysk,
 - że podmiana czeka na `decode()` i dlaczego,
 - że `<Picture>` dokłada fallback w formacie źródłowym — stąd 1054 martwe JPEG-i,
+- **wiedzę odzyskaną z komentarza usuniętego w zadaniu 2:** nie da się
+  połączyć `widths` + `sizes` z kadrowaniem 4:5 po stronie serwera —
+  responsywny `srcset` wyklucza się z przycinaniem, bo `aspectRatio` nie
+  istnieje w tej wersji Astro, a bez `width` + `height` serwis nie przytnie
+  do 4:5 i poziome źródła trzeba by rozciągać CSS-em. To ślepa uliczka,
+  w którą ktoś wejdzie ponownie, jeśli nigdzie tego nie zapiszemy,
 - wynik bramki ryzyka z zadania 0,
 - metodykę pomiaru (ciepły CDN, zimny cache przeglądarki, czyszczone `sessionStorage`) z ostrzeżeniem, że pomiary sprzed 2026-08-26 mierzyły powrót, nie pierwsze wejście.
 
