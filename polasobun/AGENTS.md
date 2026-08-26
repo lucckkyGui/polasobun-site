@@ -84,6 +84,13 @@ src/assets/photos/<slug>/ — zdjęcia projektu. 01.jpg to zawsze okładka.
 Nazwa folderu MUSI odpowiadać slugowi.
 src/assets/photos/_portraits/ i _food/ — zdjęcia spoza nazwanych kampanii.
 
+Źródłem prawdy dla zdjęć jest ~/Documents/pola sobun.com/KLIENCI/<slug>/.
+Do repo trafiają wersje pod web: dłuższy bok max 2560 px, JPEG q82
+(mozjpeg, 4:4:4), przenumerowane na 01.jpg…NN.jpg wg kolejności nazw
+w źródle. 1370 MB oryginałów → 202 MB w repo. Nie commituj oryginałów.
+Okładką jest 01.jpg, czyli pierwszy plik alfabetycznie ze źródła —
+jeśli klientka wskaże inną, przenumeruj folder, nie zmieniaj konwencji.
+
 year pochodzi wyłącznie od klientki lub z jej istniejącej strony.
 Nigdy nie uzupełniaj danymi z makiety ani wnioskowaniem.
 Lata w Portfolio.dc.html to placeholdery narzędzia do makiet — nie dane.
@@ -92,8 +99,18 @@ więc wszystkie year są null.
 
 ## Taksonomia — decyzja ostateczna
 Filtry: ALL / COMMERCIAL / PORTRAITS / FOOD.
-ALL nie jest tagiem, tylko brakiem filtra.
 Pole tags przyjmuje wyłącznie: commercial | portraits | food.
+
+ALL NIE jest brakiem filtra — to pełnoprawny widok. Cztery zakładki
+pokazują dwa różne rodzaje kafli:
+  ALL         wszystkie pojedyncze zdjęcia, BEZ podpisów i bez linków
+  COMMERCIAL  okładki kampanii (01.jpg), Z podpisem i linkiem /work/<slug>
+  PORTRAITS   zdjęcia z folderów tagowanych portraits, bez podpisów
+  FOOD        zdjęcia z folderów tagowanych food, bez podpisów
+
+Kafel zdjęcia dostaje data-cat="all [portraits] [food]" — `commercial`
+jest z niego celowo odfiltrowane, bo COMMERCIAL pokazuje okładki,
+nie pojedyncze zdjęcia. Kafel kampanii dostaje data-cat="commercial".
 Projekt może mieć więcej niż jeden tag (np. Pudliszki: commercial + food).
 Tagi beauty/fashion/lifestyle/sport/still-life zostały usunięte — nie wracaj
 do nich i nie migruj ich do pola pomocniczego.

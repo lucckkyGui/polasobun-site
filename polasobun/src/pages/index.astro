@@ -5,51 +5,100 @@ import Gallery from '../components/Gallery';
 import { projects } from '../content/projects';
 
 /**
- * Okładki. import.meta.glob z eager: true — ścieżka jako string NIE zostałaby
- * zoptymalizowana i wysypałaby się na produkcji.
+ * Wszystkie zdjęcia. import.meta.glob z eager: true — ścieżka jako string
+ * NIE zostałaby zoptymalizowana i wysypałaby się na produkcji.
  */
-const covers = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/photos/*/01.jpg',
+const files = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/photos/*/*.jpg',
   { eager: true },
 );
 
-function cover(slug: string): ImageMetadata {
-  const mod = covers[`../assets/photos/${slug}/01.jpg`];
-  if (!mod) throw new Error(`Brak okładki 01.jpg dla slugu "${slug}"`);
-  return mod.default;
+/** Zdjęcia pogrupowane po slugu, w kolejności nazw plików. */
+const bySlug = new Map<string, { name: string; img: ImageMetadata }[]>();
+for (const [path, mod] of Object.entries(files)) {
+  const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
+  if (!match) continue;
+  const [, slug, name] = match as unknown as [string, string, string];
+  const list = bySlug.get(slug) ?? [];
+  list.push({ name, img: mod.default });
+  bySlug.set(slug, list);
+}
+for (const list of bySlug.values()) list.sort((a, b) => a.name.localeCompare(b.name));
+
+interface Tile {
+  key: string;
+  img: ImageMetadata;
+  /** Widoki, w których kafel jest widoczny — trafia do data-cat. */
+  cats: string;
+  alt: string;
+  href?: string;
+  caption?: string;
+}
+
+const tiles: Tile[] = [];
+
+/**
+ * 1. Kafle zdjęć — ALL, PORTRAITS, FOOD. Bez podpisów i bez linków.
+ *    `commercial` celowo odfiltrowane: zakładka COMMERCIAL pokazuje
+ *    okładki kampanii, nie pojedyncze zdjęcia.
+ */
+for (const project of projects) {
+  const views = ['all', ...project.tags.filter((tag) => tag !== 'commercial')].join(' ');
+  for (const { name, img } of bySlug.get(project.slug) ?? []) {
+    tiles.push({ key: `${project.slug}/${name}`, img, cats: views, alt: project.title });
+  }
+}
+
+/** 2. Kafle kampanii — tylko COMMERCIAL. Okładka + podpis + link. */
+for (const project of projects) {
+  if (project.collection) continue;
+  const cover = bySlug.get(project.slug)?.[0];
+  if (!cover) throw new Error(`Brak zdjęć dla slugu "${project.slug}"`);
+  tiles.push({
+    key: `cover/${project.slug}`,
+    img: cover.img,
+    cats: 'commercial',
+    alt: project.title,
+    href: `/work/${project.slug}`,
+    caption: project.title,
+  });
 }
 
 /** Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie). */
-const COVER_WIDTH = 800;
-const COVER_HEIGHT = 1000;
+const TILE_WIDTH = 800;
+const TILE_HEIGHT = 1000;
 
-/** Pierwsze sześć okładek ładujemy od razu, resztę leniwie. */
+/** Pierwsze sześć kafli ładujemy od razu, resztę leniwie. */
 const EAGER_COUNT = 6;
 ---
 
 <Base title="Pola Sobuń">
   <Gallery client:load wordmark="Pola Sobuń">
     {
-      projects.map((project, index) => (
-        <a
-          href={`/work/${project.slug}`}
-          data-cat={project.tags.join(' ')}
-          class="bg-surface"
-        >
+      tiles.map((tile, index) => {
+        const picture = (
           <Picture
-            src={cover(project.slug)}
+            src={tile.img}
             formats={['avif', 'webp']}
-            width={COVER_WIDTH}
-            height={COVER_HEIGHT}
-            alt={project.title}
+            width={TILE_WIDTH}
+            height={TILE_HEIGHT}
+            alt={tile.alt}
             loading={index < EAGER_COUNT ? 'eager' : 'lazy'}
             class="aspect-tile block w-full object-cover"
           />
-          <span class="text-on-dark-muted text-label block font-medium uppercase leading-none tracking-meta px-card py-tight">
-            {project.title}
-          </span>
-        </a>
-      ))
+        );
+
+        return tile.href ? (
+          <a href={tile.href} data-cat={tile.cats} class="bg-surface">
+            {picture}
+            <span class="text-on-dark-muted text-label block font-medium uppercase leading-none tracking-meta px-card py-tight">
+              {tile.caption}
+            </span>
+          </a>
+        ) : (
+          <div data-cat={tile.cats} class="bg-surface">{picture}</div>
+        );
+      })
     }
   </Gallery>
 </Base>

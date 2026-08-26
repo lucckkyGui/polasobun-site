@@ -135,12 +135,15 @@
 
 /* ─── Filtrowanie siatki ─────────────────────────────────────────────────── */
 /* Mechanizm 1:1 z makiety: display:none, żadnego przejścia.
-   Wrapper dostaje data-filter, kafel data-cat z listą tagów. */
+   Wrapper dostaje data-filter, kafel data-cat z listą widoków.
+   ALL to pełnoprawny widok (wszystkie zdjęcia, bez podpisów),
+   a NIE brak filtra — kafle kampanii mają tylko `commercial`. */
 
 /* Celowo POZA @layer — styl bez warstwy wygrywa w kaskadzie z każdą
    warstwą Tailwinda. W @layer components przegrywał z utility `block`
    z warstwy utilities i filtrowanie nie działało. */
 
+[data-filter='all'] [data-cat]:not([data-cat~='all']),
 [data-filter='commercial'] [data-cat]:not([data-cat~='commercial']),
 [data-filter='portraits'] [data-cat]:not([data-cat~='portraits']),
 [data-filter='food'] [data-cat]:not([data-cat~='food']) {
