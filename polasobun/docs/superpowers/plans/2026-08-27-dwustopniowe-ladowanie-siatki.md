@@ -28,6 +28,50 @@ Ustawienie musi być identyczne w każdym pomiarze, inaczej liczb nie da się po
 - `initScript` czyszczący `sessionStorage.removeItem('polasobun:intro-played')`, żeby intro grało jak przy pierwszym wejściu,
 - 3 próby, wynik = mediana.
 
+Metryki zbiera obserwator wpinany przez `initScript` **przed** skryptami
+strony — inaczej pierwsze malowanie zdąży się wydarzyć, zanim ktokolwiek
+słucha. Ten sam blok w każdym pomiarze:
+
+```js
+try { sessionStorage.removeItem('polasobun:intro-played'); } catch {}
+window.__m = { lcp: 0, fcp: 0, cls: 0, historia: [] };
+new PerformanceObserver((l) => {
+  for (const e of l.getEntries()) {
+    window.__m.lcp = Math.round(e.startTime);
+    const el = e.element;
+    const r = el ? el.getBoundingClientRect() : null;
+    window.__m.historia.push({
+      t: Math.round(e.startTime),
+      tag: el ? el.tagName : null,
+      url: (e.url || '').split('/').pop() || null,
+      rozmiar: e.size,
+      gora: r ? Math.round(r.top) : null,
+    });
+  }
+}).observe({ type: 'largest-contentful-paint', buffered: true });
+new PerformanceObserver((l) => {
+  for (const e of l.getEntries()) if (e.name === 'first-contentful-paint') window.__m.fcp = Math.round(e.startTime);
+}).observe({ type: 'paint', buffered: true });
+new PerformanceObserver((l) => {
+  for (const e of l.getEntries()) if (!e.hadRecentInput) window.__m.cls += e.value;
+}).observe({ type: 'layout-shift', buffered: true });
+```
+
+Odczyt po ~9 s od wejścia (na Slow 4G strona schodzi ~5 s):
+
+```js
+async () => {
+  await new Promise((r) => setTimeout(r, 9000));
+  const img = performance.getEntriesByType('resource').filter((x) => /\.(webp|avif)$/.test(x.name));
+  return {
+    lcp: window.__m.lcp, fcp: window.__m.fcp, cls: +window.__m.cls.toFixed(3),
+    historia: window.__m.historia,
+    obrazow: img.length,
+    bajtowKB: Math.round(img.reduce((s, x) => s + x.encodedBodySize, 0) / 1024),
+  };
+}
+```
+
 **Wartości odniesienia (zmierzone 2026-08-26):** LCP 3564 ms, CLS 0,00, 607 kB, 6 obrazów.
 
 ---
