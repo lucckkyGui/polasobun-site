@@ -205,6 +205,18 @@ export default function Intro({ images }: Props) {
     return () => window.clearTimeout(timer);
   }, [started]);
 
+  /**
+   * Sygnał dla siatki: kurtyna zeszła, można odegrać stagger wejścia.
+   * Bez tego stagger przeleciałby niewidoczny pod nieprzezroczystą
+   * nakładką. Przy powtórnym wejściu i przy reduced-motion faza wskakuje
+   * na 'done' od razu w efekcie montażu, więc atrybut i tak zostanie
+   * ustawiony. Siatka jest w HTML-u zanim wyspa się zhydratuje.
+   */
+  useEffect(() => {
+    if (phase !== 'done') return;
+    document.querySelector('[data-filter]')?.setAttribute('data-enter', '');
+  }, [phase]);
+
   /** Blokada przewijania tylko na czas animacji. */
   useEffect(() => {
     if (phase !== 'playing') return;

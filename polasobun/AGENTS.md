@@ -243,9 +243,33 @@ i allegro/01 — mocno graficzne, wysokokontrastowe. Split-flap rozbija
 kadr na kafelki, więc czytelna plama koloru działa lepiej niż subtelny
 portret. Zmiana to podmiana slugu w INTRO.
 
+## Wejście kafli — stagger
+Odpalane atrybutem `data-enter`, który Intro ustawia na `[data-filter]`
+po zejściu kurtyny. Bez tego stagger przeleciałby niewidoczny pod
+nieprzezroczystą nakładką — zmierzone: kurtyna znika w 4361 ms,
+data-enter pojawia się w 4377 ms, zero klatek nakładania.
+
+Animowane są TYLKO pierwsze 12 kafli. Przy 359 kaflach i 50 ms opóźnienia
+pełny stagger trwałby 18 sekund. Dwanaście pokrywa to, co widać nad
+zgięciem na desktopie; reszta jest na miejscu od razu i nikt nie zdąży
+doscrollować, zanim wejście się skończy. Nie zwiększaj tej liczby bez
+policzenia, ile to sekund.
+
+Skalujemy OBRAZ wewnątrz kafla (`[data-cat] img`), nie sam kafel.
+Kafel ma overflow-hidden, tak jak w makiecie, więc komórka stoi
+nieruchomo i w siatce stykającej się bez odstępów nie otwierają się
+szczeliny. Zweryfikowane: prostokąty kafli identyczne w trakcie
+animacji i po niej.
+
+Całe wejście jest w `@media (prefers-reduced-motion: no-preference)`,
+więc przy reduced-motion nie istnieje — nie polegamy na globalnym
+bezpieczniku, który i tak nie tyka animation-delay.
+
+Bez JS-u atrybut nie powstaje i kafle są po prostu widoczne.
+
 ## Kolejność prac — nie wyprzedzaj
 1. siatka statyczna ✔
-2. wejście kafli (stagger)
+2. wejście kafli (stagger) ✔
 3. hover flip
 4. przejścia filtrów
 5. review-animations

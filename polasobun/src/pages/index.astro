@@ -112,14 +112,14 @@ const EAGER_COUNT = 6;
         );
 
         return tile.href ? (
-          <a href={tile.href} data-cat={tile.cats} class="bg-surface">
+          <a href={tile.href} data-cat={tile.cats} class="bg-surface overflow-hidden">
             {picture}
             <span class="text-on-dark-muted text-label block font-medium uppercase leading-none tracking-meta px-card py-tight">
               {tile.caption}
             </span>
           </a>
         ) : (
-          <div data-cat={tile.cats} class="bg-surface">{picture}</div>
+          <div data-cat={tile.cats} class="bg-surface overflow-hidden">{picture}</div>
         );
       })
     }
