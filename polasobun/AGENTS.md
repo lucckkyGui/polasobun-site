@@ -81,24 +81,48 @@ o tej wadze to <style> i <script>. Nie udało się tego wyeliminować.
 Waga 400 jest realnie używana na stronach projektów (wartości faktów),
 więc deklaracji nie usuwaj.
 
-## Pomiary produkcyjne — stan po optymalizacji
-Warunki: polasobun-site.vercel.app, mobile 412x915, Slow 4G, 4x CPU.
-Baseline = ten sam pomiar przed wszystkimi zmianami.
+## Pomiary produkcyjne — stan końcowy
+Zmierzone na polasobun-site.vercel.app po zmergowaniu wszystkich zmian.
+Baseline = ten sam pomiar przed jakąkolwiek optymalizacją.
+
+Warunki A — mobile 412x915, Slow 4G, 4x CPU (te same co baseline):
 
   metryka                    baseline        teraz
-  LCP, pierwsze wejście      1004 ms         792 / 852 ms
-  LCP, powtórne wejście      1364 ms         856 ms
-  FCP                        —               792 / 852 / 856 ms
+  LCP, pierwsze wejście      1004 ms         860 / 680 ms
+  LCP, powtórne wejście      1364 ms         704 ms
+  FCP                        —               860 / 680 / 704 ms
   CLS                        0.00            0.00
   żądań CSS                  1 blokujące     0
   węzłów w układzie          1241            324
   obraz intro                525 kB          128 kB
   czas trwania intro         4400 ms         2200 ms
 
+Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU:
+
+  LCP                        572 ms
+  CLS                        0.00
+  kolumny                    2 x 215 px
+  skalowanie obrazu          0,81x w dół   (przed: 1,61x W GÓRĘ)
+  kafli na ekranie           8             (przed: 2)
+  ekranów do przewinięcia    84            (przed: 186)
+
+Test przewijania, 8 ekranów po kolei, liczba pustych kafli w widoku:
+  0, 0, 1, 0, 0, 0, 0, 0
+Jeden kafel na osiem ekranów, przy przewijaniu skokami po całym ekranie,
+czyli ostrzej niż realnym przesuwaniem palcem.
+
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
 że content-visibility działa — to własność dokumentu, nie pomiaru.
 FCP równa się LCP we wszystkich próbkach: strona maluje się raz, od razu
 z treścią, bez pośredniego stanu „sam tekst".
+
+ZIMNY CACHE CDN — NIE MIERZ ZARAZ PO DEPLOYU. Pierwsza próbka na świeżo
+zbudowanym deploymencie dała LCP 6532 ms. Druga na tym samym adresie
+952 ms, trzecia 680 ms. Przy 359 zdjęciach krawędź musi je najpierw
+ściągnąć z origin, a pierwszy odwiedzający po każdym wdrożeniu ten koszt
+realnie płaci. Zanim zmierzysz: załaduj stronę raz na odstrzał, dopiero
+potem zbieraj próbki. Inaczej wyciągniesz wniosek o regresji, której
+nie ma — mnie się to zdarzyło.
 
 OSTRZEŻENIE METODOLOGICZNE: lokalny `npm run preview` to hałaśliwe
 stanowisko — dla tej samej wersji render delay wychodził 57, 90 i 386 ms,
