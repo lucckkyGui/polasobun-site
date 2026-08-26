@@ -135,6 +135,11 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-flip: 350ms;
+
+  /* Przejście filtrów. Wyjście jest szybsze: w momencie kliknięcia stara
+     zawartość jest już nieistotna, nowa potrzebuje chwili na odczytanie. */
+  --duration-filter-out: 100ms;
+  --duration-filter-in: 180ms;
 }
 
 /* ─── Filtrowanie siatki ─────────────────────────────────────────────────── */
@@ -152,6 +157,48 @@
 [data-filter='portraits'] [data-cat]:not([data-cat~='portraits']),
 [data-filter='food'] [data-cat]:not([data-cat~='food']) {
   display: none;
+}
+
+/* ─── Wejście kafli ──────────────────────────────────────────────────────── */
+/* Odpalane atrybutem data-enter, który Intro ustawia po zejściu kurtyny —
+   inaczej stagger przeleciałby niewidoczny pod nieprzezroczystą nakładką.
+   Bez JS-u atrybut nie powstaje i kafle są po prostu na miejscu, widoczne.
+
+   Animujemy TYLKO pierwsze 12 kafli. Przy 359 kaflach i 50 ms opóźnienia
+   pełny stagger trwałby 18 sekund; 12 pokrywa to, co widać nad zgięciem
+   na desktopie, a reszta jest gotowa zanim ktokolwiek do niej doscrolluje.
+
+   Skalujemy OBRAZ wewnątrz kafla, nie sam kafel: komórka zostaje na
+   miejscu, więc w siatce stykającej się bez odstępów nie otwierają się
+   szczeliny. Kafel ma overflow-hidden, tak jak w makiecie. */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes tile-enter {
+    from {
+      opacity: 0;
+      transform: scale(1.06);
+    }
+  }
+
+  [data-enter] [data-cat]:nth-child(-n + 12) img {
+    animation-name: tile-enter;
+    animation-duration: var(--duration-base);
+    animation-timing-function: var(--ease-enter);
+    animation-fill-mode: backwards;
+  }
+
+  [data-enter] [data-cat]:nth-child(1) img { animation-delay: 0ms; }
+  [data-enter] [data-cat]:nth-child(2) img { animation-delay: 50ms; }
+  [data-enter] [data-cat]:nth-child(3) img { animation-delay: 100ms; }
+  [data-enter] [data-cat]:nth-child(4) img { animation-delay: 150ms; }
+  [data-enter] [data-cat]:nth-child(5) img { animation-delay: 200ms; }
+  [data-enter] [data-cat]:nth-child(6) img { animation-delay: 250ms; }
+  [data-enter] [data-cat]:nth-child(7) img { animation-delay: 300ms; }
+  [data-enter] [data-cat]:nth-child(8) img { animation-delay: 350ms; }
+  [data-enter] [data-cat]:nth-child(9) img { animation-delay: 400ms; }
+  [data-enter] [data-cat]:nth-child(10) img { animation-delay: 450ms; }
+  [data-enter] [data-cat]:nth-child(11) img { animation-delay: 500ms; }
+  [data-enter] [data-cat]:nth-child(12) img { animation-delay: 550ms; }
 }
 
 /* ─── Reset / baza ───────────────────────────────────────────────────────── */
@@ -176,14 +223,22 @@
   }
 }
 
-/* Twarda reguła: każda animacja respektuje prefers-reduced-motion. */
+/* Twarda reguła: każda animacja respektuje prefers-reduced-motion.
+   Ale „mniej i łagodniej", nie zero — przejścia opacity i koloru pomagają
+   zrozumieć zmianę stanu i zostają. Znika wyłącznie ruch.
+
+   Nadpisujemy TYLKO transition-property, nigdy transition-duration.
+   Domyślne transition-duration to 0s, więc elementy, które nie deklarują
+   żadnego przejścia, pozostają nietknięte — nie dokładamy im przejść.
+   Elementy, które przejście mają, tracą z niego transform i pokrewne. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    transition-property: opacity, color, background-color, border-color,
+      outline-color, text-decoration-color, fill, stroke !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 }
