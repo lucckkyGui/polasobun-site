@@ -1,7 +1,8 @@
 ---
-import { Picture } from 'astro:assets';
+import { Picture, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
+import Intro from '../components/Intro';
 import { projects } from '../content/projects';
 
 /**
@@ -64,6 +65,26 @@ for (const project of projects) {
   });
 }
 
+/**
+ * Animacja wejścia. Dwa kadry mocno graficzne, wysokokontrastowe —
+ * split-flap rozbija zdjęcie na kafelki, więc czytelna plama koloru
+ * działa lepiej niż subtelny portret.
+ */
+const INTRO = [
+  { slug: 'rimmel', photo: '01.jpg', focusY: 30 },
+  { slug: 'allegro', photo: '01.jpg', focusY: 50 },
+];
+
+const introImages = await Promise.all(
+  INTRO.map(async ({ slug, photo, focusY }) => {
+    const entry = bySlug.get(slug)?.find((p) => p.name === photo);
+    if (!entry) throw new Error(`Brak zdjęcia ${slug}/${photo} do animacji wejścia`);
+    // Canvas potrzebuje URL-a, ale zdjęcie i tak przechodzi przez astro:assets.
+    const optimized = await getImage({ src: entry.img, width: 1920, format: 'webp' });
+    return { src: optimized.src, focusY };
+  }),
+);
+
 /** Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie). */
 const TILE_WIDTH = 800;
 const TILE_HEIGHT = 1000;
@@ -73,6 +94,8 @@ const EAGER_COUNT = 6;
 ---
 
 <Base title="Pola Sobuń">
+  <Intro client:load images={introImages} />
+
   <Gallery client:load wordmark="Pola Sobuń">
     {
       tiles.map((tile, index) => {

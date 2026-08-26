@@ -1,0 +1,111 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { projects, type Project } from '../../content/projects';
+
+export function getStaticPaths() {
+  // Slug zawsze string — getStaticPaths nie przyjmuje params typu number.
+  return projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+
+/**
+ * Zdjęcia projektu. import.meta.glob z eager: true — ścieżka jako string
+ * NIE zostałaby zoptymalizowana i wysypałaby się na produkcji.
+ */
+const files = import.meta.glob<{ default: ImageMetadata }>(
+  '../../assets/photos/*/*.jpg',
+  { eager: true },
+);
+
+const photos = Object.entries(files)
+  .map(([path, mod]) => {
+    const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
+    return match ? { slug: match[1], name: match[2]!, img: mod.default } : null;
+  })
+  .filter((entry): entry is { slug: string; name: string; img: ImageMetadata } =>
+    entry !== null && entry.slug === project.slug,
+  )
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const TAG_LABEL: Record<string, string> = {
+  commercial: 'Commercial',
+  portraits: 'Portraits',
+  food: 'Food',
+};
+
+/** Kolekcje pokazują sam tytuł — bez metryczki i bez pola Klient/Rok. */
+const meta = project.collection ? null : project.tags.map((t) => TAG_LABEL[t]).join(' · ');
+
+/** Renderujemy wyłącznie fakty, które istnieją. Żadnych pustych etykiet. */
+const facts: { label: string; value: string }[] = [];
+if (!project.collection) {
+  if (project.client !== null) facts.push({ label: 'Klient', value: project.client });
+  if (project.year !== null) facts.push({ label: 'Rok', value: String(project.year) });
+}
+
+const SIZES = '100vw';
+const WIDTHS = [1200, 2000];
+---
+
+<Base title={`${project.title} — Pola Sobuń`}>
+  <div class="pb-page-end">
+    <div class="flex items-baseline justify-between px-gutter pt-topbar pb-gutter">
+      <a href="/" class="text-text text-label font-medium uppercase leading-none tracking-nav">
+        &#8592; Index
+      </a>
+      {
+        meta && (
+          <span class="text-muted text-label font-normal uppercase leading-none tracking-nav">
+            {meta}
+          </span>
+        )
+      }
+    </div>
+
+    <div class="px-gutter pb-section">
+      <h1 class="text-text text-title font-bold leading-none tracking-display sm:text-display lg:text-display-lg">
+        {project.title}
+      </h1>
+    </div>
+
+    <div class="bg-surface">
+      {
+        photos.map(({ img, name }, index) => (
+          <Picture
+            src={img}
+            formats={['avif', 'webp']}
+            widths={WIDTHS}
+            sizes={SIZES}
+            alt={`${project.title} — ${name}`}
+            loading={index === 0 ? 'eager' : 'lazy'}
+            class="block w-full"
+          />
+        ))
+      }
+    </div>
+
+    {
+      facts.length > 0 && (
+        <div class="border-border mx-gutter mt-rule grid grid-cols-2 gap-field border-t px-gutter pt-rule lg:grid-cols-4">
+          {facts.map(({ label, value }) => (
+            <div class="flex flex-col gap-tight">
+              <span class="text-muted text-micro font-medium uppercase leading-none tracking-nav">
+                {label}
+              </span>
+              <span class="text-text text-body-sm font-normal leading-value">{value}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</Base>

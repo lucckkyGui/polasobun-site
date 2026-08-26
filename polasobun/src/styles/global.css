@@ -91,6 +91,7 @@
 
   /* --leading-* → leading-* */
   --leading-title: 1.04;
+  --leading-value: 1.4;
   --leading-caps: 1.5;
   --leading-copy: 1.6;
   --leading-prose: 1.62;
@@ -101,7 +102,10 @@
   --spacing-header: 22px;
   --spacing-card: 24px;
   --spacing-gutter: 26px;
+  --spacing-topbar: 34px;
+  --spacing-field: 40px;
   --spacing-section: 60px;
+  --spacing-rule: 70px;
   --spacing-block: 90px;
   --spacing-page-end: 120px;
 

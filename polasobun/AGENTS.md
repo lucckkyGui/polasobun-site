@@ -17,7 +17,8 @@ którego wymaga (withastro/roadmap#1321). Nie bumpować bez sprawdzenia,
 - Każda animacja respektuje prefers-reduced-motion.
 - Zero zależności poza: astro, react, tailwind, motion. Pytaj przed dodaniem czegokolwiek.
 - Brak zaokrągleń, cieni i gradientów.
-- Zero animacji, dopóki siatka statyczna nie zostanie zaakceptowana.
+- Animacja wejścia jest zaakceptowana i wdrożona (patrz niżej). Poza nią
+  nadal zero animacji bez wyraźnej zgody.
 - Zero hex-ów w komponentach. Wszystkie wartości z tokenów.
 
 ## Tailwind 4
@@ -117,8 +118,66 @@ do nich i nie migruj ich do pola pomocniczego.
 Wygląd, typografia i zachowanie paska filtrów: dokładnie z makiety Design.
 Zmieniamy wyłącznie etykiety i logikę filtrowania.
 
+## Strona projektu — odstępstwa od makiety
+Górny pasek, tytuł i siatka faktów są 1:1 z Portfolio.dc.html.
+Cztery rzeczy różnią się celowo:
+
+1. Zdjęcia idą jedno pod drugim, na pełną szerokość, w oryginalnych
+   proporcjach. Makieta ma siatkę 4-kolumnową z kadrem 4/5 — zmiana
+   na wyraźne polecenie ("wszystkie zdjęcia z folderu, w kolejności
+   nazw, jedno pod drugim").
+2. Metryczka w prawym górnym rogu pokazuje same kategorie ("Commercial",
+   "Commercial · Food"). Makieta ma tam "Pandora · 2023 · commercial",
+   ale w naszych danych title JUŻ jest nazwą klienta, więc client
+   dublowałby tytuł.
+3. Makieta ma cztery pola faktów: Klient, Rok, Rola, Zakres. Zostają
+   dwa — `role` zostało usunięte z modelu danych, `scope` nigdy nie
+   istniało. Pola bez wartości nie renderują się w ogóle; żadnych
+   pustych etykiet ani "null". Przy year = null dla wszystkich wpisów
+   w praktyce widać tylko Klient.
+4. Tytuł jest responsywny: 26px / 56px od sm / 64px od lg. Makieta ma
+   sztywne 64px, przy którym "JOANNA JĘDRZEJCZYK × FANADISE" nie
+   mieści się na 375px.
+
+Kolekcje (_portraits, _food) pokazują sam tytuł — bez metryczki
+i bez siatki faktów.
+
+## Animacja wejścia — Originkit Image Flipper
+src/components/originkit/image-flipper.tsx to kod DOSTARCZONY przez
+Originkit MCP (`originkit: get image-flipper`, stack react + tailwind + ts).
+NIE przepisuj go i nie "poprawiaj". Żeby go zaktualizować, pobierz
+ponownie z MCP. Zostawiony jest w nim nieużywany prop `animate` —
+to jedyny hint z astro check i pochodzi z oryginału.
+
+src/components/Intro.tsx to NASZA warstwa spinająca. Komponent Originkit
+cykluje w nieskończoność i nie ma callbacku końca, więc moment oddania
+sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
+= 4400 ms, potem 350 ms wygaszenia opacity. Stałe DURATION_S/DELAY_S
+w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
+rozjadą się i przejście utnie animację w połowie.
+
+Trzy świadome wyjątki od twardych reguł:
+1. Animacja jest rysowana na canvasie, nie na transform/opacity.
+   Split-flapa nie da się zrobić inaczej. Samo wygaszenie nakładki
+   to już czyste opacity.
+2. Canvas potrzebuje URL-a, nie ImageMetadata, więc zdjęcia idą przez
+   getImage() z astro:assets i dopiero jego `.src` trafia do komponentu.
+   Zdjęcie nadal jest optymalizowane — nie omijamy astro:assets.
+3. prefers-reduced-motion obsługiwane jawnie w Intro.tsx. Globalny
+   bezpiecznik z global.css tnie tylko transition/animation, a canvas
+   chodzi na requestAnimationFrame i by go zignorował.
+
+Intro renderuje null na serwerze — bez JS-u strona jest od razu
+użyteczna i nic jej nie zasłania. Kosztem jest mgnienie siatki przed
+pojawieniem się nakładki.
+
+Zdjęcia do animacji wybrane w index.astro (stała INTRO): rimmel/01
+i allegro/01 — mocno graficzne, wysokokontrastowe. Split-flap rozbija
+kadr na kafelki, więc czytelna plama koloru działa lepiej niż subtelny
+portret. Zmiana to podmiana slugu w INTRO.
+
 ## Kolejność prac — nie wyprzedzaj
-1. siatka statyczna
+1. siatka statyczna ✔
 2. wejście kafli (stagger)
 3. hover flip
 4. przejścia filtrów
