@@ -182,7 +182,12 @@ to jedyny hint z astro check i pochodzi z oryginału.
 src/components/Intro.tsx to NASZA warstwa spinająca. Komponent Originkit
 cykluje w nieskończoność i nie ma callbacku końca, więc moment oddania
 sceny siatce odmierzamy z zewnątrz: dwa kadry = 2 × (duration + delay)
-= 4400 ms, potem 350 ms wygaszenia opacity. Stałe DURATION_S/DELAY_S
+= 4400 ms, po czym kurtyna schodzi TWARDYM CIĘCIEM — bez wygaszania.
+350 ms zaniku po 4,4 s split-flapa nic nie wnosiło, a dokładało easing
+i przekroczenie budżetu 300 ms na UI. Zmierzone po zmianie: ostatnia
+klatka z kurtyną przy opacity 1, następna bez niej, zero klatek
+pośrednich. Cięcie pasuje do reszty: bez zaokrągleń, cieni i gradientów.
+Stałe DURATION_S/DELAY_S
 w Intro.tsx MUSZĄ zgadzać się z transition przekazanym do FlipImage —
 rozjadą się i przejście utnie animację w połowie.
 
@@ -220,8 +225,8 @@ rodzeństwo nakładki w <body>, nigdy ona sama ani jej przodkowie.
 
 Trzy świadome wyjątki od twardych reguł:
 1. Animacja jest rysowana na canvasie, nie na transform/opacity.
-   Split-flapa nie da się zrobić inaczej. Samo wygaszenie nakładki
-   to już czyste opacity.
+   Split-flapa nie da się zrobić inaczej. Poza canvasem nie ma tu
+   już ŻADNEGO przejścia CSS — kurtyna schodzi twardym cięciem.
 2. Canvas potrzebuje URL-a, nie ImageMetadata, więc zdjęcia idą przez
    getImage() z astro:assets i dopiero jego `.src` trafia do komponentu.
    Zdjęcie nadal jest optymalizowane — nie omijamy astro:assets.

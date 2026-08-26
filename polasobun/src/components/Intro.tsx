@@ -18,8 +18,6 @@ const PHOTOS = 2;
 
 /** Kadr ląduje po DURATION, potem trzyma DELAY. Dwa kadry = 2 × (1,2 + 1) s. */
 const PLAY_MS = PHOTOS * (DURATION_S + DELAY_S) * 1000;
-/** Zgodne z --duration-flip. */
-const FADE_MS = 350;
 
 /** Gdyby zdjęcie nie doszło — nie blokujemy strony w nieskończoność. */
 const MAX_PRELOAD_MS = 6000;
@@ -47,7 +45,13 @@ function tileColumns(width: number, height: number): number {
   return Math.max(12, Math.min(byDensity, byBudget));
 }
 
-type Phase = 'idle' | 'playing' | 'leaving' | 'done';
+/*
+ * Brak fazy wygaszania — kurtyna schodzi twardym cięciem. 350 ms zaniku
+ * po 4,4 s split-flapa nic nie wnosiło, a dokładało easing i przekroczenie
+ * budżetu 300 ms na UI. Cięcie pasuje też do reszty: bez zaokrągleń,
+ * bez cieni, bez gradientów.
+ */
+type Phase = 'idle' | 'playing' | 'done';
 
 function alreadyPlayed(): boolean {
   try {
@@ -98,7 +102,7 @@ export default function Intro({ images }: Props) {
   const srcKey = images.map(({ src }) => src).join('|');
 
   const skip = useCallback(() => {
-    setPhase((current) => (current === 'playing' ? 'leaving' : current));
+    setPhase((current) => (current === 'playing' ? 'done' : current));
   }, []);
 
   useEffect(() => {
@@ -195,21 +199,15 @@ export default function Intro({ images }: Props) {
   useEffect(() => {
     if (!started) return;
     const timer = window.setTimeout(
-      () => setPhase((current) => (current === 'playing' ? 'leaving' : current)),
+      () => setPhase((current) => (current === 'playing' ? 'done' : current)),
       PLAY_MS,
     );
     return () => window.clearTimeout(timer);
   }, [started]);
 
-  useEffect(() => {
-    if (phase !== 'leaving') return;
-    const timer = window.setTimeout(() => setPhase('done'), FADE_MS);
-    return () => window.clearTimeout(timer);
-  }, [phase]);
-
   /** Blokada przewijania tylko na czas animacji. */
   useEffect(() => {
-    if (phase !== 'playing' && phase !== 'leaving') return;
+    if (phase !== 'playing') return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -224,7 +222,7 @@ export default function Intro({ images }: Props) {
    * Wyłączamy rodzeństwo nakładki, nie jej samej ani jej przodków.
    */
   useEffect(() => {
-    if (phase !== 'playing' && phase !== 'leaving') return;
+    if (phase !== 'playing') return;
     const overlay = overlayRef.current;
     if (!overlay) return;
 
@@ -248,9 +246,7 @@ export default function Intro({ images }: Props) {
       ref={overlayRef}
       aria-hidden="true"
       onClick={skip}
-      className={`bg-surface fixed inset-0 z-50 grid cursor-pointer place-items-center overflow-hidden transition-opacity ease-enter duration-[var(--duration-flip)] ${
-        phase === 'leaving' ? 'opacity-0' : 'opacity-100'
-      }`}
+      className="bg-surface fixed inset-0 z-50 grid cursor-pointer place-items-center overflow-hidden"
     >
       {ready && (
         <FlipImage
