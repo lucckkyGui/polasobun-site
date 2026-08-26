@@ -39,6 +39,26 @@ preloadu i zejściu z EAGER_COUNT do 2:
 font-display: swap i tak pokazuje tekst od razu w foncie zastępczym.
 Przy portfolio fotograficznym obraz wygrywa z tekstem.
 
+inlineStylesheets: 'always' w astro.config. Arkusz ma ~12 kB, próg Astro
+to 4 kB, więc bez tego był osobnym blokującym żądaniem. Po wstrzyknięciu:
+zero żądań CSS, FCP 668-1028 ms zamiast ~1557 ms szacowanych przez
+narzędzie. Koszt: 18 stron niesie własną kopię, HTML łącznie 65 -> 126 kB
+po gzipie, index.html 13 -> 17 kB.
+
+UWAGA, efekt uboczny: wstrzyknięty CSS sprawia, że @font-face jest
+parsowany natychmiast, więc fonty startują w 630-970 ms zamiast 1672 ms
+i wracają do walki o pasmo z obrazem LCP (2348-2445 ms zamiast 1964 ms).
+Lokalnie wychodzi z tego wymiana, nie wygrana. Zostawione włączone przy
+założeniu, że to artefakt lokalnego serwera (HTTP/1.1, bez kompresji) —
+na produkcji jest h2, brotli i CDN, a tam ten sam obraz schodził w 0,4 ms.
+JEŚLI pomiar produkcyjny pokaże inaczej, wyłączenie to jedna linia.
+
+Na stronie głównej ŻADEN widoczny tekst nie używa wagi 400, a
+Satoshi-Regular.woff2 i tak się pobiera — sprawdzone, wszystkie elementy
+o tej wadze to <style> i <script>. Nie udało się tego wyeliminować.
+Waga 400 jest realnie używana na stronach projektów (wartości faktów),
+więc deklaracji nie usuwaj.
+
 OSTRZEŻENIE METODOLOGICZNE: lokalny `npm run preview` to hałaśliwe
 stanowisko — dla tej samej wersji render delay wychodził 57, 90 i 386 ms,
 a LCP 1293 i 2409 ms. Nie przypisuj zmian pojedynczym przebiegom.
