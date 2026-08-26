@@ -159,6 +159,18 @@
   display: none;
 }
 
+/* ─── Ochrona zdjęć — DETERENT, nie zabezpieczenie ───────────────────────── */
+/* Blokuje wygodne ścieżki zapisu: długie przytrzymanie na iOS (arkusz
+   „Zapisz zdjęcie"), przeciąganie obrazu na pulpit, zaznaczanie.
+   NIE chroni przed zrzutem ekranu, narzędziami deweloperskimi, zakładką
+   Sieć ani pobraniem adresu z kodu strony. Nazywaj to po imieniu. */
+
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 /* ─── Koszt układu przy 374 kaflach ──────────────────────────────────────── */
 /* Zmierzone przed zmianą: jedno przeliczenie układu 297 ms przy 1241 węzłach,
    co stanowiło praktycznie cały „render delay" w trace'ie.

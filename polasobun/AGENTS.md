@@ -265,6 +265,49 @@ Lata w Portfolio.dc.html to placeholdery narzędzia do makiet — nie dane.
 Sprawdzone 2026-08-25: polasobun.com nie podaje nigdzie roku realizacji,
 więc wszystkie year są null.
 
+## Kolejność zdjęć w siatce
+ROUND-ROBIN po sesjach: najpierw pierwsze zdjęcie z każdej sesji, potem
+drugie z każdej, i tak dalej. Wcześniej szło folder po folderze i w ALL
+wychodziło po kilkanaście kadrów z rzędu z tej samej kampanii.
+Zweryfikowane po zmianie: w widoku ALL ZERO sąsiadujących kafli z tej
+samej sesji.
+
+MAX_W_ALL = 6 — tyle zdjęć z jednej sesji trafia do widoku ALL.
+Przy 17 sesjach daje to 101 kafli. ALL ma być przeglądem pojedynczych
+kadrów z różnych sesji, nie archiwum.
+
+Zdjęcie poza limitem ALL, które nie ma też tagu portraits ani food, nie
+trafiłoby do żadnej zakładki — jest POMIJANE w renderowaniu siatki.
+Zostaje widoczne na stronie swojej kampanii /work/<slug>, która pokazuje
+cały folder. Dzięki temu DOM spadł z 374 kafli na 280.
+
+PORTRAITS i FOOD nadal pokazują wszystko (122 i 78). Mają sąsiadujące
+kafle z tej samej sesji i to jest nieuniknione — te zakładki są
+zdominowane przez zbiorcze galerie _portraits (114) i _food (50), które
+Z DEFINICJI są jedną sesją. Nie próbuj tego "naprawiać".
+
+## Ochrona zdjęć — DETERENT, nie zabezpieczenie
+Nazywaj to po imieniu i nie obiecuj klientce więcej, niż to daje.
+
+Co robi: blokuje długie przytrzymanie na iOS (arkusz „Zapisz zdjęcie"),
+przeciąganie obrazu na pulpit, zaznaczanie i menu kontekstowe na <img>.
+Reguła CSS w global.css plus jeden listener w Base.astro.
+
+Czego NIE robi: nie chroni przed zrzutem ekranu, narzędziami
+deweloperskimi, zakładką Sieć ani skopiowaniem adresu z kodu strony.
+
+WATERMARK „TYLKO PRZY KRADZIEŻY" JEST NIEWYKONALNY — nie próbuj go
+implementować. Przeglądarka wyświetlająca zdjęcie i narzędzie je
+zapisujące wysyłają TO SAMO żądanie HTTP po ten sam plik. Serwer nie ma
+sygnału, który pozwoliłby je odróżnić. Cokolwiek serwujemy, dostaje to
+jedno i drugie.
+
+Rozważone i ODRZUCONE decyzją właściciela projektu:
+  - obniżenie maksymalnej rozdzielczości na stronach projektów (2000 px)
+  - watermark wypalany we wszystkie zdjęcia przy budowaniu
+  - watermark tylko na stronach projektów
+Zostaje sam deterent. Zdjęcia są serwowane w pełnej jakości.
+
 ## Taksonomia — decyzja ostateczna
 Filtry: ALL / COMMERCIAL / PORTRAITS / FOOD.
 Pole tags przyjmuje wyłącznie: commercial | portraits | food.
