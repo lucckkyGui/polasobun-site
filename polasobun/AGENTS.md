@@ -9,6 +9,16 @@ z natywnym kompilatorem TypeScript 7 — nie wystawia programmatic API,
 którego wymaga (withastro/roadmap#1321). Nie bumpować bez sprawdzenia,
 że check nadal przechodzi; inaczej build wywali się na starcie.
 
+## Pomiar wydajności
+@vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
+18 stronach. Świadomy wyjątek od reguły „zero zależności".
+
+UWAGA: zbiera dane WYŁĄCZNIE na Vercelu. Skrypt wysyła je na
+/_vercel/speed-insights/vitals, którego na Cloudflare Pages nie ma —
+tam będzie tylko martwym żądaniem 404. Jeśli produkcja faktycznie
+pojedzie na Cloudflare, trzeba to albo usunąć, albo zamienić na
+odpowiednik Cloudflare (Web Analytics).
+
 ## Deploy
 Docelowa produkcja: Cloudflare Pages (bez zmian).
 
@@ -32,7 +42,8 @@ przejdzie dopiero po zmergowaniu PR-a.
   transition-duration to 0s, więc elementy bez własnych przejść pozostają
   nietknięte. Nadpisanie duration dokładałoby przejścia tam, gdzie ich nie
   było. Ruch znika, przejścia opacity i koloru zostają.
-- Zero zależności poza: astro, react, tailwind, motion. Pytaj przed dodaniem czegokolwiek.
+- Zero zależności poza: astro, react, tailwind, motion, @vercel/speed-insights.
+  Pytaj przed dodaniem czegokolwiek.
 - Brak zaokrągleń, cieni i gradientów.
 - Animacja wejścia jest zaakceptowana i wdrożona (patrz niżej). Poza nią
   nadal zero animacji bez wyraźnej zgody.
