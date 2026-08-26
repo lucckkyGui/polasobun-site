@@ -22,10 +22,32 @@ fetchpriority="high" na pierwszym kaflu. Narzędzie oznaczało jego brak
 jako FAILED. Działa: obraz LCP kończy się pierwszy mimo równego startu
 z sąsiadami.
 
-EAGER_COUNT = 2, nie 6. Przy sześciu wszystkie startowały w tej samej
-milisekundzie i 406 kB walczyło o dławione łącze. Kafle leniwe, które
-i tak są w widoku, przeglądarka pobiera zaraz potem, tylko z niższym
-priorytetem.
+EAGER_COUNT = 8 — tyle, ile mieści się na pierwszym ekranie po przejściu
+na dwie kolumny na telefonie. Wcześniej było 2, bo przy jednej kolumnie
+i sześciu eager 406 kB waliło o dławione łącze. Pierwszy kafel ma
+fetchpriority="high" i mimo równego startu wygrywa kolejkę.
+
+DWIE KOLUMNY NA TELEFONIE, nie jedna. Zmierzone na iPhone 16 Pro Max
+(430 pt, dpr 3):
+  jedna kolumna   kafel 1290 px urzadzenia, obraz 800 px = 1,61x W GORE
+                  2 kafle na ekranie, 186 ekranow do przewiniecia
+  dwie kolumny    kafel  645 px urzadzenia, obraz 800 px = 0,81x w dol
+                  8 kafli na ekranie,  87 ekranow
+Jedna kolumna nie tylko wymuszala 186 ekranow przewijania, ale i
+ROZCIAGALA obrazy — 800 px na 1290 px szerokosci. Dwie kolumny naprawiaja
+ostrosc za darmo. Nie wracaj do jednej bez przeliczenia tych liczb.
+
+DOLADOWYWANIE PACZKAMI. Natywne loading="lazy" rusza dopiero tuz przy
+widoku i przy szybkim przewijaniu nie nadaza; do tego kafle od 13. w gore
+maja content-visibility, wiec ich obrazy nie sa renderowane i natywny
+mechanizm ma jeszcze mniej czasu. Obserwator w Gallery.tsx przelacza
+kafle w zasiegu poltora ekranu na loading="eager".
+Obserwujemy KAFEL, nie obraz — kafel ma wlasny box nawet przy pominietym
+renderowaniu zawartosci, obraz w srodku nie.
+Obserwator wpinamy dopiero po zdarzeniu load, zeby nie konkurowal
+o pasmo z pierwszym ekranem.
+Zmierzone, przewijanie po 5 ekranow: 0 pustych kafli w widoku na kazdym
+kroku.
 
 PRELOAD FONTÓW BYŁ PRÓBOWANY I ŚWIADOMIE COFNIĘTY. Nie dodawaj go
 ponownie bez pomiaru. Zmierzona kolejność żądań z preloadem:
