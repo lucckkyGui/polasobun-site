@@ -736,6 +736,7 @@ Wstaw prawdziwe liczby w miejsce `<PRZED>` i `<PO>`.
 ### Task 6: E2 — wstrzyknięcie pierwszego kafla jako `data:` (warunkowe)
 
 **Files:**
+- Modify: `package.json` — jawna deklaracja `sharp`
 - Modify: `src/pages/index.astro` — frontmatter i markup pierwszego kafla
 
 **Interfaces:**
@@ -754,6 +755,27 @@ W `src/pages/index.astro`, po wyliczeniu `warianty`:
 ale plik powstaje dopiero na końcu builda, więc w chwili renderowania strony
 jeszcze go nie ma. Bufor trzeba zrobić samodzielnie, tym samym `sharp`,
 którego używa `astro:assets`.
+
+**Najpierw zadeklaruj `sharp` jawnie.** Leży już w `node_modules`
+(0.35.3, przyciągany przez `astro@7.2.7`), ale nie ma go w `package.json`.
+Import zależności przechodniej działa przy npm i wywala się przy pnpm albo
+gdy Astro przestanie jej używać. Decyzja klienta z 2026-08-27: deklarujemy.
+
+Dopisz do `dependencies` w `package.json`, w wersji zgodnej z tą już
+zainstalowaną — nic się nie doinstaluje, katalog nie urośnie:
+
+```json
+    "sharp": "^0.35.3",
+```
+
+Potwierdź, że nic się nie zmieniło w drzewie:
+
+```bash
+cd polasobun
+npm ls sharp
+```
+
+Oczekiwane: `sharp@0.35.3` bez ostrzeżeń o niespójności.
 
 Na górze frontmattera:
 
