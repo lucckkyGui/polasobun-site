@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pola Sobuń — Photographer / Fotografka</title>
-<meta name="description" content="Pola Sobuń — photographer based in Warsaw and Łódź. Fashion, portrait, reportage, branded content and food still life. Selected works and contact.">
+<meta name="description" content="Pola Sobuń — photographer based in Warsaw and Łódź. Portfolio: fashion, portrait, sport, food and commercial photography.">
 <meta name="author" content="Pola Sobuń">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="canonical" href="https://polasobun.com/">
@@ -15,14 +15,14 @@
 <meta property="og:site_name" content="Pola Sobuń">
 <meta property="og:url" content="https://polasobun.com/">
 <meta property="og:title" content="Pola Sobuń — Photographer">
-<meta property="og:description" content="Fashion, portrait, reportage and food photography. Warsaw / Łódź.">
+<meta property="og:description" content="Portfolio: fashion, portrait, sport, food and commercial photography. Warsaw / Łódź.">
 <meta property="og:image" content="https://polasobun.com/assets/og.jpg">
 <meta property="og:image:alt" content="Pola Sobuń — photography portfolio">
 <meta property="og:locale" content="en_GB">
 <meta property="og:locale:alternate" content="pl_PL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Pola Sobuń — Photographer">
-<meta name="twitter:description" content="Fashion, portrait, reportage and food photography. Warsaw / Łódź.">
+<meta name="twitter:description" content="Portfolio: fashion, portrait, sport, food and commercial photography. Warsaw / Łódź.">
 <meta name="twitter:image" content="https://polasobun.com/assets/og.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,39 +40,24 @@
   "image": "https://polasobun.com/assets/og.jpg",
   "email": "mailto:polasobun@gmail.com",
   "telephone": "+48883180410",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Warszawa",
-    "addressCountry": "PL"
-  },
+  "address": { "@type": "PostalAddress", "addressLocality": "Warszawa", "addressCountry": "PL" },
   "knowsLanguage": ["pl", "en"],
   "sameAs": ["https://www.instagram.com/polasobun/"]
 }
 </script>
 </head>
-<body>
-
-<div class="preloader" id="preloader" aria-hidden="true">
-  <div class="preloader__inner">
-    <p class="preloader__mark">POLA SOBUŃ</p>
-    <p class="preloader__sub" data-i18n="pre.sub"></p>
-  </div>
-  <p class="preloader__count" id="preCount">00</p>
-  <div class="preloader__bar"><span id="preBar"></span></div>
-</div>
+<body data-category="all">
 
 <a class="skip-link" href="#main" data-i18n="ui.skip"></a>
 
-<div class="nav-scrim" aria-hidden="true"></div>
-
 <header class="nav" id="nav">
   <div class="nav__row">
-    <a class="nav__mark" href="#top" aria-label="Pola Sobuń — home">PS&copy;</a>
-    <nav class="nav__links" id="navLinks" aria-label="Main">
-      <a href="#works" data-i18n="nav.works"></a>
-      <a href="#food" data-i18n="nav.food"></a>
-      <a href="#about" data-i18n="nav.about"></a>
-      <a href="#contact" data-i18n="nav.contact"></a>
+    <a class="nav__mark" href="index.html" aria-label="Pola Sobuń">POLA SOBUŃ</a>
+    <nav class="nav__links" aria-label="Categories">
+      <a class="nav__link is-active" href="index.html"><span data-i18n="nav.all"></span><span class="cnt" data-count-cat="all"></span></a>
+      <a class="nav__link" href="sport.html"><span data-i18n="nav.sport"></span><span class="cnt" data-count-cat="sport"></span></a>
+      <a class="nav__link" href="komercyjne.html"><span data-i18n="nav.commercial"></span><span class="cnt" data-count-cat="commercial"></span></a>
+      <a class="nav__link" href="food.html"><span data-i18n="nav.food"></span><span class="cnt" data-count-cat="food"></span></a>
     </nav>
     <div class="nav__right">
       <div class="lang" role="group" data-i18n-aria="ui.lang">
@@ -80,19 +65,17 @@
         <span class="lang__sep" aria-hidden="true">/</span>
         <button type="button" class="lang__btn" data-lang="en">EN</button>
       </div>
-      <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" data-i18n-aria="ui.menu">
-        <span></span><span></span>
-      </button>
+      <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" data-i18n-aria="ui.menu"><span></span><span></span></button>
     </div>
   </div>
 </header>
 
 <div class="menu" id="menu" hidden>
-  <nav class="menu__nav" aria-label="Mobile">
-    <a href="#works" data-i18n="nav.works"></a>
-    <a href="#food" data-i18n="nav.food"></a>
-    <a href="#about" data-i18n="nav.about"></a>
-    <a href="#contact" data-i18n="nav.contact"></a>
+  <nav class="menu__nav" aria-label="Categories">
+    <a class="is-active" href="index.html"><span data-i18n="nav.all"></span><span class="cnt" data-count-cat="all"></span></a>
+    <a href="sport.html"><span data-i18n="nav.sport"></span><span class="cnt" data-count-cat="sport"></span></a>
+    <a href="komercyjne.html"><span data-i18n="nav.commercial"></span><span class="cnt" data-count-cat="commercial"></span></a>
+    <a href="food.html"><span data-i18n="nav.food"></span><span class="cnt" data-count-cat="food"></span></a>
   </nav>
   <div class="menu__foot">
     <a href="mailto:polasobun@gmail.com">polasobun@gmail.com</a>
@@ -100,643 +83,43 @@
   </div>
 </div>
 
-<div id="scroll-wrap">
-<div id="scroll-content">
-
 <main id="main">
-
-  <!-- ===== HERO ===== -->
-  <section class="hero" id="top">
-    <div class="wrap hero__grid">
-      <div class="hero__title">
-        <h1 class="display hero__h1" aria-label="Pola Sobuń">
-          <span class="line"><span class="line__in" data-split>POLA</span></span>
-          <span class="line"><span class="line__in" data-split>SOBUŃ</span></span>
-        </h1>
-        <p class="hero__lead" data-i18n="hero.lead"></p>
-      </div>
-      <div class="hero__media">
-        <div class="hero__media-inner" data-parallax="12">
-          <img src="assets/img/sm/work-20.jpg" srcset="assets/img/sm/work-20.jpg 533w, assets/img/lg/work-20.jpg 1066w" sizes="(max-width: 900px) 62vw, 26vw" width="1066" height="1600" decoding="async" fetchpriority="high" alt="" data-i18n-alt="alt.hero">
-        </div>
-      </div>
+  <div class="page-head">
+    <h1 class="page-head__title display" data-i18n="cat.all"></h1>
+    <div class="page-head__meta">
+      <span class="label page-head__count" data-count-cat="all"></span>
+      <span class="label" data-i18n="foot.based"></span>
     </div>
-    <div class="wrap hero__bar">
-      <span class="label" data-i18n="hero.role"></span>
-      <span class="label">WARSZAWA / ŁÓDŹ</span>
-      <span class="label" data-i18n="hero.avail"></span>
-      <a class="hero__scroll" href="#works">
-        <span class="label" data-i18n="hero.scroll"></span>
-        <span class="hero__arrow" aria-hidden="true">&darr;</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ===== FEATURED WORKS ===== -->
-  <section class="section works" id="works">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.works.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.works.title"></h2>
-    </div>
-    <div class="wrap works__list">
-      <article class="work is-left reveal" data-lb data-gallery="works">
-        <div class="work__meta">
-          <span class="work__num">01</span>
-          <span class="work__cat" data-i18n="cat.beauty"></span>
-        </div>
-        <div class="work__body">
-          <div class="work__media">
-            <div class="work__media-inner">
-              <img src="assets/img/sm/work-00.jpg" srcset="assets/img/sm/work-00.jpg 533w, assets/img/lg/work-00.jpg 1067w" sizes="(max-width: 900px) 88vw, 34vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.w1">
-            </div>
-          </div>
-          <div class="work__text">
-            <h3 class="work__title"><span class="work__title-in">RIMMEL</span></h3>
-            <p class="work__year">@2025</p>
-            <p class="work__desc" data-i18n="work.desc.01"></p>
-          </div>
-        </div>
-      </article>
-      <article class="work is-right reveal" data-lb data-gallery="works">
-        <div class="work__meta">
-          <span class="work__num">02</span>
-          <span class="work__cat" data-i18n="cat.branded"></span>
-        </div>
-        <div class="work__body">
-          <div class="work__media">
-            <div class="work__media-inner">
-              <img src="assets/img/sm/work-05.jpg" srcset="assets/img/sm/work-05.jpg 533w, assets/img/lg/work-05.jpg 1066w" sizes="(max-width: 900px) 88vw, 34vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.w2">
-            </div>
-          </div>
-          <div class="work__text">
-            <h3 class="work__title"><span class="work__title-in">ZALANDO</span></h3>
-            <p class="work__year">@2025</p>
-            <p class="work__desc" data-i18n="work.desc.02"></p>
-          </div>
-        </div>
-      </article>
-      <article class="work is-left reveal" data-lb data-gallery="works">
-        <div class="work__meta">
-          <span class="work__num">03</span>
-          <span class="work__cat" data-i18n="cat.fashion"></span>
-        </div>
-        <div class="work__body">
-          <div class="work__media">
-            <div class="work__media-inner">
-              <img src="assets/img/sm/work-12.jpg" srcset="assets/img/sm/work-12.jpg 533w, assets/img/lg/work-12.jpg 1066w" sizes="(max-width: 900px) 88vw, 34vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.w3">
-            </div>
-          </div>
-          <div class="work__text">
-            <h3 class="work__title"><span class="work__title-in">RESERVED</span></h3>
-            <p class="work__year">@2024</p>
-            <p class="work__desc" data-i18n="work.desc.03"></p>
-          </div>
-        </div>
-      </article>
-      <article class="work is-right reveal" data-lb data-gallery="works">
-        <div class="work__meta">
-          <span class="work__num">04</span>
-          <span class="work__cat" data-i18n="cat.fashion"></span>
-        </div>
-        <div class="work__body">
-          <div class="work__media">
-            <div class="work__media-inner">
-              <img src="assets/img/sm/work-20.jpg" srcset="assets/img/sm/work-20.jpg 533w, assets/img/lg/work-20.jpg 1066w" sizes="(max-width: 900px) 88vw, 34vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.w4">
-            </div>
-          </div>
-          <div class="work__text">
-            <h3 class="work__title"><span class="work__title-in">ROBERT KUPISZ</span></h3>
-            <p class="work__year">@2024</p>
-            <p class="work__desc" data-i18n="work.desc.04"></p>
-          </div>
-        </div>
-      </article>
-      <article class="work is-left reveal" data-lb data-gallery="works">
-        <div class="work__meta">
-          <span class="work__num">05</span>
-          <span class="work__cat" data-i18n="cat.lifestyle"></span>
-        </div>
-        <div class="work__body">
-          <div class="work__media">
-            <div class="work__media-inner">
-              <img src="assets/img/sm/work-31.jpg" srcset="assets/img/sm/work-31.jpg 533w, assets/img/lg/work-31.jpg 1066w" sizes="(max-width: 900px) 88vw, 34vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.w5">
-            </div>
-          </div>
-          <div class="work__text">
-            <h3 class="work__title"><span class="work__title-in">ALLEGRO</span></h3>
-            <p class="work__year">@2023</p>
-            <p class="work__desc" data-i18n="work.desc.05"></p>
-          </div>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <!-- ===== CREATOR ===== -->
-  <section class="section creator" id="creator" hidden>
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.creator.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.creator.title"></h2>
-    </div>
-    <div class="wrap creator__grid">
-      <p class="creator__lead reveal" data-i18n="creator.lead"></p>
-      <div class="creator__stats" id="creatorStats"></div>
-    </div>
-  </section>
-
-  <!-- ===== MOTION / REELS ===== -->
-  <section class="section motion" id="motion" hidden>
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.motion.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.motion.title"></h2>
-      <p class="motion__lead reveal" data-i18n="motion.lead"></p>
-    </div>
-    <div class="wrap">
-      <div class="motion__grid" id="motionGrid"></div>
-    </div>
-  </section>
-
-  <!-- ===== MARQUEE ===== -->
-  <section class="marquee-sec" aria-hidden="true">
-    <div class="marquee" data-dir="-1"><div class="marquee__track" id="mq1"></div></div>
-    <div class="marquee" data-dir="1"><div class="marquee__track" id="mq2"></div></div>
-  </section>
-
-  <!-- ===== SELECTED FRAMES ===== -->
-  <section class="section frames" id="frames">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.frames.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.frames.title"></h2>
-    </div>
-    <div class="wrap">
-      <div class="frames__grid">
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-01.jpg" srcset="assets/img/sm/work-01.jpg 600w, assets/img/lg/work-01.jpg 1199w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1199" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-02.jpg" srcset="assets/img/sm/work-02.jpg 533w, assets/img/lg/work-02.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-03.jpg" srcset="assets/img/sm/work-03.jpg 533w, assets/img/lg/work-03.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g3">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-04.jpg" srcset="assets/img/sm/work-04.jpg 533w, assets/img/lg/work-04.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g4">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-06.jpg" srcset="assets/img/sm/work-06.jpg 533w, assets/img/lg/work-06.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g5">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-07.jpg" srcset="assets/img/sm/work-07.jpg 533w, assets/img/lg/work-07.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g6">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-08.jpg" srcset="assets/img/sm/work-08.jpg 533w, assets/img/lg/work-08.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g7">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-09.jpg" srcset="assets/img/sm/work-09.jpg 533w, assets/img/lg/work-09.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g8">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-10.jpg" srcset="assets/img/sm/work-10.jpg 533w, assets/img/lg/work-10.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-11.jpg" srcset="assets/img/sm/work-11.jpg 533w, assets/img/lg/work-11.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-13.jpg" srcset="assets/img/sm/work-13.jpg 533w, assets/img/lg/work-13.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g3">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-14.jpg" srcset="assets/img/sm/work-14.jpg 533w, assets/img/lg/work-14.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g4">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-15.jpg" srcset="assets/img/sm/work-15.jpg 533w, assets/img/lg/work-15.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g5">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-16.jpg" srcset="assets/img/sm/work-16.jpg 533w, assets/img/lg/work-16.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g6">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-17.jpg" srcset="assets/img/sm/work-17.jpg 533w, assets/img/lg/work-17.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g7">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-18.jpg" srcset="assets/img/sm/work-18.jpg 533w, assets/img/lg/work-18.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g8">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-19.jpg" srcset="assets/img/sm/work-19.jpg 533w, assets/img/lg/work-19.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-21.jpg" srcset="assets/img/sm/work-21.jpg 534w, assets/img/lg/work-21.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-      </div>
-      <div class="frames__grid frames__more" id="framesMore" hidden>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-22.jpg" srcset="assets/img/sm/work-22.jpg 533w, assets/img/lg/work-22.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g4">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-23.jpg" srcset="assets/img/sm/work-23.jpg 533w, assets/img/lg/work-23.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g5">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-24.jpg" srcset="assets/img/sm/work-24.jpg 533w, assets/img/lg/work-24.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g6">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-25.jpg" srcset="assets/img/sm/work-25.jpg 533w, assets/img/lg/work-25.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g7">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-26.jpg" srcset="assets/img/sm/work-26.jpg 533w, assets/img/lg/work-26.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g8">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-27.jpg" srcset="assets/img/sm/work-27.jpg 533w, assets/img/lg/work-27.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-28.jpg" srcset="assets/img/sm/work-28.jpg 533w, assets/img/lg/work-28.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-29.jpg" srcset="assets/img/sm/work-29.jpg 533w, assets/img/lg/work-29.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g3">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-30.jpg" srcset="assets/img/sm/work-30.jpg 533w, assets/img/lg/work-30.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g4">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-32.jpg" srcset="assets/img/sm/work-32.jpg 533w, assets/img/lg/work-32.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g5">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-33.jpg" srcset="assets/img/sm/work-33.jpg 533w, assets/img/lg/work-33.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g6">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-34.jpg" srcset="assets/img/sm/work-34.jpg 533w, assets/img/lg/work-34.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g7">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-35.jpg" srcset="assets/img/sm/work-35.jpg 533w, assets/img/lg/work-35.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g8">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-36.jpg" srcset="assets/img/sm/work-36.jpg 533w, assets/img/lg/work-36.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-37.jpg" srcset="assets/img/sm/work-37.jpg 533w, assets/img/lg/work-37.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-38.jpg" srcset="assets/img/sm/work-38.jpg 533w, assets/img/lg/work-38.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g3">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-39.jpg" srcset="assets/img/sm/work-39.jpg 533w, assets/img/lg/work-39.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g4">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-41.jpg" srcset="assets/img/sm/work-41.jpg 533w, assets/img/lg/work-41.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g5">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-42.jpg" srcset="assets/img/sm/work-42.jpg 533w, assets/img/lg/work-42.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g6">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-43.jpg" srcset="assets/img/sm/work-43.jpg 533w, assets/img/lg/work-43.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g7">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-44.jpg" srcset="assets/img/sm/work-44.jpg 534w, assets/img/lg/work-44.jpg 1067w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g8">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-45.jpg" srcset="assets/img/sm/work-45.jpg 533w, assets/img/lg/work-45.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g1">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-46.jpg" srcset="assets/img/sm/work-46.jpg 533w, assets/img/lg/work-46.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g2">
-          </button>
-        </figure>
-        <figure class="frame reveal" data-lb data-gallery="frames">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-47.jpg" srcset="assets/img/sm/work-47.jpg 533w, assets/img/lg/work-47.jpg 1066w" sizes="(max-width: 720px) 92vw, (max-width: 1100px) 46vw, 31vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.g3">
-          </button>
-        </figure>
-      </div>
-      <div class="frames__actions">
-        <button type="button" class="btn" id="framesToggle" aria-expanded="false" aria-controls="framesMore">
-          <span data-i18n="frames.more"></span>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== RUN ===== -->
-  <section class="section run" id="run">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.run.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.run.title"></h2>
-    </div>
-    <div class="wrap run__grid">
-      <div class="run__text">
-        <p class="run__lead reveal" data-i18n="run.p1"></p>
-        <p class="reveal" data-i18n="run.p2"></p>
-        <div class="run__stat" id="runStat" hidden></div>
-      </div>
-      <div class="run__media">
-        <figure class="run__frame run__frame--main reveal" data-lb data-gallery="run">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-05.jpg" srcset="assets/img/sm/work-05.jpg 533w, assets/img/lg/work-05.jpg 1066w" sizes="(max-width: 900px) 88vw, 40vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.run1">
-          </button>
-        </figure>
-        <figure class="run__frame reveal" data-lb data-gallery="run">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-11.jpg" srcset="assets/img/sm/work-11.jpg 533w, assets/img/lg/work-11.jpg 1066w" sizes="(max-width: 900px) 44vw, 20vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.run2">
-          </button>
-        </figure>
-        <figure class="run__frame reveal" data-lb data-gallery="run">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/work-22.jpg" srcset="assets/img/sm/work-22.jpg 533w, assets/img/lg/work-22.jpg 1067w" sizes="(max-width: 900px) 44vw, 20vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.run3">
-          </button>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== ABOUT ===== -->
-  <section class="section about" id="about">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.about.eyebrow"></p>
-      <h2 class="section__title display">POLA SOBUŃ</h2>
-    </div>
-    <div class="wrap about__grid">
-      <div class="about__media reveal">
-        <img src="assets/img/sm/work-40.jpg" srcset="assets/img/sm/work-40.jpg 534w, assets/img/lg/work-40.jpg 1067w" sizes="(max-width: 900px) 88vw, 36vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.about">
-      </div>
-      <div class="about__text reveal">
-        <p data-i18n="about.p1"></p>
-        <p data-i18n="about.p2"></p>
-        <p data-i18n="about.p3"></p>
-        <p data-i18n="about.p4"></p>
-        <p data-i18n="about.p5"></p>
-      </div>
-    </div>
-    <div class="wrap stats">
-      <div class="stat reveal">
-        <p class="stat__num"><span data-count="10">0</span>+</p>
-        <p class="label" data-i18n="stat.years"></p>
-      </div>
-      <div class="stat reveal">
-        <p class="stat__num"><span data-count="250">0</span>+</p>
-        <p class="label" data-i18n="stat.shoots"></p>
-      </div>
-      <div class="stat reveal">
-        <p class="stat__num"><span data-count="30">0</span>+</p>
-        <p class="label" data-i18n="stat.brands"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CLIENTS ===== -->
-  <section class="section clients" id="clients">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.clients.eyebrow"></p>
-      <h2 class="section__title display" data-i18n="sec.clients.title"></h2>
-    </div>
-    <div class="wrap">
-      <ul class="clients__list">
-        <li class="client reveal"><span class="client__name">Rimmel</span><span class="client__idx">01</span></li>
-        <li class="client reveal"><span class="client__name">Zalando</span><span class="client__idx">02</span></li>
-        <li class="client reveal"><span class="client__name">Reserved</span><span class="client__idx">03</span></li>
-        <li class="client reveal"><span class="client__name">Cropp</span><span class="client__idx">04</span></li>
-        <li class="client reveal"><span class="client__name">House</span><span class="client__idx">05</span></li>
-        <li class="client reveal"><span class="client__name">CCC</span><span class="client__idx">06</span></li>
-        <li class="client reveal"><span class="client__name">Pull&amp;Bear</span><span class="client__idx">07</span></li>
-        <li class="client reveal"><span class="client__name">Allegro</span><span class="client__idx">08</span></li>
-        <li class="client reveal"><span class="client__name">Esotiq</span><span class="client__idx">09</span></li>
-        <li class="client reveal"><span class="client__name">Robert Kupisz</span><span class="client__idx">10</span></li>
-        <li class="client reveal"><span class="client__name">Henderson</span><span class="client__idx">11</span></li>
-        <li class="client reveal"><span class="client__name">Kodano Optyk</span><span class="client__idx">12</span></li>
-        <li class="client reveal"><span class="client__name">Butik Optique</span><span class="client__idx">13</span></li>
-        <li class="client reveal"><span class="client__name">Publiszki</span><span class="client__idx">14</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ===== FOOD ===== -->
-  <section class="section food" id="food">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.food.eyebrow"></p>
-      <h2 class="section__title display">FOOD &amp; STILL LIFE</h2>
-      <p class="food__hint label" data-i18n="food.hint"></p>
-    </div>
-    <div class="food__rail" id="foodRail" tabindex="0" data-i18n-aria="food.railLabel" role="region">
-      <div class="food__track">
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-00.jpg" srcset="assets/img/sm/food-00.jpg 533w, assets/img/lg/food-00.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f1">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-01.jpg" srcset="assets/img/sm/food-01.jpg 533w, assets/img/lg/food-01.jpg 1066w" sizes="(max-width: 720px) 68vw, 30vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f2">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-02.jpg" srcset="assets/img/sm/food-02.jpg 534w, assets/img/lg/food-02.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f3">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-03.jpg" srcset="assets/img/sm/food-03.jpg 533w, assets/img/lg/food-03.jpg 1066w" sizes="(max-width: 720px) 68vw, 30vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f4">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-04.jpg" srcset="assets/img/sm/food-04.jpg 534w, assets/img/lg/food-04.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f1">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-05.jpg" srcset="assets/img/sm/food-05.jpg 533w, assets/img/lg/food-05.jpg 1066w" sizes="(max-width: 720px) 68vw, 30vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f2">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-06.jpg" srcset="assets/img/sm/food-06.jpg 534w, assets/img/lg/food-06.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f3">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-07.jpg" srcset="assets/img/sm/food-07.jpg 530w, assets/img/lg/food-07.jpg 1060w" sizes="(max-width: 720px) 68vw, 30vw" width="1060" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f4">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-08.jpg" srcset="assets/img/sm/food-08.jpg 530w, assets/img/lg/food-08.jpg 1060w" sizes="(max-width: 720px) 68vw, 30vw" width="1060" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f1">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-09.jpg" srcset="assets/img/sm/food-09.jpg 530w, assets/img/lg/food-09.jpg 1060w" sizes="(max-width: 720px) 68vw, 30vw" width="1060" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f2">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-10.jpg" srcset="assets/img/sm/food-10.jpg 530w, assets/img/lg/food-10.jpg 1060w" sizes="(max-width: 720px) 68vw, 30vw" width="1060" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f3">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-11.jpg" srcset="assets/img/sm/food-11.jpg 530w, assets/img/lg/food-11.jpg 1060w" sizes="(max-width: 720px) 68vw, 30vw" width="1060" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f4">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-12.jpg" srcset="assets/img/sm/food-12.jpg 533w, assets/img/lg/food-12.jpg 1066w" sizes="(max-width: 720px) 68vw, 30vw" width="1066" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f1">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-13.jpg" srcset="assets/img/sm/food-13.jpg 529w, assets/img/lg/food-13.jpg 1058w" sizes="(max-width: 720px) 68vw, 30vw" width="1058" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f2">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-14.jpg" srcset="assets/img/sm/food-14.jpg 534w, assets/img/lg/food-14.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f3">
-          </button>
-        </figure>
-        <figure class="food-item reveal" data-lb data-gallery="food">
-          <button class="frame__btn" type="button" data-i18n-aria="ui.open">
-            <img src="assets/img/sm/food-15.jpg" srcset="assets/img/sm/food-15.jpg 534w, assets/img/lg/food-15.jpg 1067w" sizes="(max-width: 720px) 68vw, 30vw" width="1067" height="1600" decoding="async" loading="lazy" alt="" data-i18n-alt="alt.f4">
-          </button>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CONTACT ===== -->
-  <section class="section contact" id="contact">
-    <div class="wrap section__head">
-      <p class="label" data-seq data-i18n="sec.contact.eyebrow"></p>
-    </div>
-    <div class="wrap">
-      <h2 class="contact__title display">
-        <span class="line"><span class="line__in" data-i18n="contact.l1"></span></span>
-        <span class="line"><span class="line__in" data-i18n="contact.l2"></span></span>
-      </h2>
-      <ul class="contact__list">
-        <li class="reveal">
-          <span class="label" data-i18n="contact.mail"></span>
-          <a class="link-u" href="mailto:polasobun@gmail.com">polasobun@gmail.com</a>
-        </li>
-        <li class="reveal">
-          <span class="label" data-i18n="contact.tel"></span>
-          <a class="link-u" href="tel:+48883180410">883 180 410</a>
-        </li>
-        <li class="reveal">
-          <span class="label">INSTAGRAM</span>
-          <a class="link-u" href="https://www.instagram.com/polasobun/" target="_blank" rel="noopener">@polasobun</a>
-        </li>
-      </ul>
-    </div>
-  </section>
-
+  </div>
+  <section class="grid" id="grid" aria-label="Portfolio"></section>
 </main>
 
 <footer class="footer">
-  <div class="wrap footer__row">
-    <span class="label">&copy; 2026 POLA SOBUŃ</span>
-    <span class="label">WARSZAWA &middot; ŁÓDŹ</span>
-    <span class="label" data-i18n="footer.made"></span>
+  <div class="footer__grid">
+    <p class="footer__about" data-i18n="foot.about"></p>
+    <div class="footer__contact">
+      <span class="label" data-i18n="foot.contact"></span>
+      <div class="row"><span class="label" data-i18n="foot.mail"></span><a class="link-u" href="mailto:polasobun@gmail.com">polasobun@gmail.com</a></div>
+      <div class="row"><span class="label" data-i18n="foot.tel"></span><a class="link-u" href="tel:+48883180410">883 180 410</a></div>
+      <div class="row"><span class="label">Instagram</span><a class="link-u" href="https://www.instagram.com/polasobun/" target="_blank" rel="noopener">@polasobun</a></div>
+    </div>
   </div>
   <p class="footer__mark" aria-hidden="true">POLA SOBUŃ&copy;</p>
+  <div class="footer__legal">
+    <span class="label">&copy; 2026 Pola Sobuń</span>
+    <span class="label" data-i18n="foot.rights"></span>
+  </div>
 </footer>
 
-</div>
-</div>
-
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" data-i18n-aria="ui.lightbox" hidden>
-  <button type="button" class="lightbox__close" id="lbClose" data-i18n-aria="ui.close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-  <button type="button" class="lightbox__nav lightbox__nav--prev" id="lbPrev" data-i18n-aria="ui.prev">
-    <span aria-hidden="true">&larr;</span>
-  </button>
-  <button type="button" class="lightbox__nav lightbox__nav--next" id="lbNext" data-i18n-aria="ui.next">
-    <span aria-hidden="true">&rarr;</span>
-  </button>
-  <figure class="lightbox__fig">
-    <img id="lbImg" alt="" decoding="async">
-  </figure>
+  <button type="button" class="lightbox__close" id="lbClose" data-i18n-aria="ui.close"><span aria-hidden="true">&times;</span></button>
+  <button type="button" class="lightbox__nav lightbox__nav--prev" id="lbPrev" data-i18n-aria="ui.prev"><span aria-hidden="true">&larr;</span></button>
+  <button type="button" class="lightbox__nav lightbox__nav--next" id="lbNext" data-i18n-aria="ui.next"><span aria-hidden="true">&rarr;</span></button>
+  <figure class="lightbox__fig"><img id="lbImg" alt="" decoding="async"></figure>
   <p class="lightbox__count label" id="lbCount"></p>
 </div>
 
-<div class="cursor" id="cursor" aria-hidden="true">
-  <span class="cursor__dot"></span>
-  <span class="cursor__ring"></span>
-</div>
+<div class="cursor" id="cursor" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
 
 <script src="assets/js/app.js"></script>
 </body>

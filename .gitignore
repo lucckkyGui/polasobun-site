@@ -6,3 +6,10 @@ node_modules/
 # wewnętrzne briefy — nie publikować
 BRIEF.md
 BRIEF-V2.md
+
+# Oryginały zdjęć (1,3 GB) — źródło prawdy, ale NIE do repo.
+# Do repo trafiają wersje pod web w polasobun/src/assets/photos/.
+assets/KLIENCI/
+
+# Kopia robocza makiety Design
+design-reference.html

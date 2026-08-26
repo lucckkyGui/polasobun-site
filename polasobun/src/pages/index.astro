@@ -1,0 +1,127 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Gallery from '../components/Gallery';
+import Intro from '../components/Intro';
+import { projects } from '../content/projects';
+
+/**
+ * Wszystkie zdjęcia. import.meta.glob z eager: true — ścieżka jako string
+ * NIE zostałaby zoptymalizowana i wysypałaby się na produkcji.
+ */
+const files = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/photos/*/*.jpg',
+  { eager: true },
+);
+
+/** Zdjęcia pogrupowane po slugu, w kolejności nazw plików. */
+const bySlug = new Map<string, { name: string; img: ImageMetadata }[]>();
+for (const [path, mod] of Object.entries(files)) {
+  const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
+  if (!match) continue;
+  const [, slug, name] = match as unknown as [string, string, string];
+  const list = bySlug.get(slug) ?? [];
+  list.push({ name, img: mod.default });
+  bySlug.set(slug, list);
+}
+for (const list of bySlug.values()) list.sort((a, b) => a.name.localeCompare(b.name));
+
+interface Tile {
+  key: string;
+  img: ImageMetadata;
+  /** Widoki, w których kafel jest widoczny — trafia do data-cat. */
+  cats: string;
+  alt: string;
+  href?: string;
+  caption?: string;
+}
+
+const tiles: Tile[] = [];
+
+/**
+ * 1. Kafle zdjęć — ALL, PORTRAITS, FOOD. Bez podpisów i bez linków.
+ *    `commercial` celowo odfiltrowane: zakładka COMMERCIAL pokazuje
+ *    okładki kampanii, nie pojedyncze zdjęcia.
+ */
+for (const project of projects) {
+  const views = ['all', ...project.tags.filter((tag) => tag !== 'commercial')].join(' ');
+  for (const { name, img } of bySlug.get(project.slug) ?? []) {
+    tiles.push({ key: `${project.slug}/${name}`, img, cats: views, alt: project.title });
+  }
+}
+
+/** 2. Kafle kampanii — tylko COMMERCIAL. Okładka + podpis + link. */
+for (const project of projects) {
+  if (project.collection) continue;
+  const cover = bySlug.get(project.slug)?.[0];
+  if (!cover) throw new Error(`Brak zdjęć dla slugu "${project.slug}"`);
+  tiles.push({
+    key: `cover/${project.slug}`,
+    img: cover.img,
+    cats: 'commercial',
+    alt: project.title,
+    href: `/work/${project.slug}`,
+    caption: project.title,
+  });
+}
+
+/**
+ * Animacja wejścia. Dwa kadry mocno graficzne, wysokokontrastowe —
+ * split-flap rozbija zdjęcie na kafelki, więc czytelna plama koloru
+ * działa lepiej niż subtelny portret.
+ */
+const INTRO = [
+  { slug: 'rimmel', photo: '01.jpg', focusY: 30 },
+  { slug: 'allegro', photo: '01.jpg', focusY: 50 },
+];
+
+const introImages = await Promise.all(
+  INTRO.map(async ({ slug, photo, focusY }) => {
+    const entry = bySlug.get(slug)?.find((p) => p.name === photo);
+    if (!entry) throw new Error(`Brak zdjęcia ${slug}/${photo} do animacji wejścia`);
+    // Canvas potrzebuje URL-a, ale zdjęcie i tak przechodzi przez astro:assets.
+    const optimized = await getImage({ src: entry.img, width: 1920, format: 'webp' });
+    return { src: optimized.src, focusY };
+  }),
+);
+
+/** Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie). */
+const TILE_WIDTH = 800;
+const TILE_HEIGHT = 1000;
+
+/** Pierwsze sześć kafli ładujemy od razu, resztę leniwie. */
+const EAGER_COUNT = 6;
+---
+
+<Base title="Pola Sobuń">
+  <Intro client:load images={introImages} />
+
+  <Gallery client:load wordmark="Pola Sobuń">
+    {
+      tiles.map((tile, index) => {
+        const picture = (
+          <Picture
+            src={tile.img}
+            formats={['webp']}
+            width={TILE_WIDTH}
+            height={TILE_HEIGHT}
+            alt={tile.alt}
+            loading={index < EAGER_COUNT ? 'eager' : 'lazy'}
+            class="aspect-tile block w-full object-cover"
+          />
+        );
+
+        return tile.href ? (
+          <a href={tile.href} data-cat={tile.cats} class="bg-surface">
+            {picture}
+            <span class="text-on-dark-muted text-label block font-medium uppercase leading-none tracking-meta px-card py-tight">
+              {tile.caption}
+            </span>
+          </a>
+        ) : (
+          <div data-cat={tile.cats} class="bg-surface">{picture}</div>
+        );
+      })
+    }
+  </Gallery>
+</Base>
