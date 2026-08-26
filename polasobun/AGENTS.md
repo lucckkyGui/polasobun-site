@@ -99,17 +99,24 @@ Warunki A — mobile 412x915, Slow 4G, 4x CPU (te same co baseline):
 
 Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU:
 
-  LCP                        572 ms
-  CLS                        0.00
-  kolumny                    2 x 215 px
-  skalowanie obrazu          0,81x w dół   (przed: 1,61x W GÓRĘ)
-  kafli na ekranie           8             (przed: 2)
-  ekranów do przewinięcia    84            (przed: 186)
+  metryka                    na starcie      teraz
+  LCP                        —               572 ms
+  CLS                        —               0.00
+  kolumny                    1               2 x 215 px
+  skalowanie obrazu          1,61x W GÓRĘ    0,81x w dół
+  kafli na ekranie           2               8
+  ekranów do przewinięcia    186             16
+  kafli w DOM                374             280
+  kafli w widoku ALL         359             101
 
-Test przewijania, 8 ekranów po kolei, liczba pustych kafli w widoku:
-  0, 0, 1, 0, 0, 0, 0, 0
-Jeden kafel na osiem ekranów, przy przewijaniu skokami po całym ekranie,
-czyli ostrzej niż realnym przesuwaniem palcem.
+Test przewijania, 10 ekranów po kolei, liczba pustych kafli w widoku:
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+Ani jednego, przy przewijaniu skokami po całym ekranie — ostrzej niż
+realnym przesuwaniem palcem. Przed round-robinem i limitem wychodziło
+0,0,1,0,0,0,0,0 przy 8 ekranach.
+
+Skrócenie ze 186 ekranów na 16 to głównie zasługa MAX_W_ALL, nie
+optymalizacji technicznych: ALL pokazuje 101 kafli zamiast 359.
 
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
 że content-visibility działa — to własność dokumentu, nie pomiaru.
@@ -139,24 +146,23 @@ czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 @vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
 18 stronach. Świadomy wyjątek od reguły „zero zależności".
 
-UWAGA: zbiera dane WYŁĄCZNIE na Vercelu. Skrypt wysyła je na
-/_vercel/speed-insights/vitals, którego na Cloudflare Pages nie ma —
-tam będzie tylko martwym żądaniem 404. Jeśli produkcja faktycznie
-pojedzie na Cloudflare, trzeba to albo usunąć, albo zamienić na
-odpowiednik Cloudflare (Web Analytics).
+Zbiera dane wyłącznie na Vercelu — a skoro produkcja tam stoi, jest to
+bez znaczenia. Na localhoście skrypt daje 404 na
+/_vercel/speed-insights/script.js i to jest normalne, nie błąd.
 
 ## Deploy
-Docelowa produkcja: Cloudflare Pages (bez zmian).
+PRODUKCJA STOI NA VERCELU. Cloudflare Pages zostało odłożone decyzją
+właściciela projektu — nie planuj pod nie niczego, dopóki nie wróci temat.
+Praktyczna konsekwencja: @vercel/speed-insights działa i zbiera dane,
+więc nie ma powodu go usuwać.
 
-Środowisko do weryfikacji stoi na Vercelu — projekt `polasobun-site`
-podpięty do repo lucckkyGui/polasobun-site, root directory `polasobun`,
-production branch `main`. Podgląd jest publiczny (Vercel Authentication
-wyłączone) — świadoma decyzja, żeby dało się wysłać link klientce.
+Projekt `polasobun-site` podpięty do repo lucckkyGui/polasobun-site,
+root directory `polasobun`, production branch `main`. Podgląd jest
+publiczny (Vercel Authentication wyłączone) — świadoma decyzja, żeby dało
+się wysłać link klientce.
 
 Root directory MUSI zostać `polasobun` — projekt Astro siedzi
 w podkatalogu, obok starej strony statycznej w roocie repo.
-Na `main` nie ma jeszcze katalogu polasobun/, więc build produkcyjny
-przejdzie dopiero po zmergowaniu PR-a.
 
 ## Twarde reguły
 - Animujemy WYŁĄCZNIE transform i opacity. Nigdy width/height/blur/box-shadow/background.
@@ -272,12 +278,23 @@ wychodziło po kilkanaście kadrów z rzędu z tej samej kampanii.
 Zweryfikowane po zmianie: w widoku ALL ZERO sąsiadujących kafli z tej
 samej sesji.
 
-MAX_W_ALL = 6 — tyle zdjęć z jednej sesji trafia do widoku ALL.
-Przy 17 sesjach daje to 101 kafli. ALL ma być przeglądem pojedynczych
-kadrów z różnych sesji, nie archiwum.
+O tym, co trafia do ALL, decyduje pole `featured` w projects.json —
+lista nazw plików w kolejności od najmocniejszego kadru. Wybrane RĘCZNIE
+z arkuszy stykowych (skrypt generujący je: patrz historia gita), po
+sześć na sesję poza allegro, które ma tylko cztery kadry poza okładką.
+Kryterium: czytelność z kafla wielkości znaczka — mocna plama koloru,
+jeden czytelny bohater, kontrast. Nie „ładne zdjęcie", tylko „widać je
+z daleka".
 
-Zdjęcie poza limitem ALL, które nie ma też tagu portraits ani food, nie
-trafiłoby do żadnej zakładki — jest POMIJANE w renderowaniu siatki.
+Kolejność renderowania to DWA przebiegi:
+  a) featured, round-robinem po sesjach. Runda zerowa to najmocniejszy
+     kadr KAŻDEJ z 17 sesji, więc pierwszy ekran ALL to same petardy,
+     każda z innej sesji. To one dostają eager i stagger wejścia.
+  b) reszta zdjęć, bez tagu `all` — niewidoczne w ALL, ale nadal obecne
+     w PORTRAITS i FOOD.
+
+Zdjęcie bez `featured` i bez tagu portraits/food nie trafiłoby do żadnej
+zakładki — jest POMIJANE w renderowaniu siatki.
 Zostaje widoczne na stronie swojej kampanii /work/<slug>, która pokazuje
 cały folder. Dzięki temu DOM spadł z 374 kafli na 280.
 

@@ -140,7 +140,7 @@ export default function Gallery({ wordmark, children }: Props) {
       <div
         ref={gridRef}
         data-filter={filter}
-        className={`bg-surface grid grid-cols-2 gap-0 transition-opacity ease-enter lg:grid-cols-4 ${
+        className={`bg-surface grid grid-cols-1 gap-0 transition-opacity ease-enter sm:grid-cols-2 lg:grid-cols-4 ${
           swapping
             ? 'opacity-0 duration-[var(--duration-filter-out)]'
             : 'opacity-100 duration-[var(--duration-filter-in)]'

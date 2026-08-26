@@ -20,6 +20,14 @@ export interface Project {
   collection?: boolean;
   /** Adres na starej stronie (Format.com). Tylko pod przyszłe 301. */
   legacyPath?: string;
+  /**
+   * Kadry wybrane do widoku ALL, w kolejności od najmocniejszego.
+   * Nazwy plików z src/assets/photos/<slug>/. Wybrane ręcznie z arkuszy
+   * stykowych — kryterium to czytelność z kafla wielkości znaczka:
+   * mocna plama koloru, jeden czytelny bohater, kontrast.
+   * Bez tego pola ALL bierze pierwsze zdjęcia po okładce.
+   */
+  featured?: string[];
 }
 
 export const projects: Project[] = data as Project[];
