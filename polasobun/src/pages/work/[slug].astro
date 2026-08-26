@@ -82,7 +82,7 @@ const WIDTHS = [1200, 2000];
         photos.map(({ img, name }, index) => (
           <Picture
             src={img}
-            formats={['avif', 'webp']}
+            formats={['webp']}
             widths={WIDTHS}
             sizes={SIZES}
             alt={`${project.title} — ${name}`}

@@ -60,6 +60,14 @@ się przełączał, a kafle zostawały widoczne.
 - Domyślny procesor Markdown to Sätteri, nie remark/rehype. Wtyczki
   remark/rehype wymagają doinstalowania @astrojs/markdown-remark.
 
+## Formaty obrazów — AVIF świadomie WYŁĄCZONY
+<Picture> generuje tylko WebP + JPEG (fallback). AVIF został zdjęty,
+bo jego kodowanie odpowiadało za ~90% czasu builda: 12m07s z AVIF
+kontra 1m24s bez, przy tym samym materiale. Zysk był realny, ale mały —
+AVIF 106 MB kontra WebP 202 MB — i nie wart ryzyka, że deploy nie
+zmieści się w limicie czasu. Nie dodawaj go z powrotem bez zmierzenia
+builda na docelowej platformie.
+
 ## Astro 6 — zmiany, które nas dotyczą
 - Domyślny serwis obrazów PRZYCINA domyślnie, bez podawania `fit`.
   Przy aspect-ratio 4/5 kadr poleci sam — sprawdzaj kadrowanie okładek.
