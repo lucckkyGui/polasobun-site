@@ -93,13 +93,13 @@ const TILE_WIDTH = 800;
 const TILE_HEIGHT = 1000;
 
 /**
- * Ile kafli ładujemy od razu. Zmierzone na Slow 4G: przy sześciu wszystkie
- * startowały w tej samej milisekundzie i 406 kB walczyło o łącze, przez co
- * obraz LCP schodził 1713 ms. Kafle leniwe, które i tak są w widoku,
- * przeglądarka pobierze zaraz potem — tylko z niższym priorytetem,
- * nie odbierając pasma temu jednemu, który decyduje o LCP.
+ * Ile kafli ładujemy od razu — tyle, ile mieści się na pierwszym ekranie.
+ * Po przejściu na dwie kolumny na telefonie widać ich 8 (iPhone 16 Pro Max),
+ * na desktopie przy czterech kolumnach też około 8. Pierwszy kafel ma
+ * fetchpriority="high", więc mimo równego startu wygrywa kolejkę i to on
+ * decyduje o LCP.
  */
-const EAGER_COUNT = 2;
+const EAGER_COUNT = 8;
 ---
 
 <Base title="Pola Sobuń">

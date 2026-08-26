@@ -37,6 +37,7 @@ export default function Gallery({ wordmark, children }: Props) {
   /** Filtr wybrany, ale jeszcze niezastosowany — siatka właśnie znika. */
   const [pending, setPending] = useState<Filter | null>(null);
   const timer = useRef<number | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
 
   /** Podświetlenie w pasku reaguje NATYCHMIAST, nie po zakończeniu wyjścia. */
   const active = pending ?? filter;
@@ -48,6 +49,54 @@ export default function Gallery({ wordmark, children }: Props) {
     },
     [],
   );
+
+  /**
+   * Doładowywanie paczkami. Natywne loading="lazy" rusza dopiero, gdy kafel
+   * jest tuż przy widoku — przy szybkim przewijaniu nie nadąża i zdjęcia
+   * dochodzą w locie. Do tego kafle od 13. w górę mają content-visibility,
+   * więc ich obrazy nie są renderowane i natywny mechanizm ma jeszcze mniej
+   * czasu na reakcję.
+   *
+   * Obserwujemy KAFEL, nie obraz: kafel ma własny box nawet przy pominiętym
+   * renderowaniu zawartości, obraz w środku nie. Kafle w zasięgu półtora
+   * ekranu przełączamy na eager, co wymusza natychmiastowe pobranie.
+   *
+   * Obserwator wpinamy dopiero po zdarzeniu load, żeby nie konkurował
+   * o pasmo z pierwszym ekranem i nie psuł LCP.
+   */
+  useEffect(() => {
+    let io: IntersectionObserver | null = null;
+
+    const uruchom = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const kafle = [...grid.querySelectorAll<HTMLElement>('[data-cat]')].filter((kafel) =>
+        kafel.querySelector('img[loading="lazy"]'),
+      );
+      if (!kafle.length) return;
+
+      io = new IntersectionObserver(
+        (wpisy) => {
+          for (const wpis of wpisy) {
+            if (!wpis.isIntersecting) continue;
+            const img = wpis.target.querySelector<HTMLImageElement>('img[loading="lazy"]');
+            if (img) img.loading = 'eager';
+            io?.unobserve(wpis.target);
+          }
+        },
+        { rootMargin: '150% 0px' },
+      );
+      kafle.forEach((kafel) => io?.observe(kafel));
+    };
+
+    if (document.readyState === 'complete') uruchom();
+    else window.addEventListener('load', uruchom, { once: true });
+
+    return () => {
+      io?.disconnect();
+      window.removeEventListener('load', uruchom);
+    };
+  }, []);
 
   const choose = useCallback(
     (next: Filter) => {
@@ -89,8 +138,9 @@ export default function Gallery({ wordmark, children }: Props) {
       </header>
 
       <div
+        ref={gridRef}
         data-filter={filter}
-        className={`bg-surface grid grid-cols-1 gap-0 transition-opacity ease-enter sm:grid-cols-2 lg:grid-cols-4 ${
+        className={`bg-surface grid grid-cols-2 gap-0 transition-opacity ease-enter lg:grid-cols-4 ${
           swapping
             ? 'opacity-0 duration-[var(--duration-filter-out)]'
             : 'opacity-100 duration-[var(--duration-filter-in)]'
