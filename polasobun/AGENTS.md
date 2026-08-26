@@ -45,19 +45,38 @@ zero żądań CSS, FCP 668-1028 ms zamiast ~1557 ms szacowanych przez
 narzędzie. Koszt: 18 stron niesie własną kopię, HTML łącznie 65 -> 126 kB
 po gzipie, index.html 13 -> 17 kB.
 
-UWAGA, efekt uboczny: wstrzyknięty CSS sprawia, że @font-face jest
-parsowany natychmiast, więc fonty startują w 630-970 ms zamiast 1672 ms
-i wracają do walki o pasmo z obrazem LCP (2348-2445 ms zamiast 1964 ms).
-Lokalnie wychodzi z tego wymiana, nie wygrana. Zostawione włączone przy
-założeniu, że to artefakt lokalnego serwera (HTTP/1.1, bez kompresji) —
-na produkcji jest h2, brotli i CDN, a tam ten sam obraz schodził w 0,4 ms.
-JEŚLI pomiar produkcyjny pokaże inaczej, wyłączenie to jedna linia.
+Lokalnie wyglądało to na wymianę, nie wygraną: wstrzyknięty CSS parsuje
+@font-face natychmiast, więc fonty startowały w 630-970 ms zamiast
+1672 ms i odbierały pasmo obrazowi LCP. ZWERYFIKOWANE NA PRODUKCJI —
+NIE REPRODUKUJE SIĘ. Tam fonty startują w 660-663 ms, czyli PO obrazach
+(634-635 ms), i niczego im nie odbierają. Konkurencja o pasmo była
+artefaktem lokalnego serwera (HTTP/1.1, bez kompresji, jeden wątek).
+Zostaje włączone.
 
 Na stronie głównej ŻADEN widoczny tekst nie używa wagi 400, a
 Satoshi-Regular.woff2 i tak się pobiera — sprawdzone, wszystkie elementy
 o tej wadze to <style> i <script>. Nie udało się tego wyeliminować.
 Waga 400 jest realnie używana na stronach projektów (wartości faktów),
 więc deklaracji nie usuwaj.
+
+## Pomiary produkcyjne — stan po optymalizacji
+Warunki: polasobun-site.vercel.app, mobile 412x915, Slow 4G, 4x CPU.
+Baseline = ten sam pomiar przed wszystkimi zmianami.
+
+  metryka                    baseline        teraz
+  LCP, pierwsze wejście      1004 ms         792 / 852 ms
+  LCP, powtórne wejście      1364 ms         856 ms
+  FCP                        —               792 / 852 / 856 ms
+  CLS                        0.00            0.00
+  żądań CSS                  1 blokujące     0
+  węzłów w układzie          1241            324
+  obraz intro                525 kB          128 kB
+  czas trwania intro         4400 ms         2200 ms
+
+Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
+że content-visibility działa — to własność dokumentu, nie pomiaru.
+FCP równa się LCP we wszystkich próbkach: strona maluje się raz, od razu
+z treścią, bez pośredniego stanu „sam tekst".
 
 OSTRZEŻENIE METODOLOGICZNE: lokalny `npm run preview` to hałaśliwe
 stanowisko — dla tej samej wersji render delay wychodził 57, 90 i 386 ms,
