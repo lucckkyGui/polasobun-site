@@ -146,24 +146,23 @@ czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 @vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
 18 stronach. Świadomy wyjątek od reguły „zero zależności".
 
-UWAGA: zbiera dane WYŁĄCZNIE na Vercelu. Skrypt wysyła je na
-/_vercel/speed-insights/vitals, którego na Cloudflare Pages nie ma —
-tam będzie tylko martwym żądaniem 404. Jeśli produkcja faktycznie
-pojedzie na Cloudflare, trzeba to albo usunąć, albo zamienić na
-odpowiednik Cloudflare (Web Analytics).
+Zbiera dane wyłącznie na Vercelu — a skoro produkcja tam stoi, jest to
+bez znaczenia. Na localhoście skrypt daje 404 na
+/_vercel/speed-insights/script.js i to jest normalne, nie błąd.
 
 ## Deploy
-Docelowa produkcja: Cloudflare Pages (bez zmian).
+PRODUKCJA STOI NA VERCELU. Cloudflare Pages zostało odłożone decyzją
+właściciela projektu — nie planuj pod nie niczego, dopóki nie wróci temat.
+Praktyczna konsekwencja: @vercel/speed-insights działa i zbiera dane,
+więc nie ma powodu go usuwać.
 
-Środowisko do weryfikacji stoi na Vercelu — projekt `polasobun-site`
-podpięty do repo lucckkyGui/polasobun-site, root directory `polasobun`,
-production branch `main`. Podgląd jest publiczny (Vercel Authentication
-wyłączone) — świadoma decyzja, żeby dało się wysłać link klientce.
+Projekt `polasobun-site` podpięty do repo lucckkyGui/polasobun-site,
+root directory `polasobun`, production branch `main`. Podgląd jest
+publiczny (Vercel Authentication wyłączone) — świadoma decyzja, żeby dało
+się wysłać link klientce.
 
 Root directory MUSI zostać `polasobun` — projekt Astro siedzi
 w podkatalogu, obok starej strony statycznej w roocie repo.
-Na `main` nie ma jeszcze katalogu polasobun/, więc build produkcyjny
-przejdzie dopiero po zmergowaniu PR-a.
 
 ## Twarde reguły
 - Animujemy WYŁĄCZNIE transform i opacity. Nigdy width/height/blur/box-shadow/background.

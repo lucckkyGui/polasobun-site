@@ -63,10 +63,20 @@ const MAX_W_ALL = 6;
  *    nie trafiłoby do ŻADNEJ zakładki — pomijamy je, żeby nie ciążyło
  *    w DOM-ie. Zostaje widoczne na stronie swojej kampanii.
  */
-const kolejki = projects.map((project) => ({
-  project,
-  zdjecia: bySlug.get(project.slug) ?? [],
-}));
+/*
+ * Okładka (01.jpg) jest POMIJANA w kolejkach zdjęć. Pokazuje ją zakładka
+ * COMMERCIAL jako kafel kampanii, więc gdyby wchodziła też do ALL, ten sam
+ * kadr witałby użytkownika dwa razy i marnował miejsce, które może pokazać
+ * coś nowego. Kolekcje (_portraits, _food) nie mają kafla kampanii, więc
+ * u nich okładka zostaje.
+ */
+const kolejki = projects.map((project) => {
+  const wszystkie = bySlug.get(project.slug) ?? [];
+  return {
+    project,
+    zdjecia: project.collection ? wszystkie : wszystkie.slice(1),
+  };
+});
 const najdluzszaSesja = Math.max(...kolejki.map((k) => k.zdjecia.length));
 
 for (let runda = 0; runda < najdluzszaSesja; runda++) {
@@ -126,18 +136,30 @@ const [introMaly, introDuzy] = await Promise.all([
 ]);
 const introImage = { maly: introMaly.src, duzy: introDuzy.src, focusY: INTRO.focusY };
 
-/** Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie). */
-const TILE_WIDTH = 800;
-const TILE_HEIGHT = 1000;
+/**
+ * Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie).
+ *
+ * 1300 px, bo przy JEDNEJ kolumnie na telefonie kafel zajmuje całą
+ * szerokość: 430 pt x dpr 3 = 1290 px. Wcześniejsze 800 px dawało tam
+ * skalowanie 1,61x W GÓRĘ, czyli rozmyte zdjęcia.
+ *
+ * Nie da się tu użyć widths + sizes: responsywny srcset wyklucza się
+ * z kadrowaniem po stronie serwera (aspectRatio nie istnieje w tej wersji
+ * Astro, a bez width+height serwis nie przycina do 4:5 i poziome źródła
+ * musiałby rozciągać CSS). Desktop pobiera więc więcej, niż potrzebuje —
+ * to świadomy koszt jednej kolumny na telefonie.
+ */
+const TILE_WIDTH = 1300;
+const TILE_HEIGHT = 1625;
 
 /**
- * Ile kafli ładujemy od razu — tyle, ile mieści się na pierwszym ekranie.
- * Po przejściu na dwie kolumny na telefonie widać ich 8 (iPhone 16 Pro Max),
- * na desktopie przy czterech kolumnach też około 8. Pierwszy kafel ma
- * fetchpriority="high", więc mimo równego startu wygrywa kolejkę i to on
- * decyduje o LCP.
+ * Ile kafli ładujemy od razu. Przy JEDNEJ kolumnie na telefonie widać
+ * około dwóch, więc ósemka dobrana pod dwie kolumny była tu nadmiarem:
+ * osiem kafli po 1300 px to 1410 kB na start zamiast ~700 kB.
+ * Resztę i tak dociąga obserwator paczek, który rusza po zdarzeniu load.
+ * Pierwszy kafel ma fetchpriority="high" i to on decyduje o LCP.
  */
-const EAGER_COUNT = 8;
+const EAGER_COUNT = 4;
 ---
 
 <Base title="Pola Sobuń">
