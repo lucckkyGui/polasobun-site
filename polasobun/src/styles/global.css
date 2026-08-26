@@ -159,6 +159,27 @@
   display: none;
 }
 
+/* ─── Koszt układu przy 374 kaflach ──────────────────────────────────────── */
+/* Zmierzone przed zmianą: jedno przeliczenie układu 297 ms przy 1241 węzłach,
+   co stanowiło praktycznie cały „render delay" w trace'ie.
+
+   content-visibility każe przeglądarce POMINĄĆ układ i malowanie kafli poza
+   widokiem. Dokument nadal zawiera wszystkie 359 zdjęć — nie cofamy decyzji
+   o pełnym archiwum — ale przeglądarka liczy tylko to, co widać.
+
+   Pierwsze 12 kafli jest WYŁĄCZONE z tej reguły: to one są nad zgięciem,
+   wśród nich element LCP, i to one mają stagger wejścia. Pominięcie ich
+   układu opóźniłoby dokładnie to, co ma pojawić się najszybciej.
+
+   contain-intrinsic-size z prefiksem auto: przeglądarka zapamiętuje
+   rzeczywisty rozmiar po pierwszym wyrenderowaniu, więc pasek przewijania
+   nie skacze. Wartość startowa to przybliżenie kafla 4/5 na telefonie. */
+
+[data-cat]:nth-child(n + 13) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+}
+
 /* ─── Wejście kafli ──────────────────────────────────────────────────────── */
 /* Odpalane atrybutem data-enter, który Intro ustawia po zejściu kurtyny —
    inaczej stagger przeleciałby niewidoczny pod nieprzezroczystą nakładką.

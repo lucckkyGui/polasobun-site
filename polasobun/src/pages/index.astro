@@ -89,8 +89,14 @@ const introImages = await Promise.all(
 const TILE_WIDTH = 800;
 const TILE_HEIGHT = 1000;
 
-/** Pierwsze sześć kafli ładujemy od razu, resztę leniwie. */
-const EAGER_COUNT = 6;
+/**
+ * Ile kafli ładujemy od razu. Zmierzone na Slow 4G: przy sześciu wszystkie
+ * startowały w tej samej milisekundzie i 406 kB walczyło o łącze, przez co
+ * obraz LCP schodził 1713 ms. Kafle leniwe, które i tak są w widoku,
+ * przeglądarka pobierze zaraz potem — tylko z niższym priorytetem,
+ * nie odbierając pasma temu jednemu, który decyduje o LCP.
+ */
+const EAGER_COUNT = 2;
 ---
 
 <Base title="Pola Sobuń">
@@ -107,6 +113,7 @@ const EAGER_COUNT = 6;
             height={TILE_HEIGHT}
             alt={tile.alt}
             loading={index < EAGER_COUNT ? 'eager' : 'lazy'}
+            fetchpriority={index === 0 ? 'high' : undefined}
             class="aspect-tile block w-full object-cover"
           />
         );

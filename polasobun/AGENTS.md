@@ -9,6 +9,47 @@ z natywnym kompilatorem TypeScript 7 — nie wystawia programmatic API,
 którego wymaga (withastro/roadmap#1321). Nie bumpować bez sprawdzenia,
 że check nadal przechodzi; inaczej build wywali się na starcie.
 
+## Wydajność — co zmierzone i dlaczego tak
+Warunki pomiaru: Slow 4G + 4x dławienie CPU, viewport 412x915.
+
+content-visibility: auto na kaflach OD 13. w górę. Pierwsza dwunastka jest
+wyłączona — to ona jest nad zgięciem, wśród niej element LCP, i to ona ma
+stagger wejścia. contain-intrinsic-size z prefiksem `auto`, więc
+przeglądarka zapamiętuje rzeczywisty rozmiar; wysokość dokumentu koryguje
+się o ~175 px na 172 800 (0,1%), CLS pozostaje 0.00.
+
+fetchpriority="high" na pierwszym kaflu. Narzędzie oznaczało jego brak
+jako FAILED. Działa: obraz LCP kończy się pierwszy mimo równego startu
+z sąsiadami.
+
+EAGER_COUNT = 2, nie 6. Przy sześciu wszystkie startowały w tej samej
+milisekundzie i 406 kB walczyło o dławione łącze. Kafle leniwe, które
+i tak są w widoku, przeglądarka pobiera zaraz potem, tylko z niższym
+priorytetem.
+
+PRELOAD FONTÓW BYŁ PRÓBOWANY I ŚWIADOMIE COFNIĘTY. Nie dodawaj go
+ponownie bez pomiaru. Zmierzona kolejność żądań z preloadem:
+  Satoshi-Medium.woff2   start  807 ms
+  Satoshi-Bold.woff2     start  810 ms
+  01.webp (element LCP)  start  812 ms, koniec 2525 ms
+Fonty wchodziły PRZED obrazem LCP i zjadały 53 kB pasma. Po usunięciu
+preloadu i zejściu z EAGER_COUNT do 2:
+  01.webp (element LCP)  start  897 ms, koniec 1964 ms   (-561 ms)
+  fonty                  start 1672 ms, czyli już po nim
+font-display: swap i tak pokazuje tekst od razu w foncie zastępczym.
+Przy portfolio fotograficznym obraz wygrywa z tekstem.
+
+OSTRZEŻENIE METODOLOGICZNE: lokalny `npm run preview` to hałaśliwe
+stanowisko — dla tej samej wersji render delay wychodził 57, 90 i 386 ms,
+a LCP 1293 i 2409 ms. Nie przypisuj zmian pojedynczym przebiegom.
+Wiarygodna jest kolejność i czasy żądań (waterfall), bo są
+deterministyczne. LCP mierz na produkcji, gdzie jest CDN, h2 i brotli.
+
+PUŁAPKA: elementem LCP jest pierwszy kafel siatki, który przy pierwszym
+wejściu jest ZASŁONIĘTY kurtyną intro przez 4,4 s. Chrome nie sprawdza
+przesłonięcia, więc metryka pokazuje ~1 s, a człowiek widzi zdjęcia po
+czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
+
 ## Pomiar wydajności
 @vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
 18 stronach. Świadomy wyjątek od reguły „zero zależności".
