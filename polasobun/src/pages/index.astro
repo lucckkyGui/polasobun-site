@@ -145,23 +145,27 @@ const introImage = { maly: introMaly.src, duzy: introDuzy.src, focusY: INTRO.foc
 /**
  * Kafel 4/5 — kadr powstaje automatycznie (Astro 6+ przycina domyślnie).
  *
- * 1300 px, bo przy JEDNEJ kolumnie na telefonie kafel zajmuje całą
- * szerokość: 430 pt x dpr 3 = 1290 px. Wcześniejsze 800 px dawało tam
- * skalowanie 1,61x W GÓRĘ, czyli rozmyte zdjęcia.
+ * 1000 px to ŚWIADOMY kompromis, nie dopasowanie do urządzenia. Kafel przy
+ * jednej kolumnie zajmuje 430 pt x dpr 3 = 1290 px, więc 1300 px dawało
+ * skalowanie 0,99x, piksel w piksel — ale start strony ważył wtedy 4381 kB
+ * przy 23 obrazach i na wolnym łączu kosztował ~330 ms LCP. 1000 px to
+ * skalowanie 1,29x W GÓRĘ na iPhonie i około 40% mniej bajtów.
+ *
+ * Granica jest twarda: NIE schodzić niżej. Przy 800 px skalowanie sięga
+ * 1,61x i zdjęcia widocznie miękną — to był stan sprzed jednej kolumny.
  *
  * Nie da się tu użyć widths + sizes: responsywny srcset wyklucza się
  * z kadrowaniem po stronie serwera (aspectRatio nie istnieje w tej wersji
  * Astro, a bez width+height serwis nie przycina do 4:5 i poziome źródła
- * musiałby rozciągać CSS). Desktop pobiera więc więcej, niż potrzebuje —
- * to świadomy koszt jednej kolumny na telefonie.
+ * musiałby rozciągać CSS). Jedna szerokość obsługuje więc wszystkie ekrany.
  */
-const TILE_WIDTH = 1300;
-const TILE_HEIGHT = 1625;
+const TILE_WIDTH = 1000;
+const TILE_HEIGHT = 1250;
 
 /**
  * Ile kafli ładujemy od razu. Przy JEDNEJ kolumnie na telefonie widać
  * około dwóch, więc ósemka dobrana pod dwie kolumny była tu nadmiarem:
- * osiem kafli po 1300 px to 1410 kB na start zamiast ~700 kB.
+ * osiem kafli to na start dwa razy więcej bajtów, niż widać.
  * Resztę i tak dociąga obserwator paczek, który rusza po zdarzeniu load.
  * Pierwszy kafel ma fetchpriority="high" i to on decyduje o LCP.
  */
