@@ -22,20 +22,22 @@ fetchpriority="high" na pierwszym kaflu. Narzędzie oznaczało jego brak
 jako FAILED. Działa: obraz LCP kończy się pierwszy mimo równego startu
 z sąsiadami.
 
-EAGER_COUNT = 8 — tyle, ile mieści się na pierwszym ekranie po przejściu
-na dwie kolumny na telefonie. Wcześniej było 2, bo przy jednej kolumnie
-i sześciu eager 406 kB waliło o dławione łącze. Pierwszy kafel ma
-fetchpriority="high" i mimo równego startu wygrywa kolejkę.
+EAGER_COUNT = 4. Przy JEDNEJ kolumnie na telefonie widac okolo dwoch
+kafli, wiec osemka dobrana pod dwie kolumny byla tu czystym nadmiarem.
+Pierwszy kafel ma fetchpriority="high" i mimo rownego startu wygrywa
+kolejke.
 
-DWIE KOLUMNY NA TELEFONIE, nie jedna. Zmierzone na iPhone 16 Pro Max
-(430 pt, dpr 3):
-  jedna kolumna   kafel 1290 px urzadzenia, obraz 800 px = 1,61x W GORE
-                  2 kafle na ekranie, 186 ekranow do przewiniecia
-  dwie kolumny    kafel  645 px urzadzenia, obraz 800 px = 0,81x w dol
-                  8 kafli na ekranie,  87 ekranow
-Jedna kolumna nie tylko wymuszala 186 ekranow przewijania, ale i
-ROZCIAGALA obrazy — 800 px na 1290 px szerokosci. Dwie kolumny naprawiaja
-ostrosc za darmo. Nie wracaj do jednej bez przeliczenia tych liczb.
+JEDNA KOLUMNA NA TELEFONIE — decyzja klientki, nie wynik pomiaru.
+Probowalismy dwoch (kafel 645 px urzadzenia, 87 ekranow zamiast 186)
+i zostalo to cofniete swiadomie. Nie wracaj do dwoch bez pytania.
+
+TILE_WIDTH = 1000 px, TILE_HEIGHT = 1250. To kompromis, nie dopasowanie:
+  1300 px   skalowanie 0,99x — piksel w piksel, ale start 4381 kB
+            przy 23 obrazach; na Slow 4G LCP 1012 ms
+  1000 px   skalowanie 1,29x W GORE, okolo 40% mniej bajtow
+  800 px    skalowanie 1,61x — zdjecia widocznie miekna, NIE schodzic
+Kafel na iPhone 16 Pro Max (430 pt, dpr 3) ma 1290 px urzadzenia i to
+wzgledem tej liczby liczy sie kazde z powyzszych skalowan.
 
 DOLADOWYWANIE PACZKAMI. Natywne loading="lazy" rusza dopiero tuz przy
 widoku i przy szybkim przewijaniu nie nadaza; do tego kafle od 13. w gore
