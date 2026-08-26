@@ -28,9 +28,21 @@ Ustawienie musi być identyczne w każdym pomiarze, inaczej liczb nie da się po
 - `initScript` czyszczący `sessionStorage.removeItem('polasobun:intro-played')`, żeby intro grało jak przy pierwszym wejściu,
 - 3 próby, wynik = mediana.
 
-Metryki zbiera obserwator wpinany przez `initScript` **przed** skryptami
-strony — inaczej pierwsze malowanie zdąży się wydarzyć, zanim ktokolwiek
-słucha. Ten sam blok w każdym pomiarze:
+**PUŁAPKA, która już raz kosztowała cały przebieg zadania.**
+`performance.getEntriesByType('largest-contentful-paint')` zwraca pustą
+tablicę **z definicji** — Chrome nie wystawia wpisów LCP tą drogą, na
+żadnej stronie. Jedyny sposób to `PerformanceObserver` z `buffered: true`.
+Pusta tablica z `getEntriesByType` NIE jest dowodem, że strona nie ma LCP
+ani że środowisko go nie raportuje. Nie wyciągaj z niej wniosków.
+
+Obserwator wpinaj przez parametr `initScript` narzędzia
+`mcp__chrome-devtools__navigate_page`, a nie przez `<script>` w HTML-u —
+`initScript` wykonuje się przed jakimkolwiek innym skryptem dokumentu, więc
+jako jedyny na pewno wyprzedza pierwsze malowanie. Używaj narzędzi
+`mcp__chrome-devtools__*`; panel Claude Browser bywa `hidden` i wtedy nie
+zlicza malowania.
+
+Ten sam blok w każdym pomiarze:
 
 ```js
 try { sessionStorage.removeItem('polasobun:intro-played'); } catch {}
