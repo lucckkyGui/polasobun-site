@@ -1,0 +1,44 @@
+import type { APIRoute } from 'astro';
+import { projects } from '../content/projects';
+
+/**
+ * Sitemapa budowana w czasie kompilacji.
+ *
+ * Wypisujemy WYŁĄCZNIE <loc>. `lastmod` musiałby brać datę builda, czyli
+ * twierdzić, że wszystkie strony zmieniły się dzisiaj — także przy
+ * wdrożeniu dotykającym jednego pliku. Google ignoruje `lastmod`, któremu
+ * nie ufa, a `changefreq` i `priority` są ignorowane od lat. Siedemnaście
+ * prawdziwych adresów jest warte więcej niż siedemnaście adresów
+ * z trzema zmyślonymi atrybutami każdy.
+ *
+ * Kolekcje (_portraits, _food) są pomijane: nie prowadzi do nich żaden
+ * odnośnik, adres zaczyna się od podkreślnika, a treść dubluje to, co
+ * jest w siatce pod PORTRAITS i FOOD. Strony nadal powstają — po prostu
+ * ich nie zgłaszamy.
+ *
+ * Poza korzeniem żaden adres nie kończy się ukośnikiem, spójnie
+ * z <link rel="canonical"> i z odnośnikami w kodzie.
+ */
+export const GET: APIRoute = ({ site }) => {
+  if (!site) {
+    throw new Error('Brak `site` w astro.config.mjs — sitemapa wymaga adresu absolutnego');
+  }
+
+  const sciezki = [
+    '/',
+    '/contact',
+    ...projects.filter((projekt) => !projekt.collection).map((projekt) => `/work/${projekt.slug}`),
+  ];
+
+  const adresy = sciezki.map((sciezka) => new URL(sciezka, site).href);
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${adresy.map((adres) => `  <url><loc>${adres}</loc></url>`).join('\n')}
+</urlset>
+`;
+
+  return new Response(xml, {
+    headers: { 'Content-Type': 'application/xml; charset=utf-8' },
+  });
+};
