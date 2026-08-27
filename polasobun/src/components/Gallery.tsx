@@ -25,8 +25,8 @@ interface Props {
  * Pasek filtrów + siatka.
  *
  * Przełączenie filtra to krótkie przenikanie CAŁEJ siatki, nie animacja
- * pojedynczych kafli: przy 374 kaflach osobne przejścia oznaczałyby 374
- * warstwy kompozycji naraz. Tu przenika jeden element.
+ * pojedynczych kafli: przy 275 kaflach osobne przejścia oznaczałyby 275
+ * warstw kompozycji naraz. Tu przenika jeden element.
  *
  * Sam dobór kafli robi nadal reguła display:none po data-filter (mechanizm
  * 1:1 z makiety) — podmieniamy go w połowie przenikania, gdy siatka jest

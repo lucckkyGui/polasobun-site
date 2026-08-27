@@ -171,12 +171,12 @@ img {
   user-select: none;
 }
 
-/* ─── Koszt układu przy 374 kaflach ──────────────────────────────────────── */
+/* ─── Koszt układu przy 275 kaflach ──────────────────────────────────────── */
 /* Zmierzone przed zmianą: jedno przeliczenie układu 297 ms przy 1241 węzłach,
    co stanowiło praktycznie cały „render delay" w trace'ie.
 
    content-visibility każe przeglądarce POMINĄĆ układ i malowanie kafli poza
-   widokiem. Dokument nadal zawiera wszystkie 359 zdjęć — nie cofamy decyzji
+   widokiem. Dokument nadal zawiera wszystkie 275 kafli — nie cofamy decyzji
    o pełnym archiwum — ale przeglądarka liczy tylko to, co widać.
 
    Pierwsze 12 kafli jest WYŁĄCZONE z tej reguły: to one są nad zgięciem,
@@ -197,8 +197,8 @@ img {
    inaczej stagger przeleciałby niewidoczny pod nieprzezroczystą nakładką.
    Bez JS-u atrybut nie powstaje i kafle są po prostu na miejscu, widoczne.
 
-   Animujemy TYLKO pierwsze 12 kafli. Przy 359 kaflach i 50 ms opóźnienia
-   pełny stagger trwałby 18 sekund; 12 pokrywa to, co widać nad zgięciem
+   Animujemy TYLKO pierwsze 12 kafli. Przy 275 kaflach i 50 ms opóźnienia
+   pełny stagger trwałby prawie 14 sekund; 12 pokrywa to, co widać nad zgięciem
    na desktopie, a reszta jest gotowa zanim ktokolwiek do niej doscrolluje.
 
    Skalujemy OBRAZ wewnątrz kafla, nie sam kafel: komórka zostaje na
