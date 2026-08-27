@@ -158,10 +158,16 @@ const POZYCJA = 'text-label font-medium uppercase leading-none tracking-nav';
 
     {/*
       Na telefonie CONTACT siedzi w wierszu wordmarku, nie w nawigacji.
-      Zmierzone przy 412 px: cztery kategorie zajmują 297 z 298 dostępnych
-      pikseli, czyli zapas wynosi 1 px. Piąta pozycja rozsadziłaby wiersz.
-      Wiersz wordmarku ma ~174 px wolnego, a nagłówek jest sticky nad
-      53 ekranami siatki, więc nie chcemy go pogrubiać o drugą linię.
+      Pierwotnie zapisane „297 z 298 dostępnych pikseli, zapas 1 px" było
+      błędem pomiarowym: zmierzono szerokość samego <nav>, flex o
+      szerokości własnej zawartości, czyli porównano go z nim samym.
+      Poprawnie: okno 412 px, padding nagłówka 2×26 px, dostępne dla
+      treści 360 px; cztery kategorie zajmują ~298 px, zapas to 62 px,
+      nie 1 px. Piąta pozycja i tak się nie mieści — potrzebuje ~74 px
+      plus 10 px odstępu (84 px) przy wolnych 62 px. Zmierzone w wierszu
+      wordmarku: 227 px wolnego przed dołożeniem CONTACT, 153 px po.
+      Nagłówek jest sticky nad 53 ekranami siatki, więc nie chcemy go
+      pogrubiać o drugą linię.
     */}
     <span class={`text-text ${POZYCJA} sm:hidden`} aria-current="page">Contact</span>
   </div>
@@ -366,9 +372,9 @@ Telefon, mail i Instagram sa odnosnikami — na zrodle sa zwyklym tekstem.
 Naglowek jest osobnym, statycznym komponentem: klasy zduplikowane wobec
 Gallery.tsx swiadomie, zeby nie przebudowywac wyspy React.
 
-Na telefonie CONTACT siedzi w wierszu wordmarku. Zmierzone przy 412 px:
-cztery kategorie zajmuja 297 z 298 pikseli, wiec piata pozycja
-rozsadzilaby pasek.
+Na telefonie CONTACT siedzi w wierszu wordmarku. Przy 412 px, po
+odjeciu paddingu naglowka (2x26 px), na cztery kategorie zostaje
+360 px, a zajmuja one ~298 px — piata pozycja i tak by sie nie zmiescila.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -398,10 +404,15 @@ Zastąp `<span>` z wordmarkiem tym blokiem:
 
           {/*
             Na telefonie CONTACT siedzi w wierszu wordmarku, nie w pasku
-            filtrów. Zmierzone przy 412 px: cztery filtry zajmują 297
-            z 298 dostępnych pikseli, więc piąta pozycja rozsadziłaby
-            wiersz. Nagłówek jest sticky nad 53 ekranami siatki, więc
-            druga linia też odpada.
+            filtrów. Pierwotnie zapisane „297 z 298 dostępnych pikseli"
+            było błędem pomiarowym — zmierzono szerokość samego <nav>,
+            flex o szerokości własnej zawartości, czyli porównano go
+            z nim samym. Poprawnie: okno 412 px, padding nagłówka
+            2×26 px, dostępne dla treści 360 px; cztery filtry zajmują
+            ~298 px, zapas to 62 px, nie 1 px. Piąta pozycja i tak się
+            nie mieści: potrzebuje ~74 px plus 10 px odstępu (84 px)
+            przy wolnych 62 px. Nagłówek jest sticky nad 53 ekranami
+            siatki, więc druga linia też odpada.
           */}
           <a
             href="/contact"
@@ -505,9 +516,10 @@ LC_ALL=C LANG=C git commit -m "feat: odnosnik CONTACT w pasku siatki
 Wylacznie znaczniki naglowka — zero zmian w stanie filtrow, hydratacji
 i podnoszeniu kafli.
 
-Na telefonie odnosnik siedzi w wierszu wordmarku, bo cztery filtry
-zajmuja tam 297 z 298 dostepnych pikseli. Od sm wraca na koniec paska,
-za odstepem wiekszym niz miedzy filtrami.
+Na telefonie odnosnik siedzi w wierszu wordmarku, bo z 360 px dostepnych
+przy 412 px (po odjeciu paddingu naglowka) cztery filtry zajmuja juz
+~298 px. Od sm wraca na koniec paska, za odstepem wiekszym niz miedzy
+filtrami.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -530,7 +542,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 W stylu istniejących wpisów (fakt, liczba, przestroga) opisz:
 
 - że pasek nawigacji istnieje w **dwóch** miejscach — `Gallery.tsx` i `NaglowekKontakt.astro` — i dlaczego świadomie, z odsyłaczem do specyfikacji,
-- że przy 412 px cztery filtry zajmują **297 z 298 dostępnych pikseli**, więc każda kolejna pozycja musi iść w wiersz wordmarku, a nie w pasek,
+- że przy 412 px, po odjęciu paddingu nagłówka, cztery filtry zajmują **~298 z 360 dostępnych pikseli** (zapas 62 px, nie wcześniej błędnie zmierzony 1 px), a mimo to piąta pozycja się nie mieści, więc musi iść w wiersz wordmarku, a nie w pasek,
 - że portret ma 379 px, bo CDN Formatu podpisuje adresy HMAC-iem i zwraca 403 na inne rozmiary; wyświetlany w 260 px i **na telefonie pozostaje miękki** do czasu otrzymania oryginału,
 - że tekst bio zawiera **cztery poprawki wobec źródła** — wypisz je z tabelki ze specyfikacji, bo bez tego ktoś kiedyś „naprawi" je z powrotem do wersji ze strony klientki.
 

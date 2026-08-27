@@ -41,6 +41,14 @@ const KONTAKT = [
  * szerokość kolumny na telefonie oznaczałaby skalowanie 2,7x w górę przy
  * dpr 3; 260 px zbija je do 2,1x. Świadomy wybór ostrości nad wiernością.
  * Gdy klientka przyśle oryginał, wraca 331 px.
+ *
+ * `densities={[1, 1.45]}` niżej NIE jest tu zbędne — bez niego Astro
+ * generuje w czasie budowania JEDEN plik 260×260 i tylko on trafia do
+ * przeglądarki na każdym ekranie, więc realne skalowanie to 1,0x/2,0x/3,0x
+ * (dpr 1/2/3), a nie 0,7x/1,4x/2,1x opisane wyżej. 1,45 × 260 = 377 ≤ 379,
+ * czyli mieści się jeszcze w źródle — to maksymalna gęstość, jaką ten plik
+ * udźwignie. Z drugim wariantem w srcset ekrany retina dostają ostrzejszy
+ * plik zamiast rozciągniętego 260×260.
  */
 const PORTRET_PX = 260;
 ---
@@ -49,53 +57,63 @@ const PORTRET_PX = 260;
   <NaglowekKontakt />
 
   <div class="pb-page-end">
-    <div class="px-gutter pt-topbar pb-section">
-      <h1 class="text-text text-title font-bold leading-none tracking-display sm:text-display lg:text-display-lg">
-        Contact Me
-      </h1>
-    </div>
-
-    <div class="flex flex-col gap-section px-gutter lg:flex-row lg:items-start lg:gap-block">
-      <Image
-        src={portret}
-        format="webp"
-        width={PORTRET_PX}
-        height={PORTRET_PX}
-        alt="Pola Sobuń"
-        loading="eager"
-        class="block shrink-0"
-      />
-
-      <div class="flex max-w-prose flex-col gap-card">
-        <h2 class="text-text text-lead font-bold leading-none tracking-title">Pola Sobuń</h2>
-
-        {AKAPITY.map((akapit) => (
-          <p class="text-body-sm leading-prose text-[color:var(--color-body)]">{akapit}</p>
-        ))}
-
-        <dl class="mt-tight flex flex-col gap-stack">
-          {KONTAKT.map(({ etykieta, tekst, href, zewnetrzny }) => (
-            <div class="flex gap-tight">
-              <dt class={`text-muted text-label font-medium uppercase leading-caps tracking-nav`}>
-                {etykieta}
-              </dt>
-              <dd>
-                <a
-                  href={href}
-                  target={zewnetrzny ? '_blank' : undefined}
-                  rel={zewnetrzny ? 'noopener noreferrer' : undefined}
-                  class="text-text text-body-sm underline underline-offset-4 leading-caps"
-                >
-                  {tekst}
-                </a>
-              </dd>
-            </div>
-          ))}
-        </dl>
+    <main>
+      <div class="px-gutter pt-topbar pb-section">
+        <h1 class="text-text text-title font-bold leading-none tracking-display sm:text-display lg:text-display-lg">
+          Contact Me
+        </h1>
       </div>
-    </div>
 
-    <footer class="border-border mt-rule px-gutter pt-rule">
+      <div class="flex flex-col gap-section px-gutter lg:flex-row lg:items-start lg:gap-block">
+        <Image
+          src={portret}
+          format="webp"
+          width={PORTRET_PX}
+          height={PORTRET_PX}
+          densities={[1, 1.45]}
+          alt="Pola Sobuń"
+          loading="eager"
+          class="block shrink-0"
+        />
+
+        <div class="flex max-w-prose flex-col gap-card">
+          <h2 class="text-text text-lead font-bold leading-none tracking-title">Pola Sobuń</h2>
+
+          {AKAPITY.map((akapit) => (
+            <p class="text-body-sm leading-prose text-[color:var(--color-body)]">{akapit}</p>
+          ))}
+
+          {/*
+            Etykiety TEL/MAIL/INSTAGRAM mają różne szerokości, więc przy
+            poprzednim `flex` na każdym wierszu wartości startowały w trzech
+            różnych miejscach. `grid` na <dl> z kolumną `max-content` dla
+            etykiet wyrównuje wszystkie wartości do jednej linii, tak jak
+            w tabeli danych.
+          */}
+          <dl class="mt-tight grid grid-cols-[max-content_1fr] gap-x-tight gap-y-stack">
+            {KONTAKT.map(({ etykieta, tekst, href, zewnetrzny }) => (
+              <>
+                <dt class="text-muted text-label font-medium uppercase leading-caps tracking-nav">
+                  {etykieta}
+                </dt>
+                <dd>
+                  <a
+                    href={href}
+                    target={zewnetrzny ? '_blank' : undefined}
+                    rel={zewnetrzny ? 'noopener noreferrer' : undefined}
+                    class="text-text text-body-sm underline underline-offset-4 leading-caps"
+                  >
+                    {tekst}
+                  </a>
+                </dd>
+              </>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-border mt-rule border-t px-gutter pt-rule">
       <p class="text-muted text-label font-normal uppercase leading-none tracking-nav">
         Copyright © All rights reserved.
       </p>
