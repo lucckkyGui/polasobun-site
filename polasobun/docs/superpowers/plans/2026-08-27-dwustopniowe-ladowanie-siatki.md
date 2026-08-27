@@ -709,7 +709,24 @@ został odrzucony przez próg entropii; podnieś jakość wariantu lekkiego
 
 Wpisz zmierzone liczby pod tym zadaniem. Jeśli cel LCP nie został osiągnięty, **nie przechodź automatycznie do zadania 5** — zgłoś to klientowi razem z liczbami; eksperymenty warunkowe mają dołożyć ostatnie setki milisekund, nie uratować projekt.
 
-#### Wyniki pomiaru (2026-08-27)
+#### Wyniki pomiaru (2026-08-27) — PRZEBIEG 1, NIEAKTUALNY
+
+> **Poniższe liczby opisują stan ZEPSUTY i zostały naprawione.** Przyczyną
+> był kadr lekki 400 px w kaflu o szerokości 412 px: LCP raportuje mniejszy
+> z obszarów naturalnego i wyświetlanego, więc podmiana na wariant ostry
+> była „większym malowaniem" i wystawiała nowy kandydat. Po zmianie kadru
+> lekkiego na 440 px (commit `8c7ba77`) zmierzono ponownie:
+>
+> | Miara | Odniesienie | Cel | Przebieg 1 | **Przebieg 2** |
+> |---|---|---|---|---|
+> | LCP | 3564 ms | < 2000 ms | 6288 ms | **1232 ms** ✅ |
+> | Puste kafle / 10 ekranów | 1 | 0 | 1 | **0** ✅ |
+> | CLS | 0,00 | 0,00 | 0,00 | **0,00** ✅ |
+>
+> Kandydaci LCP: przebieg 1 miał dwa rozmiary IMG (200 000 i 212 180),
+> przebieg 2 ma jeden (212 180). **OBA CELE OSIĄGNIĘTE.**
+
+#### Liczby przebiegu 1 (zachowane jako zapis regresji)
 
 Pełne surowe dane (trzy próby) w `.superpowers/sdd/2026-08-27-dwustopniowe-ladowanie-siatki/task-4-report.md`.
 

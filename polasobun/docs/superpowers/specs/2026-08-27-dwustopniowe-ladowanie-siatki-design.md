@@ -224,7 +224,12 @@ przeglądarki, wyczyszczone `sessionStorage`, 3 próby, mediana.
 | Puste kafle na 10 ekranach szybkiego przewijania | 1 | 0 |
 | CLS | 0,00 | bez zmian |
 | LCP na Fast 4G (produkcja) | ~1104 ms | nie gorzej |
-| Czas builda | 1m24s na zimno | nie gorzej |
+| Czas builda (na zimno) | **6m48s** | nie gorzej |
+
+Wartość 6m48s zmierzono 2026-08-27 na kodzie sprzed projektu, przy
+usuniętym `node_modules/.astro`. Zapisane wcześniej w CLAUDE.md „1m24s"
+jest **nieodtwarzalne** — zimny build trwa tu ~6–7 minut niezależnie od
+naszych zmian, bo dominuje dekodowanie 202 MB źródeł.
 
 Po scaleniu ten sam pomiar na produkcji: ciepły CDN, zimny cache
 przeglądarki, prawdziwe pierwsze wejście (wyczyszczone `sessionStorage`,
