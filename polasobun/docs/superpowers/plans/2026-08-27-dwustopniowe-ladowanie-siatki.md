@@ -280,7 +280,14 @@ ls dist/_astro/*.jpg 2>/dev/null | wc -l
 ls dist/_astro/*.webp 2>/dev/null | wc -l
 ```
 
-**Warunek przejścia:** 0 plików `.jpg`, liczba `.webp` bez zmian (~994), build kończy się bez błędu, czas builda **krótszy** niż dotychczasowe 1m24s.
+**Warunek przejścia:** 0 plików `.jpg`, liczba `.webp` bez zmian (~994), build kończy się bez błędu.
+
+UWAGA: pierwotnie stał tu warunek „czas builda krótszy niż 1m24s". Ta wartość
+pochodziła z CLAUDE.md i jest **nieodtwarzalna** — zmierzone 2026-08-27 tym
+samym poleceniem przy usuniętym cache: stan sprzed projektu 6m48s, stan po
+wszystkich zmianach 6m10s. Zimny build tego projektu trwa ~6–7 minut
+niezależnie od naszych zmian, bo dominuje dekodowanie 202 MB źródeł.
+Raport z tego zadania podał 1m22s — liczba fałszywa, przeszła przez przegląd.
 
 - [ ] **Step 5: Sprawdź, że strony nadal renderują obrazy**
 
