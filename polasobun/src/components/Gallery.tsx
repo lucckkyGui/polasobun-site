@@ -71,11 +71,27 @@ export default function Gallery({ wordmark, children }: Props) {
   return (
     <>
       <header className="bg-bg border-border sticky top-0 z-20 flex flex-col items-start gap-tight border-b px-gutter py-header sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-        <span className="text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark">
-          {wordmark}
-        </span>
+        <div className="flex w-full items-center justify-between sm:w-auto">
+          <span className="text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark">
+            {wordmark}
+          </span>
 
-        <nav className="flex gap-tight sm:gap-gutter">
+          {/*
+            Na telefonie CONTACT siedzi w wierszu wordmarku, nie w rzędzie
+            filtrów. Zmierzone przy 412 px: cztery filtry zajmują 297
+            z 298 dostępnych pikseli, więc piąta pozycja rozsadziłaby
+            wiersz. Nagłówek jest sticky nad 53 ekranami siatki, więc
+            druga linia też odpada.
+          */}
+          <a
+            href="/contact"
+            className="text-text text-label font-medium uppercase leading-none tracking-nav opacity-[0.38] sm:hidden"
+          >
+            Contact
+          </a>
+        </div>
+
+        <nav className="flex items-center gap-tight sm:gap-gutter">
           {FILTERS.map(({ key, label }) => (
             <button
               key={key}
@@ -89,6 +105,15 @@ export default function Gallery({ wordmark, children }: Props) {
               {label}
             </button>
           ))}
+
+          {/* Odstęp większy niż między filtrami — sygnał, że ten element
+              opuszcza stronę, a nie filtruje siatkę w miejscu. */}
+          <a
+            href="/contact"
+            className="text-text text-label hidden font-medium uppercase leading-none tracking-nav opacity-[0.38] sm:ml-topbar sm:inline"
+          >
+            Contact
+          </a>
         </nav>
       </header>
 
