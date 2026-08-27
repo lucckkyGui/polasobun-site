@@ -31,7 +31,10 @@ JEDNA KOLUMNA NA TELEFONIE — decyzja klientki, nie wynik pomiaru.
 Probowalismy dwoch (kafel 645 px urzadzenia, 87 ekranow zamiast 186)
 i zostalo to cofniete swiadomie. Nie wracaj do dwoch bez pytania.
 
-TILE_WIDTH = 1000 px, TILE_HEIGHT = 1250. To kompromis, nie dopasowanie:
+OSTRY.width = 1000 px, OSTRY.height = 1250 (dawniej TILE_WIDTH/TILE_HEIGHT —
+zmienne przemianowane przy dwustopniowym ładowaniu, patrz sekcja niżej;
+to teraz jeden z dwóch poziomów jakości kafla, nie jedyny wariant).
+To kompromis, nie dopasowanie:
   1300 px   skalowanie 0,99x — piksel w piksel, ale start 4381 kB
             przy 23 obrazach; na Slow 4G LCP 1012 ms
   1000 px   skalowanie 1,29x W GORE, okolo 40% mniej bajtow
@@ -39,17 +42,12 @@ TILE_WIDTH = 1000 px, TILE_HEIGHT = 1250. To kompromis, nie dopasowanie:
 Kafel na iPhone 16 Pro Max (430 pt, dpr 3) ma 1290 px urzadzenia i to
 wzgledem tej liczby liczy sie kazde z powyzszych skalowan.
 
-DOLADOWYWANIE PACZKAMI. Natywne loading="lazy" rusza dopiero tuz przy
-widoku i przy szybkim przewijaniu nie nadaza; do tego kafle od 13. w gore
-maja content-visibility, wiec ich obrazy nie sa renderowane i natywny
-mechanizm ma jeszcze mniej czasu. Obserwator w Gallery.tsx przelacza
-kafle w zasiegu poltora ekranu na loading="eager".
-Obserwujemy KAFEL, nie obraz — kafel ma wlasny box nawet przy pominietym
-renderowaniu zawartosci, obraz w srodku nie.
-Obserwator wpinamy dopiero po zdarzeniu load, zeby nie konkurowal
-o pasmo z pierwszym ekranem.
-Zmierzone, przewijanie po 5 ekranow: 0 pustych kafli w widoku na kazdym
-kroku.
+DOLADOWYWANIE — mechanizm zmienił się od podstaw, patrz sekcja
+„Dwustopniowe ładowanie siatki" niżej. Stary opis (obserwator w
+Gallery.tsx przełączający kafle w zasięgu półtora ekranu na
+loading="eager") jest NIEAKTUALNY: ten obserwator już nie istnieje,
+zastąpił go `useProgressiveTiles.ts`, który nie rusza atrybutu loading
+w ogóle — podmienia `src` z wariantu lekkiego na ostry.
 
 PRELOAD FONTÓW BYŁ PRÓBOWANY I ŚWIADOMIE COFNIĘTY. Nie dodawaj go
 ponownie bez pomiaru. Zmierzona kolejność żądań z preloadem:
@@ -83,6 +81,132 @@ o tej wadze to <style> i <script>. Nie udało się tego wyeliminować.
 Waga 400 jest realnie używana na stronach projektów (wartości faktów),
 więc deklaracji nie usuwaj.
 
+## Dwustopniowe ładowanie siatki
+Zmierzone na stanowisku Slow 4G (RTT 576 ms), 412x915, CPU 4x, mediana
+z 3 prób: LCP 3564 ms -> 1232 ms (2,9x), puste kafle na 10 ekranach
+przewijania 1 -> 0, CLS bez zmian (0,00). Oba cele projektu osiągnięte.
+Kod: src/pages/index.astro (stałe LEKKI/OSTRY, dwa warianty per kafel),
+src/components/useProgressiveTiles.ts (podnoszenie do pełnej jakości).
+
+LCP JEST OGRANICZONE LICZBĄ OBROTÓW SIECI, NIE WAGĄ PLIKÓW. Przy RTT
+576 ms okno TCP rośnie przez slow start ~14 -> 28 -> 56 -> 112 kB, więc
+obraz LCP potrzebuje kilku obrotów niezależnie od tego, jak bardzo go
+przytniesz. Cztery próby cięcia bajtów jednego wariantu to potwierdziły:
+
+  zmiana                        bajty    LCP
+  — (baseline)                  607 kB   3564 ms
+  EAGER_COUNT 4→2                607 kB   3504 ms
+  usunięte wszystkie fonty      527 kB   3716 ms
+  kafel 0 mniejszy o połowę     548 kB   3320 ms
+  kafle 2–4 bez obrazów         477 kB   3508 ms
+
+Zmniejszenie obrazu o połowę ścięło jeden obrót (250 ms), nie połowę
+czasu — podpis ograniczenia opóźnieniem, nie pasmem. Stąd dwa poziomy
+jakości zamiast dalszego cięcia bajtów jednego wariantu.
+
+DWA POZIOMY JAKOŚCI KAFLA:
+  lekki   440×550 WebP, mediana z 275 kafli 24,3 kB (kafel LCP 26,2 kB)
+          — leci w HTML, maluje się w 1–2 obrotach
+  ostry   1000×1250 WebP, kafel LCP 117,9 kB — dochodzi po zwolnieniu
+          przewijania, podmieniany przez useProgressiveTiles.ts
+
+DLACZEGO KADR LEKKI MA 440 PX, A NIE 400 — najważniejszy wpis w tej
+sekcji. LCP raportuje MNIEJSZY z dwóch obszarów: naturalny albo
+wyświetlany. Kafel na stanowisku zajmuje 412 px (430 px na iPhonie).
+Kadr lekki 400 px liczył się jako naturalny 400×500 = 200 000, a kadr
+ostry jako wyświetlany 412×515 = 212 180 — WIĘKSZY. Podmiana była przez
+to większym malowaniem i wystawiała nowego, późnego kandydata LCP:
+zmierzone 6288 ms zamiast 3564 ms. Po zmianie na 440 px jest jeden
+rozmiar (212 180) i podmiana nie wystawia kandydata.
+NIE ZMNIEJSZAJ kadru lekkiego poniżej 440 px bez sprawdzenia, że kafel
+nigdzie w layoucie nie jest szerszy niż to.
+
+OBSERWATOR (useProgressiveTiles) STARTUJE PO `load`. Wcześniejszy start
+konkurowałby o pasmo z pierwszym ekranem i zjadłby cały zysk na LCP —
+dokładnie to, po co mechanizm powstał.
+
+PODMIANA CZEKA NA `decode()`. Bez tego przeglądarka najpierw czyści
+kafel, potem maluje nowy obraz — mignięcie pustym miejscem dokładnie
+tam, gdzie w tym momencie patrzy użytkownik.
+
+`<Picture>` DOKŁADA FALLBACK W FORMACIE ŹRÓDŁOWYM. `formats=['webp']`
+budował `<source webp>` + `<img>` w JPEG jako zapas dla przeglądarek
+sprzed 2020 roku — stąd 1054 martwe pliki JPEG ważące 339 MB w buildzie,
+których żadna dzisiejsza przeglądarka nie pobierała. `<Image
+format="webp">` / `getImage({format:'webp'})` fallbacku nie tworzy —
+`<Picture>` nie jest już nigdzie w kodzie (patrz sekcja AVIF niżej).
+Bilans dist/_astro: 994 WebP + 1054 JPEG (~554 MB) -> 1331 WebP, 0 JPEG
+(232 MB, suma bajtów plików; `du -sh` na tym samym katalogu raportuje
+266 MB — różnica to rozmiar bloków na dysku, nie rozjazd w danych).
+Wcześniej zapisane „227 MB" pochodziło sprzed zmiany kadru lekkiego
+z 400 na 440 px (patrz sekcja niżej) i jest nieaktualne.
+
+WIDTHS+SIZES NIE DA SIĘ POŁĄCZYĆ Z KADROWANIEM 4:5 PO STRONIE SERWERA.
+Wiedza odzyskana z komentarza usuniętego przy przejściu z TILE_WIDTH na
+LEKKI/OSTRY — zapisana tu, żeby nikt nie wchodził w tę ślepą uliczkę
+drugi raz. Responsywny srcset (`widths` + `sizes`) wyklucza się
+z przycinaniem: `aspectRatio` nie istnieje w tej wersji Astro, a bez
+jawnych `width` + `height` serwis obrazów nie przytnie do 4:5 — poziome
+źródła trzeba by rozciągać CSS-em. Jedna szerokość na wariant jest
+jedynym wyjściem, dopóki nie zmieni się to ograniczenie Astro.
+
+WYNIK BRAMKI RYZYKA (task 0) I BŁĄD JEJ SONDY. Werdykt: PRZECHODZI —
+podmiana `src` na już wyrenderowanym `<img>` po `decode()` nie wystawia
+nowego kandydata LCP. Ale metoda sondy, która dała ten werdykt, miała
+błąd: podmieniała obraz na TEN SAM plik z dopisanym cache-bustem
+w query stringu, czyli na obraz RÓWNY rozmiarem naturalnym oryginałowi.
+Rozmiar się nie zmieniał, więc sonda w zasadzie nie mogła wykryć
+problemu, który miała wykryć — werdykt był fałszywym przejściem. Realny
+problem (mniejszy kadr startowy -> większy kandydat LCP przy podmianie)
+ujawnił się dopiero później, przy kadrze 400 px (patrz wyżej).
+PRZESTROGA: w takiej sondzie wariant startowy MUSI mieć mniejszy
+naturalny rozmiar niż wariant docelowy, inaczej test niczego nie
+sprawdza.
+
+METODYKA POMIARU: ciepły CDN (rozgrzany osobnym przebiegiem przed
+pomiarem), zimny cache przeglądarki, wyczyszczone `sessionStorage`.
+Pomiary sprzed 2026-08-26 mierzyły POWRÓT na stronę, nie pierwsze
+wejście, i były przez to zbyt optymistyczne — nie porównuj ich wprost
+z nowszymi liczbami.
+
+PUŁAPKA: `performance.getEntriesByType('largest-contentful-paint')`
+zwraca PUSTĄ TABLICĘ Z DEFINICJI, w każdej przeglądarce, zawsze — Chrome
+nie wystawia wpisów LCP tą drogą. Jedyna droga to
+`PerformanceObserver({type: 'largest-contentful-paint', buffered: true})`.
+Pusta tablica z `getEntriesByType` NIE jest dowodem, że środowisko nie
+raportuje LCP — ten błąd kosztował jeden pełny przebieg bramki ryzyka
+(task 0, pierwszy przebieg).
+
+CZAS BUILDA NA ZIMNO — PRAWDZIWA WARTOŚĆ ODNIESIENIA. Zmierzone
+2026-08-27, `/usr/bin/time -p`, `dist` i `node_modules/.astro` usunięte,
+bez innych obciążeń: 6m48s przed projektem (kod c37f003), 6m10s po.
+Build jest 38 s szybszy — nie prawie 5x szybszy, jak sugerowała stara
+wartość „1m24s" zapisana wcześniej w tym pliku (nieodtwarzalna, patrz
+sekcja AVIF). Dominuje dekodowanie 202 MB źródeł, nie liczba wariantów.
+
+EKSPERYMENTY WARUNKOWE — oba odrzucone:
+  E1 AVIF dla kadru lekkiego: ODRZUCONY. Build na zimno przekroczył
+  10 minut wobec ~6-7 minut dla WebP — kryterium czasu builda padło
+  jednoznacznie.
+  E2 wstrzyknięcie pierwszego kafla jako `data:` URI w HTML: ODRZUCONY.
+  Po zrównaniu jakości kodowania (26,2 kB, identyczne bajt po bajcie
+  z wariantem z getImage): LCP 808 ms (poprawa, kryterium spełnione),
+  ale FCP 708 ms wobec 680 ms — kryterium „FCP nie wyższa" padło o 28 ms.
+  HTML po gzipie rósł z 16 097 B do 44 112 B (+175%). Cofnięte przez
+  `git revert` (7bea07e).
+  Pierwszy przebieg E2 dał fałszywe „przyjęty", bo wstrzykiwany kadr był
+  zakodowany jawnym quality:62 (17,4 kB) zamiast domyślną jakością
+  reszty siatki (26,2 kB) — eksperyment zmieniał wtedy dwie zmienne
+  naraz, a kafel otwierający portfolio wypadłby gorszej jakości niż
+  sąsiedzi.
+
+WNIOSEK PROCESOWY: liczba podana przez wykonawcę i „potwierdzona" przez
+recenzenta na podstawie TEGO SAMEGO raportu nie jest zweryfikowana — jest
+przepisana. W tym projekcie zdarzyło się to dwa razy: „~15 kB" kadr
+lekki w commicie 810d9bd (było 21 kB przy 400 px, 24,3 kB przy 440 px)
+i „build 1m22s" w raporcie zadania 1. Weryfikuje dopiero niezależny
+pomiar, nie drugie czytanie tego samego liczbowego zapisu.
+
 ## Pomiary produkcyjne — stan końcowy
 Zmierzone na polasobun-site.vercel.app po zmergowaniu wszystkich zmian.
 Baseline = ten sam pomiar przed jakąkolwiek optymalizacją.
@@ -99,9 +223,14 @@ Warunki A — mobile 412x915, Slow 4G, 4x CPU (te same co baseline):
   obraz intro                525 kB          128 kB
   czas trwania intro         4400 ms         2200 ms
 
-Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU:
+Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU
+(HISTORYCZNE — zmierzone przy układzie DWUKOLUMNOWYM, cofniętym na jedną
+kolumnę w commicie 0a9ac49. Dziś na telefonie jest jedna kolumna, więc
+wiersze „kolumny", „kafli na ekranie" i „ekranów do przewinięcia" NIE
+opisują obecnego stanu. Zostawione dla śladu decyzji, nie jako
+obowiązujący opis architektury):
 
-  metryka                    na starcie      teraz
+  metryka                    na starcie      wtedy (2 kolumny)
   LCP                        —               572 ms
   CLS                        —               0.00
   kolumny                    1               2 x 215 px
@@ -117,8 +246,13 @@ Ani jednego, przy przewijaniu skokami po całym ekranie — ostrzej niż
 realnym przesuwaniem palcem. Przed round-robinem i limitem wychodziło
 0,0,1,0,0,0,0,0 przy 8 ekranach.
 
-Skrócenie ze 186 ekranów na 16 to głównie zasługa MAX_W_ALL, nie
-optymalizacji technicznych: ALL pokazuje 101 kafli zamiast 359.
+Skrócenie ze 186 ekranów na 16 było wtedy głównie zasługą ograniczenia
+widoku ALL do wybranych kadrów, nie samych optymalizacji technicznych:
+ALL pokazywało 101 kafli zamiast 359. (W dzisiejszym kodzie nie ma
+stałej o nazwie MAX_W_ALL — sprawdzone: `grep -rn 'MAX_W_ALL' src/` nic
+nie zwraca. Ograniczenie działa dziś inaczej: ALL renderuje sumę pól
+`featured` z projects.json, bez osobnego limitu, co daje 100 kafli —
+patrz sekcja „Kolejność zdjęć w siatce" niżej.)
 
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
 że content-visibility działa — to własność dokumentu, nie pomiaru.
@@ -228,12 +362,25 @@ się przełączał, a kafle zostawały widoczne.
   remark/rehype wymagają doinstalowania @astrojs/markdown-remark.
 
 ## Formaty obrazów — AVIF świadomie WYŁĄCZONY
-<Picture> generuje tylko WebP + JPEG (fallback). AVIF został zdjęty,
-bo jego kodowanie odpowiadało za ~90% czasu builda: 12m07s z AVIF
-kontra 1m24s bez, przy tym samym materiale. Zysk był realny, ale mały —
-AVIF 106 MB kontra WebP 202 MB — i nie wart ryzyka, że deploy nie
-zmieści się w limicie czasu. Nie dodawaj go z powrotem bez zmierzenia
-builda na docelowej platformie.
+`<Picture>` NIE jest już nigdzie w kodzie — usunięty przy pracy nad
+dwustopniowym ładowaniem (patrz sekcja niżej), bo dokładał fallback JPEG.
+Siatka i strony projektów idą przez `getImage()` / `<Image>` z
+`format: 'webp'`, bez fallbacku.
+
+AVIF został zdjęty, bo jego kodowanie zjada większość czasu builda:
+przy dwustopniowym ładowaniu próba AVIF-u dla samego wariantu lekkiego
+(eksperyment E1) przekroczyła 10 minut na zimno wobec ~6-7 minut dla
+WebP na tym samym materiale. Zysk wagowo jest realny, ale nie wart
+ryzyka, że deploy nie zmieści się w limicie czasu.
+
+Zapisane tu wcześniej „12m07s z AVIF kontra 1m24s bez" — wartość 1m24s
+była NIEODTWARZALNA i błędna. Zmierzone niezależnie 2026-08-27
+(`/usr/bin/time -p`, `dist` i `node_modules/.astro` usunięte, bez innych
+obciążeń): zimny build trwa 6m48s do 6m10s zależnie od stanu kodu,
+niezależnie od AVIF-u — dominuje dekodowanie 202 MB źródeł, nie
+kodowanie wariantów. Nie dodawaj AVIF z powrotem — ani dla pełnych
+zdjęć, ani dla samego kadru lekkiego — bez zmierzenia builda na
+docelowej platformie.
 
 ## Astro 6 — zmiany, które nas dotyczą
 - Domyślny serwis obrazów PRZYCINA domyślnie, bez podawania `fit`.
@@ -298,7 +445,9 @@ Kolejność renderowania to DWA przebiegi:
 Zdjęcie bez `featured` i bez tagu portraits/food nie trafiłoby do żadnej
 zakładki — jest POMIJANE w renderowaniu siatki.
 Zostaje widoczne na stronie swojej kampanii /work/<slug>, która pokazuje
-cały folder. Dzięki temu DOM spadł z 374 kafli na 280.
+cały folder. Dzięki temu w DOM trafia 275 kafli (100 featured + 160
+reszty w PORTRAITS/FOOD + 15 okładek kampanii w COMMERCIAL), nie
+wszystkie 359 zdjęć.
 
 PORTRAITS i FOOD nadal pokazują wszystko (122 i 78). Mają sąsiadujące
 kafle z tej samej sesji i to jest nieuniknione — te zakładki są
@@ -478,8 +627,8 @@ bezpieczniku, który i tak nie tyka animation-delay.
 Bez JS-u atrybut nie powstaje i kafle są po prostu widoczne.
 
 ## Przejścia filtrów
-Przenika CAŁA siatka, nie pojedyncze kafle. Przy 374 kaflach osobne
-przejścia oznaczałyby 374 warstwy kompozycji naraz; tu przenika jeden
+Przenika CAŁA siatka, nie pojedyncze kafle. Przy 275 kaflach osobne
+przejścia oznaczałyby 275 warstw kompozycji naraz; tu przenika jeden
 element. Sam dobór kafli robi nadal reguła display:none po data-filter
 (mechanizm 1:1 z makiety) — podmieniamy atrybut w połowie przenikania,
 gdy siatka ma opacity 0, więc twarde cięcie nigdy nie trafia w oko.

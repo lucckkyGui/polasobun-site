@@ -1,5 +1,5 @@
 ---
-import { Picture } from 'astro:assets';
+import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import { projects, type Project } from '../../content/projects';
 
@@ -80,9 +80,9 @@ const WIDTHS = [1200, 2000];
     <div class="bg-surface">
       {
         photos.map(({ img, name }, index) => (
-          <Picture
+          <Image
             src={img}
-            formats={['webp']}
+            format="webp"
             widths={WIDTHS}
             sizes={SIZES}
             alt={`${project.title} — ${name}`}
