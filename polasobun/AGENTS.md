@@ -377,14 +377,29 @@ hoście żądania — przy `output: 'static'` inaczej się nie da: powstaje
 JEDEN plik `dist/robots.txt`, wspólny dla każdego adresu, pod którym
 odpowiada dane wdrożenie. W dniu przełączenia DNS `polasobun.com/robots.txt`
 faktycznie odblokuje się (`Allow: /` + `Sitemap:`), ale
-`polasobun-site.vercel.app/robots.txt` i każde wdrożenie podglądowe
-`polasobun-site-<hash>.vercel.app` odpowiedzą TYM SAMYM plikiem — czyli
-też `Allow: /`. Blokada chroni adres Vercela dokładnie dopóki jest on
+`polasobun-site.vercel.app/robots.txt` odpowie TYM SAMYM plikiem — czyli
+też `Allow: /`. Blokada chroni alias Vercela dokładnie dopóki jest on
 jedyną kopią i przestaje chronić w sekundzie, w której powstaje duplikat.
 Zostaje wtedy tylko `canonical` — działa, ale miękko i z opóźnieniem
-tygodni.
+tygodni. Dlatego alias wymaga przekierowania (krok 2 instrukcji niżej).
 
-INSTRUKCJA NA DZIEŃ PRZEŁĄCZENIA DNS (dwa kroki, w tej kolejności):
+WDROŻENIA PODGLĄDOWE SĄ OSOBNYM PRZYPADKIEM I NIE WYMAGAJĄ NICZEGO.
+Zmierzone 2026-08-27 na żywych wdrożeniach: Vercel sam dokłada nagłówek
+`x-robots-tag: noindex` KAŻDEMU hostowi niebędącemu produkcją — zarówno
+`polasobun-site-<hash>-<slug-zespołu>.vercel.app`, jak i aliasom gałęzi
+`polasobun-site-git-<gałąź>-<slug-zespołu>.vercel.app`, w tym aliasowi
+gałęzi `main`. Alias produkcyjny `polasobun-site.vercel.app` tego
+nagłówka NIE dostaje (sprawdzone: zero wystąpień). Uwaga na kształt
+nazwy — host podglądu zawiera slug zespołu, więc wzorzec
+`polasobun-site-<hash>.vercel.app` NIE pasuje do niczego rzeczywistego.
+
+Ładnie się to składa z pułapką `Disallow` kontra `noindex` opisaną niżej:
+dziś `noindex` na podglądach jest martwy, bo `Disallow` nie wpuszcza
+robota, który mógłby go przeczytać. W dniu, w którym `robots.txt` przestaje
+blokować, ten sam nagłówek zaczyna działać — ochrona podglądów włącza się
+dokładnie wtedy, gdy znika ochrona z `robots.txt`.
+
+INSTRUKCJA NA DZIEŃ PRZEŁĄCZENIA DNS (trzy kroki, w tej kolejności):
 
 1. Zmienić `site` w `astro.config.mjs` na docelową domenę.
 2. Dodać plik `vercel.json` w katalogu `polasobun/` z przekierowaniem
@@ -406,6 +421,24 @@ INSTRUKCJA NA DZIEŃ PRZEŁĄCZENIA DNS (dwa kroki, w tej kolejności):
    NIE TWORZYĆ TEGO PLIKU DZISIAJ. To instrukcja na przyszłość — dodany
    teraz przekierowywałby żywą stronę na `polasobun.com`, który DZIŚ
    W OGÓLE NIE ODPOWIADA, czyli wyłączyłby witrynę.
+
+   Przekierowanie celowo dotyczy TYLKO aliasu produkcyjnego. Wdrożeń
+   podglądowych nie obejmuje i nie ma obejmować: Vercel oznacza je
+   `noindex` sam (patrz akapit wyżej), a przekierowanie ich na produkcję
+   odebrałoby możliwość oglądania podglądów przed scaleniem.
+
+3. Scommitować obie zmiany i wypchnąć na `main` — bez wdrożenia Vercel
+   nadal serwuje stary `robots.txt` i stare adresy kanoniczne. Po
+   zakończeniu builda sprawdzić trzy rzeczy:
+
+   ```bash
+   curl -s https://polasobun.com/robots.txt
+   curl -sI https://polasobun-site.vercel.app/ | grep -i location
+   curl -s https://polasobun.com/sitemap.xml | grep -c '<loc>'
+   ```
+
+   Oczekiwane: `Allow: /` z linią `Sitemap:`; przekierowanie 308 na
+   `https://polasobun.com/`; 17 adresów, wszystkie na docelowej domenie.
 
 DECYZJA OTWARTA DO PODJĘCIA W DNIU PRZEŁĄCZENIA — `www` czy bez `www`.
 Dziś klientka jest na `www.polasobun.com`, `polasobun.com` bez `www` nie
