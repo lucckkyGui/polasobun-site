@@ -186,7 +186,10 @@ const warianty = await Promise.all(
  * Ile kafli ładujemy od razu. Przy JEDNEJ kolumnie na telefonie widać
  * około dwóch, więc ósemka dobrana pod dwie kolumny była tu nadmiarem:
  * osiem kafli to na start dwa razy więcej bajtów, niż widać.
- * Resztę i tak dociąga obserwator paczek, który rusza po zdarzeniu load.
+ * Resztę dociąga natywne loading="lazy" — nie ma tu żadnego obserwatora,
+ * który by je pobierał. useProgressiveTiles.ts rusza dopiero po load
+ * i niczego nie pobiera: tylko podnosi jakość kafli, które przeglądarka
+ * już ściągnęła, z wariantu lekkiego na ostry.
  * Pierwszy kafel ma fetchpriority="high" i to on decyduje o LCP.
  */
 const EAGER_COUNT = 4;

@@ -136,7 +136,10 @@ których żadna dzisiejsza przeglądarka nie pobierała. `<Image
 format="webp">` / `getImage({format:'webp'})` fallbacku nie tworzy —
 `<Picture>` nie jest już nigdzie w kodzie (patrz sekcja AVIF niżej).
 Bilans dist/_astro: 994 WebP + 1054 JPEG (~554 MB) -> 1331 WebP, 0 JPEG
-(227 MB).
+(232 MB, suma bajtów plików; `du -sh` na tym samym katalogu raportuje
+266 MB — różnica to rozmiar bloków na dysku, nie rozjazd w danych).
+Wcześniej zapisane „227 MB" pochodziło sprzed zmiany kadru lekkiego
+z 400 na 440 px (patrz sekcja niżej) i jest nieaktualne.
 
 WIDTHS+SIZES NIE DA SIĘ POŁĄCZYĆ Z KADROWANIEM 4:5 PO STRONIE SERWERA.
 Wiedza odzyskana z komentarza usuniętego przy przejściu z TILE_WIDTH na
@@ -220,9 +223,14 @@ Warunki A — mobile 412x915, Slow 4G, 4x CPU (te same co baseline):
   obraz intro                525 kB          128 kB
   czas trwania intro         4400 ms         2200 ms
 
-Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU:
+Warunki B — iPhone 16 Pro Max 430x932 dpr 3, Fast 4G, 4x CPU
+(HISTORYCZNE — zmierzone przy układzie DWUKOLUMNOWYM, cofniętym na jedną
+kolumnę w commicie 0a9ac49. Dziś na telefonie jest jedna kolumna, więc
+wiersze „kolumny", „kafli na ekranie" i „ekranów do przewinięcia" NIE
+opisują obecnego stanu. Zostawione dla śladu decyzji, nie jako
+obowiązujący opis architektury):
 
-  metryka                    na starcie      teraz
+  metryka                    na starcie      wtedy (2 kolumny)
   LCP                        —               572 ms
   CLS                        —               0.00
   kolumny                    1               2 x 215 px
@@ -238,8 +246,13 @@ Ani jednego, przy przewijaniu skokami po całym ekranie — ostrzej niż
 realnym przesuwaniem palcem. Przed round-robinem i limitem wychodziło
 0,0,1,0,0,0,0,0 przy 8 ekranach.
 
-Skrócenie ze 186 ekranów na 16 to głównie zasługa MAX_W_ALL, nie
-optymalizacji technicznych: ALL pokazuje 101 kafli zamiast 359.
+Skrócenie ze 186 ekranów na 16 było wtedy głównie zasługą ograniczenia
+widoku ALL do wybranych kadrów, nie samych optymalizacji technicznych:
+ALL pokazywało 101 kafli zamiast 359. (W dzisiejszym kodzie nie ma
+stałej o nazwie MAX_W_ALL — sprawdzone: `grep -rn 'MAX_W_ALL' src/` nic
+nie zwraca. Ograniczenie działa dziś inaczej: ALL renderuje sumę pól
+`featured` z projects.json, bez osobnego limitu, co daje 100 kafli —
+patrz sekcja „Kolejność zdjęć w siatce" niżej.)
 
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
 że content-visibility działa — to własność dokumentu, nie pomiaru.
@@ -432,7 +445,9 @@ Kolejność renderowania to DWA przebiegi:
 Zdjęcie bez `featured` i bez tagu portraits/food nie trafiłoby do żadnej
 zakładki — jest POMIJANE w renderowaniu siatki.
 Zostaje widoczne na stronie swojej kampanii /work/<slug>, która pokazuje
-cały folder. Dzięki temu DOM spadł z 374 kafli na 280.
+cały folder. Dzięki temu w DOM trafia 275 kafli (100 featured + 160
+reszty w PORTRAITS/FOOD + 15 okładek kampanii w COMMERCIAL), nie
+wszystkie 359 zdjęć.
 
 PORTRAITS i FOOD nadal pokazują wszystko (122 i 78). Mają sąsiadujące
 kafle z tej samej sesji i to jest nieuniknione — te zakładki są
@@ -612,8 +627,8 @@ bezpieczniku, który i tak nie tyka animation-delay.
 Bez JS-u atrybut nie powstaje i kafle są po prostu widoczne.
 
 ## Przejścia filtrów
-Przenika CAŁA siatka, nie pojedyncze kafle. Przy 374 kaflach osobne
-przejścia oznaczałyby 374 warstwy kompozycji naraz; tu przenika jeden
+Przenika CAŁA siatka, nie pojedyncze kafle. Przy 275 kaflach osobne
+przejścia oznaczałyby 275 warstw kompozycji naraz; tu przenika jeden
 element. Sam dobór kafli robi nadal reguła display:none po data-filter
 (mechanizm 1:1 z makiety) — podmieniamy atrybut w połowie przenikania,
 gdy siatka ma opacity 0, więc twarde cięcie nigdy nie trafia w oko.

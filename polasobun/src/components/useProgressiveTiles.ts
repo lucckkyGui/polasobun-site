@@ -7,11 +7,20 @@ const BEZRUCH_MS = 150;
 const ZASIEG = '100% 0px';
 
 /**
+ * Ile ekranów od środka widoku jeszcze podnosimy przy opróżnianiu
+ * kolejki — dalej kafel zostaje na wariancie lekkim. Patrz komentarz
+ * przy `oproznij()`.
+ */
+const LIMIT_EKRANOW = 2;
+
+/**
  * Podnoszenie kafli do pełnej jakości.
  *
  * HTML niesie wariant lekki, bo na łączu o dużym opóźnieniu decyduje
  * liczba obrotów sieci, a nie waga. Wersja ostra dochodzi dopiero, gdy
- * przewijanie zwolni — kto przewija na wylot, nie pobiera jej wcale.
+ * przewijanie zwolni, i tylko dla kafli w promieniu dwóch ekranów od
+ * miejsca zatrzymania (LIMIT_EKRANOW) — kto przewinie dalej i się tam
+ * zatrzyma, nie pobiera wersji ostrej kafli, które zostały daleko w tyle.
  *
  * Startujemy dopiero po zdarzeniu load. Wcześniej podnoszenie
  * konkurowałoby o pasmo z pierwszym ekranem i zjadło cały zysk na LCP,
@@ -50,18 +59,46 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
       if (zywy) img.src = pelny;
     };
 
-    /** Najbliżej środka ekranu najpierw — tam patrzy użytkownik. */
+    /**
+     * Najbliżej środka ekranu najpierw — tam patrzy użytkownik.
+     *
+     * LIMIT ODLEGŁOŚCI: przy jednym długim, ciągłym przewijaniu przez cały
+     * widok ALL obserwator dosypuje do kolejki bez przerwy, a licznik
+     * bezruchu (zaplanujOproznienie) wciąż się resetuje. Jedno
+     * przeciągnięcie przez cały widok potrafi zakolejkować ~100 kafli —
+     * bez limitu wystrzeliłyby naraz po 150 ms bezruchu: około 9,5 MB
+     * równoległych żądań i tyleż równoczesnych decode() obrazów
+     * 1000×1250. Kafel oddalony od środka widoku o więcej niż
+     * LIMIT_EKRANOW ekranów zostaje więc na wariancie lekkim.
+     *
+     * Odfiltrowany kafel NIE wraca do `kolejka` — ale `data-pelny`
+     * zostaje na nim, bo zdejmuje go dopiero `podnies()` przy realnym
+     * podniesieniu. Obserwator go już unobserve()'ował w chwili, gdy
+     * wszedł w zasięg (patrz `uruchom`), ale TYLKO jeśli wtedy nie miał
+     * już nic do podniesienia — kafel z wciąż obecnym `data-pelny`
+     * zostaje obserwowany dalej, więc jeśli użytkownik do niego wróci,
+     * zostanie ponownie zauważony i zakolejkowany przy kolejnym
+     * przewinięciu.
+     *
+     * Odległość liczymy RAZ na kafel, w osobnym kroku przed sort() —
+     * rect policzony wewnątrz komparatora liczyłby się O(n log n) razy
+     * zamiast O(n). Bez skutków na wynik (layout jest cache'owany do
+     * najbliższej zmiany DOM), ale to myląca konstrukcja.
+     */
     const oproznij = (): void => {
       const doPodniesienia = [...kolejka];
       kolejka.clear();
       const srodek = window.innerHeight / 2;
+      const limit = LIMIT_EKRANOW * window.innerHeight;
+
       doPodniesienia
-        .sort((a, b) => {
-          const da = Math.abs(a.getBoundingClientRect().top - srodek);
-          const db = Math.abs(b.getBoundingClientRect().top - srodek);
-          return da - db;
-        })
-        .forEach((img) => void podnies(img));
+        .map((img) => ({
+          img,
+          odleglosc: Math.abs(img.getBoundingClientRect().top - srodek),
+        }))
+        .filter(({ odleglosc }) => odleglosc <= limit)
+        .sort((a, b) => a.odleglosc - b.odleglosc)
+        .forEach(({ img }) => void podnies(img));
     };
 
     /** Odracza opróżnienie o BEZRUCH_MS, licząc od ostatniego sygnału. */
@@ -93,8 +130,16 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
               // i tak strzela seriami, więc licznik resetuje się dokładnie
               // tak jak wcześniej.
               zaplanujOproznienie();
+              // Celowo NIE unobserve() tutaj: oproznij() może ten kafel
+              // odfiltrować (patrz LIMIT_EKRANOW), a wtedy `data-pelny`
+              // zostaje na nim. Kafel musi zostać obserwowany, żeby
+              // przewinięcie do niego z powrotem znowu go zakolejkowało.
+            } else {
+              // Nic już nie ma do podniesienia (podniesiony wcześniej,
+              // przy innym przewinięciu) — dopiero teraz bezpiecznie
+              // przestajemy obserwować.
+              obserwator?.unobserve(wpis.target);
             }
-            obserwator?.unobserve(wpis.target);
           }
         },
         { rootMargin: ZASIEG },
