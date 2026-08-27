@@ -49,6 +49,36 @@ loading="eager") jest NIEAKTUALNY: ten obserwator już nie istnieje,
 zastąpił go `useProgressiveTiles.ts`, który nie rusza atrybutu loading
 w ogóle — podmienia `src` z wariantu lekkiego na ostry.
 
+POMIAR PRODUKCYJNY PO SCALENIU (2026-08-27, deploy 4affe1f)
+
+Metodyka: CDN rozgrzany do 22/22 HIT przed pomiarem, cache przegladarki
+ZIMNY przy kazdej probie (ignoreCache), sessionStorage czyszczone przez
+initScript zeby intro gralo jak przy pierwszym wejsciu, mediana z 3 prob.
+
+  profil                              LCP        FCP      CLS
+  iPhone 16 Pro Max, Fast 4G, CPU 4x  596 ms     260 ms   0,00
+    proby: 596 / 584 / 596
+  412x915, Slow 4G, CPU 4x            2388 ms    804 ms   0,00
+    proby: 2464 / 2360 / 2388
+
+Porownanie ze stanem sprzed projektu, TA SAMA metodyka (zimny cache):
+  Fast 4G   1104 ms -> 596 ms    (-46%)
+  Slow 4G   4066 ms -> 2388 ms   (-41%)
+
+Przewijanie przez 10 ekranow na produkcji: 0,0,0,0,0,0,0,0,0,0
+Bylo 1 pusty kafel na 10 ekranow. Cel osiagniety.
+Siatka ma 53 ekrany, 2-3 kafle na ekran przy jednej kolumnie.
+
+DOWOD, ze mechanizm dziala tak jak zaprojektowany: w historii kandydatow
+LCP jest JEDEN rozmiar obrazu na kazdym profilu — 231 125 na iPhonie
+(430x537,5 wyswietlane) i 212 180 przy 412 px (412x515). Podmiana lekkiego
+na ostry NIE wystawia drugiego kandydata, bo kadr lekki 440 px jest
+niemniejszy niz miejsce, ktore wypelnia. To wlasnie ta wlasnosc byla
+zepsuta przy 400 px i kosztowala 4,7 s.
+
+Start strony: 9-10 obrazow, ~520 kB (wliczajac podniesienia do pelnej
+jakosci, ktore zachodza po zdarzeniu load).
+
 PRELOAD FONTÓW BYŁ PRÓBOWANY I ŚWIADOMIE COFNIĘTY. Nie dodawaj go
 ponownie bez pomiaru. Zmierzona kolejność żądań z preloadem:
   Satoshi-Medium.woff2   start  807 ms
