@@ -21,32 +21,50 @@ const POZYCJA = 'text-label font-medium uppercase leading-none tracking-nav';
 <header
   class="bg-bg border-border sticky top-0 z-20 flex flex-col items-start gap-tight border-b px-gutter py-header sm:flex-row sm:items-center sm:justify-between sm:gap-0"
 >
-  <div class="flex w-full items-center justify-between sm:w-auto">
-    <a
-      href="/"
-      class={`text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark`}
-    >
-      Pola Sobuń
-    </a>
+  {/*
+    `<nav class="contents">` usuwa WŁASNY box elementu z układu
+    (`display: contents`), ale jego dzieci nadal uczestniczą we
+    flexboksie <header> tak, jakby były jego bezpośrednimi dziećmi —
+    wygląd zostaje 1:1 identyczny z poprzednią wersją (dwa flex-itemy:
+    wiersz wordmarku, wiersz kategorii).
 
-    {/*
-      Na telefonie CONTACT siedzi w wierszu wordmarku, nie w nawigacji.
-      Zmierzone przy 412 px: cztery kategorie zajmują 297 z 298 dostępnych
-      pikseli, czyli zapas wynosi 1 px. Piąta pozycja rozsadziłaby wiersz.
-      Wiersz wordmarku ma ~174 px wolnego, a nagłówek jest sticky nad
-      53 ekranami siatki, więc nie chcemy go pogrubiać o drugą linię.
-    */}
-    <span class={`text-text ${POZYCJA} sm:hidden`} aria-current="page">Contact</span>
-  </div>
+    Poprawka dostępności (runda 1): oba warianty wskaźnika „Contact"
+    (mobilny w wierszu wordmarku, desktopowy w pasku kategorii) muszą
+    być potomkami JEDNEGO <nav>, żeby czytnik ekranu eksplorujący
+    landmark nawigacyjny zawsze trafiał na aria-current="page" w jego
+    obrębie — niezależnie od szerokości ekranu. Owinięcie całości w
+    <nav class="contents"> zamiast trzymać drugi <nav> tylko wokół
+    paska kategorii daje to bez zmiany ani jednej klasy odpowiadającej
+    za wygląd.
+  */}
+  <nav class="contents">
+    <div class="flex w-full items-center justify-between sm:w-auto">
+      <a
+        href="/"
+        class={`text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark`}
+      >
+        Pola Sobuń
+      </a>
 
-  <nav class="flex items-center gap-tight sm:gap-gutter">
-    {KATEGORIE.map((etykieta) => (
-      <a href="/" class={`text-text ${POZYCJA} opacity-[0.38]`}>{etykieta}</a>
-    ))}
-    {/* Od sm CONTACT wraca na koniec paska, za odstępem większym niż
-        między filtrami — sygnał, że opuszcza stronę, a nie filtruje. */}
-    <span class={`text-text ${POZYCJA} hidden sm:ml-topbar sm:inline`} aria-current="page">
-      Contact
-    </span>
+      {/*
+        Na telefonie CONTACT siedzi w wierszu wordmarku, nie w nawigacji.
+        Zmierzone przy 412 px: cztery kategorie zajmują 297 z 298 dostępnych
+        pikseli, czyli zapas wynosi 1 px. Piąta pozycja rozsadziłaby wiersz.
+        Wiersz wordmarku ma ~174 px wolnego, a nagłówek jest sticky nad
+        53 ekranami siatki, więc nie chcemy go pogrubiać o drugą linię.
+      */}
+      <span class={`text-text ${POZYCJA} sm:hidden`} aria-current="page">Contact</span>
+    </div>
+
+    <div class="flex items-center gap-tight sm:gap-gutter">
+      {KATEGORIE.map((etykieta) => (
+        <a href="/" class={`text-text ${POZYCJA} opacity-[0.38]`}>{etykieta}</a>
+      ))}
+      {/* Od sm CONTACT wraca na koniec paska, za odstępem większym niż
+          między filtrami — sygnał, że opuszcza stronę, a nie filtruje. */}
+      <span class={`text-text ${POZYCJA} hidden sm:ml-topbar sm:inline`} aria-current="page">
+        Contact
+      </span>
+    </div>
   </nav>
 </header>
