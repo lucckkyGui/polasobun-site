@@ -1,17 +1,9 @@
 ---
 import { getImage } from 'astro:assets';
-import sharp from 'sharp';
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
 import Intro from '../components/Intro';
 import { projects } from '../content/projects';
-
-/**
- * Minimalna deklaracja `process`, żeby nie dokładać @types/node tylko dla
- * jednej metody. `process` istnieje realnie w Node w trakcie builda — brak
- * typu jest jedynie brakiem deklaracji, nie brakiem środowiska.
- */
-declare const process: { cwd(): string };
 
 /**
  * Wszystkie zdjęcia. import.meta.glob z eager: true — ścieżka jako string
@@ -22,32 +14,14 @@ const files = import.meta.glob<{ default: ImageMetadata }>(
   { eager: true },
 );
 
-/**
- * Zdjęcia pogrupowane po slugu, w kolejności nazw plików.
- *
- * `fsPath` niesie absolutną ścieżkę pliku źródłowego. ImageMetadata w tej
- * wersji Astro (7.2.7) NIE ma pola `fsPath` — sprawdzone przez
- * console.log(tiles[0].img) podczas builda, ma tylko
- * { src, width, height, format }, a samo `src` w dev to URL `/@fs/...`
- * z query stringiem.
- *
- * `import.meta.url` też zawodzi: podczas `astro build` strona renderuje się
- * z osobnego bundla w `dist/.prerender/`, więc `import.meta.url` wskazuje
- * tam, nie na oryginalny plik źródłowy — ścieżka wyliczona względem niego
- * trafiała w nieistniejący `dist/.prerender/assets/photos/...` (zmierzone,
- * build wywalał się na "Input file is missing"). `process.cwd()` podczas
- * builda to zawsze katalog projektu (skąd wystartował `npm run build`),
- * niezależnie od tego, gdzie Rollup poukładał skompilowane chunki — więc
- * ścieżka budowana od cwd + `slug`/`name` jest stabilna.
- */
-const bySlug = new Map<string, { name: string; img: ImageMetadata; fsPath: string }[]>();
+/** Zdjęcia pogrupowane po slugu, w kolejności nazw plików. */
+const bySlug = new Map<string, { name: string; img: ImageMetadata }[]>();
 for (const [path, mod] of Object.entries(files)) {
   const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
   if (!match) continue;
   const [, slug, name] = match as unknown as [string, string, string];
   const list = bySlug.get(slug) ?? [];
-  const fsPath = `${process.cwd()}/src/assets/photos/${slug}/${name}`;
-  list.push({ name, img: mod.default, fsPath });
+  list.push({ name, img: mod.default });
   bySlug.set(slug, list);
 }
 for (const list of bySlug.values()) list.sort((a, b) => a.name.localeCompare(b.name));
@@ -55,8 +29,6 @@ for (const list of bySlug.values()) list.sort((a, b) => a.name.localeCompare(b.n
 interface Tile {
   key: string;
   img: ImageMetadata;
-  /** Absolutna ścieżka pliku źródłowego — potrzebna tylko dla kafla 0. */
-  fsPath: string;
   /** Widoki, w których kafel jest widoczny — trafia do data-cat. */
   cats: string;
   alt: string;
@@ -109,7 +81,6 @@ for (let runda = 0; runda < najwiecejWybranych; runda++) {
     tiles.push({
       key: `${project.slug}/${zdjecie.name}`,
       img: zdjecie.img,
-      fsPath: zdjecie.fsPath,
       cats: widoki.join(' '),
       alt: project.title,
     });
@@ -127,7 +98,6 @@ for (let runda = 0; runda < najdluzszaReszta; runda++) {
     tiles.push({
       key: `${project.slug}/${zdjecie.name}`,
       img: zdjecie.img,
-      fsPath: zdjecie.fsPath,
       cats: widoki.join(' '),
       alt: project.title,
     });
@@ -142,7 +112,6 @@ for (const project of projects) {
   tiles.push({
     key: `cover/${project.slug}`,
     img: cover.img,
-    fsPath: cover.fsPath,
     cats: 'commercial',
     alt: project.title,
     href: `/work/${project.slug}`,
@@ -214,24 +183,6 @@ const warianty = await Promise.all(
 );
 
 /**
- * Pierwszy kafel wprost w dokumencie. Ten sam zabieg, co
- * inlineStylesheets: 'always' — zdejmuje z niego cały obrót sieci.
- *
- * Kosztem jest grubszy dokument, który sam leży na ścieżce krytycznej,
- * a base64 puchnie o 33% i nie kompresuje się dalej. Zabieg zostaje
- * TYLKO dlatego, że pomiar potwierdził zysk na LCP bez straty na FCP.
- *
- * Kodujemy własnym sharpem, bo plik z getImage() powstaje dopiero na
- * końcu builda i tutaj jeszcze nie istnieje. Parametry muszą zgadzać się
- * z wariantem lekkim, inaczej dokument niósłby inny kadr niż reszta siatki.
- */
-const bufor = await sharp(tiles[0].fsPath)
-  .resize(LEKKI.width, LEKKI.height, { fit: 'cover' })
-  .webp({ quality: 62 })
-  .toBuffer();
-const pierwszyKafelData = `data:image/webp;base64,${bufor.toString('base64')}`;
-
-/**
  * Ile kafli ładujemy od razu. Przy JEDNEJ kolumnie na telefonie widać
  * około dwóch, więc ósemka dobrana pod dwie kolumny była tu nadmiarem:
  * osiem kafli to na start dwa razy więcej bajtów, niż widać.
@@ -253,7 +204,7 @@ const EAGER_COUNT = 4;
         // Rozmiar na ekranie i tak narzuca CSS (aspect-tile + w-full).
         const img = (
           <img
-            src={index === 0 ? pierwszyKafelData : warianty[index].lekki}
+            src={warianty[index].lekki}
             data-pelny={warianty[index].ostry}
             width={OSTRY.width}
             height={OSTRY.height}
