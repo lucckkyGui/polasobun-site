@@ -94,7 +94,7 @@ Przy portfolio fotograficznym obraz wygrywa z tekstem.
 inlineStylesheets: 'always' w astro.config. Arkusz ma ~12 kB, próg Astro
 to 4 kB, więc bez tego był osobnym blokującym żądaniem. Po wstrzyknięciu:
 zero żądań CSS, FCP 668-1028 ms zamiast ~1557 ms szacowanych przez
-narzędzie. Koszt: 18 stron niesie własną kopię, HTML łącznie 65 -> 126 kB
+narzędzie. Koszt: 19 stron niesie własną kopię, HTML łącznie 65 -> 132 kB
 po gzipie, index.html 13 -> 17 kB.
 
 Lokalnie wyglądało to na wymianę, nie wygraną: wstrzyknięty CSS parsuje
@@ -332,7 +332,7 @@ czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 
 ## Pomiar wydajności
 @vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
-18 stronach. Świadomy wyjątek od reguły „zero zależności".
+19 stronach. Świadomy wyjątek od reguły „zero zależności".
 
 Zbiera dane wyłącznie na Vercelu — a skoro produkcja tam stoi, jest to
 bez znaczenia. Na localhoście skrypt daje 404 na
@@ -370,9 +370,55 @@ ROBOTS.TXT BLOKUJE WSZYSTKO, DOPÓKI HOST KOŃCZY SIĘ NA `.vercel.app`
 klientki w wyszukiwarce, bo `www.polasobun.com` nadal serwuje starą
 witrynę z Formatu, a Google mogłoby uznać tymczasowy adres Vercela za
 kanoniczny. Konsekwencja: NOWA STRONA NIE POJAWI SIĘ W GOOGLE DO DNIA
-PRZEPROWADZKI. Po zmianie `site` na docelową domenę blokada znika sama
-(`Allow: /` + linia `Sitemap:`) — sprawdzone przełącznikiem w kodzie,
-nie osobnym plikiem do pamiętania.
+PRZEPROWADZKI. Po zmianie `site` na docelową domenę blokada znika —
+ale TO JEST PRAWDĄ TYLKO O DOMENIE DOCELOWEJ, nie o adresie Vercela.
+`robots.txt.ts` rozgałęzia się po wartości `site` z konfiguracji, nie po
+hoście żądania — przy `output: 'static'` inaczej się nie da: powstaje
+JEDEN plik `dist/robots.txt`, wspólny dla każdego adresu, pod którym
+odpowiada dane wdrożenie. W dniu przełączenia DNS `polasobun.com/robots.txt`
+faktycznie odblokuje się (`Allow: /` + `Sitemap:`), ale
+`polasobun-site.vercel.app/robots.txt` i każde wdrożenie podglądowe
+`polasobun-site-<hash>.vercel.app` odpowiedzą TYM SAMYM plikiem — czyli
+też `Allow: /`. Blokada chroni adres Vercela dokładnie dopóki jest on
+jedyną kopią i przestaje chronić w sekundzie, w której powstaje duplikat.
+Zostaje wtedy tylko `canonical` — działa, ale miękko i z opóźnieniem
+tygodni.
+
+INSTRUKCJA NA DZIEŃ PRZEŁĄCZENIA DNS (dwa kroki, w tej kolejności):
+
+1. Zmienić `site` w `astro.config.mjs` na docelową domenę.
+2. Dodać plik `vercel.json` w katalogu `polasobun/` z przekierowaniem
+   aliasu Vercela na domenę docelową:
+
+   ```json
+   {
+     "redirects": [
+       {
+         "source": "/:path*",
+         "has": [{ "type": "host", "value": "polasobun-site.vercel.app" }],
+         "destination": "https://polasobun.com/:path*",
+         "permanent": true
+       }
+     ]
+   }
+   ```
+
+   NIE TWORZYĆ TEGO PLIKU DZISIAJ. To instrukcja na przyszłość — dodany
+   teraz przekierowywałby żywą stronę na `polasobun.com`, który DZIŚ
+   W OGÓLE NIE ODPOWIADA, czyli wyłączyłby witrynę.
+
+DECYZJA OTWARTA DO PODJĘCIA W DNIU PRZEŁĄCZENIA — `www` czy bez `www`.
+Dziś klientka jest na `www.polasobun.com`, `polasobun.com` bez `www` nie
+odpowiada, a plan mówi o przełączeniu na `https://polasobun.com` (bez
+`www`). Jeśli `site` zostanie ustawiony na adres bez `www`, a Vercel przy
+dodawaniu domeny z istniejącym rekordem `www` domyślnie zaproponuje
+przekierowanie NA `www`, to wszystkie 19 adresów kanonicznych i
+wszystkich 17 adresów w sitemapie wskaże URL-e, które się przekierowują.
+Google to toleruje, ale to ten sam gatunek błędu, który cała ta zmiana ma
+wyeliminować. Wariant, który zostanie wybrany, musi trafić do `site` co
+do znaku, a z odrzuconego wariantu ma prowadzić przekierowanie 301 — nie
+rozstrzygać tego z wyprzedzeniem, decyzja zapada dopiero w dniu
+przełączenia.
 
 PUŁAPKA: `Disallow` i `noindex` SIĘ WYKLUCZAJĄ. Zablokowany robot nigdy
 nie pobiera strony, więc nigdy nie widzi jej nagłówków ani meta-tagów —
