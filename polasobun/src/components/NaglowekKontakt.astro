@@ -18,26 +18,30 @@ const KATEGORIE = ['All', 'Commercial', 'Portraits', 'Food'];
 const POZYCJA = 'text-label font-medium uppercase leading-none tracking-nav';
 ---
 
-<header
-  class="bg-bg border-border sticky top-0 z-20 flex flex-col items-start gap-tight border-b px-gutter py-header sm:flex-row sm:items-center sm:justify-between sm:gap-0"
->
+<header class="bg-bg border-border sticky top-0 z-20 border-b px-gutter py-header">
   {/*
-    `<nav class="contents">` usuwa WŁASNY box elementu z układu
-    (`display: contents`), ale jego dzieci nadal uczestniczą we
-    flexboksie <header> tak, jakby były jego bezpośrednimi dziećmi —
-    wygląd zostaje 1:1 identyczny z poprzednią wersją (dwa flex-itemy:
-    wiersz wordmarku, wiersz kategorii).
-
     Poprawka dostępności (runda 1): oba warianty wskaźnika „Contact"
     (mobilny w wierszu wordmarku, desktopowy w pasku kategorii) muszą
     być potomkami JEDNEGO <nav>, żeby czytnik ekranu eksplorujący
     landmark nawigacyjny zawsze trafiał na aria-current="page" w jego
-    obrębie — niezależnie od szerokości ekranu. Owinięcie całości w
-    <nav class="contents"> zamiast trzymać drugi <nav> tylko wokół
-    paska kategorii daje to bez zmiany ani jednej klasy odpowiadającej
-    za wygląd.
+    obrębie — niezależnie od szerokości ekranu.
+
+    Poprawka runda 2: klasy UKŁADU (flex-col/row, odstępy, wyrównanie)
+    siedzą na <nav>, NIE na <header>. Pierwsza wersja tej poprawki
+    używała `<nav class="contents">` wewnątrz <header> z klasami
+    układu — działało wizualnie, ale `display: contents` ma w części
+    przeglądarek błąd: usuwa z drzewa dostępności CAŁY element,
+    włącznie z jego rolą landmarku `navigation` (potomkowie zostają,
+    landmark znika). To gorsze niż stan sprzed poprawki. Rozwiązanie:
+    <nav> jest zwykłym pudełkiem blokowym, które PRZEJMUJE klasy
+    układu po <header> — <header> zostaje z samą rolą paska strony
+    (sticky, tło, obramowanie, padding). Nie przenoś tych klas
+    z powrotem na <header> i nie wracaj do `display: contents` —
+    to świadomy podział odpowiedzialności, nie przypadek.
   */}
-  <nav class="contents">
+  <nav
+    class="flex flex-col items-start gap-tight sm:flex-row sm:items-center sm:justify-between sm:gap-0"
+  >
     <div class="flex w-full items-center justify-between sm:w-auto">
       <a
         href="/"
