@@ -232,10 +232,15 @@ EKSPERYMENTY WARUNKOWE — oba odrzucone:
 
 WNIOSEK PROCESOWY: liczba podana przez wykonawcę i „potwierdzona" przez
 recenzenta na podstawie TEGO SAMEGO raportu nie jest zweryfikowana — jest
-przepisana. W tym projekcie zdarzyło się to dwa razy: „~15 kB" kadr
-lekki w commicie 810d9bd (było 21 kB przy 400 px, 24,3 kB przy 440 px)
-i „build 1m22s" w raporcie zadania 1. Weryfikuje dopiero niezależny
-pomiar, nie drugie czytanie tego samego liczbowego zapisu.
+przepisana. W tym projekcie zdarzyło się to trzy razy: „~15 kB" kadr
+lekki w commicie 810d9bd (było 21 kB przy 400 px, 24,3 kB przy 440 px),
+„build 1m22s" w raporcie zadania 1, i „portret 380×380" w planie
+zakładki CONTACT (plik ma 379×379 — parametry adresu CDN mówią 380,
+Format zaokrągla w dół; patrz sekcja „Zakładka CONTACT" niżej).
+Recenzent tego nie wyłapuje, bo czyta ten sam raport, w którym liczba
+już jest zapisana jako fakt — weryfikuje dopiero niezależny pomiar,
+nie drugie czytanie tego samego liczbowego zapisu. Liczby w planach,
+zanim je zmierzysz, oznaczaj jako oczekiwane.
 
 ## Pomiary produkcyjne — stan końcowy
 Zmierzone na polasobun-site.vercel.app po zmergowaniu wszystkich zmian.
@@ -691,6 +696,74 @@ pomagające zrozumieć zmianę stanu mają zostać. Ruchu tu nie ma.
    kafla z makiety, którego przy siatce statycznej nie budowaliśmy.
 4. przejścia filtrów ✔
 5. review-animations ✔ (przeprowadzone, wszystkie uwagi zamknięte)
+
+## Zakładka CONTACT
+Specyfikacja: docs/superpowers/specs/2026-08-27-zakladka-contact-design.md.
+
+PASEK NAWIGACJI JEST PEŁNY CO DO PIKSELA. Przy 412 px cztery filtry
+zajmują 297 z 298 dostępnych pikseli — zapas 1 px. Każda kolejna pozycja
+w pasku kategorii go rozsadzi. Dlatego CONTACT ma DWIE kopie w znacznikach,
+sterowane `sm:hidden` / `hidden sm:inline`: na telefonie wskaźnik siedzi
+w wierszu wordmarku (tam jest ~174 px wolnego), od `sm` wraca na koniec
+paska filtrów za większym odstępem. To zamierzony wzorzec, nie duplikacja
+do posprzątania — nie łącz obu kopii w jedną bez ponownego pomiaru 412 px.
+
+PASEK ISTNIEJE W DWÓCH MIEJSCACH — `src/components/Gallery.tsx` (siatka,
+przyciski filtrujące) i `src/components/NaglowekKontakt.astro` (statyczny
+nagłówek `/contact`, odnośniki). Świadoma decyzja: wyciągnięcie wspólnego
+komponentu wymagałoby przebudowy wyspy React trzymającej stan filtrów —
+tego samego pliku, w którym w tej sesji naprawialiśmy lukę przy zmianie
+filtra i którego zachowanie potwierdziliśmy dopiero pomiarem
+produkcyjnym. Duplikacja klas jest tańsza niż regresja w mechanizmie,
+który dopiero co przestał być ruchomy. Patrz specyfikacja, sekcja
+„Rozważone i odrzucone".
+
+PUŁAPKA: `--color-body` i `--text-body` generują TĘ SAMĄ klasę
+`text-body` — jeden token z przestrzeni kolorów, drugi z rozmiarów.
+Który z nich się dostanie, nie jest gwarantowane. Cały projekt tej klasy
+unika: `text-body-sm` na rozmiar tekstu, `text-text` / `text-muted` na
+kolor, a kolor tekstu bio na `/contact` zapisany jest jawnie jako
+`text-[color:var(--color-body)]`. Nie używaj gołego `text-body`.
+
+PUŁAPKA: `display: contents` na landmarku. Pierwsza wersja nagłówka
+`/contact` używała `<nav class="contents">` wewnątrz `<header>` z klasami
+układu. Działało wizualnie, ale MDN wprost ostrzega, że część
+przeglądarek usuwa tak ostylowany element z drzewa dostępności razem
+z jego rolą landmarku `navigation` — zniknąłby cały landmark, gorzej niż
+przed poprawką. Rozwiązanie w `NaglowekKontakt.astro`: klasy układu
+przeniesione z `<header>` na `<nav>`, `<nav>` jest zwykłym pudełkiem
+blokowym. Nie wracać do `display: contents` na elemencie z rolą
+landmarku.
+
+PORTRET MA 379 PX I NA TELEFONIE POZOSTAJE MIĘKKI. Plik
+`src/assets/portret-pola-sobun.jpg`: 379×379 (nie 380 — parametry adresu
+CDN mówią 380, ale Format zaokrągla w dół), 26 kB. CDN Formatu podpisuje
+adresy HMAC-iem związanym z konkretnym kadrem i rozmiarem: żądania
+o 1200×1200 i 2000×2000 wracają z 403, 379×379 to jedyna dostępna wersja.
+Wyświetlany w 260 px na KAŻDYM ekranie (zamiast 331 px ze źródła), żeby
+ograniczyć skalowanie: 0,7× w dół przy dpr 1, 1,4× w górę przy dpr 2,
+2,1× w górę przy dpr 3 — na telefonie miękki mimo to. Zdejmie to dopiero
+oryginalny plik od klientki, podmiana wtedy to jedna linia.
+
+TEKST BIO ZAWIERA CZTERY POPRAWKI WOBEC STRONY ŹRÓDŁOWEJ — jedyne
+miejsce, gdzie zmieniamy słowa klientki, decyzją klienta. Nie „naprawiać"
+z powrotem do wersji ze źródła:
+
+  w źródle                                    poprawione
+  „Publiszki"                                 Pudliszki
+  „brandend content"                          branded content
+  „thrashowe"                                 trashowe
+  „LPP (Reserved, Cropp, House, CCC czy       „LPP (Reserved, Cropp,
+   Inditex (Pull&Bear)."                       House), CCC czy Inditex
+                                                (Pull&Bear)."
+
+Pierwsze trzy to literówki/nazwa marki pewna z kontekstu projektu
+(Pudliszki występuje jako slug `pudliszki`). Czwarta to błąd rzeczowy:
+dwa nawiasy otwierające przy jednym zamykającym, a CCC nie należy do
+LPP — to osobna spółka, widoczny dla tego klienta błąd o nim samym.
+Lista marek się nie zmienia, wstawiony jest wyłącznie brakujący nawias.
+Pełna tabela z uzasadnieniem: specyfikacja, sekcja „Poprawione błędy
+źródła".
 
 ## Zasady pracy
 - Jedno zadanie na raz. Nie dokładaj funkcji, o które nie prosiłem.

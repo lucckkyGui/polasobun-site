@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import NaglowekKontakt from '../components/NaglowekKontakt.astro';
+import portret from '../assets/portret-pola-sobun.jpg';
+
+/**
+ * Bio klientki, przepisane ze strony źródłowej z czterema poprawkami
+ * uzgodnionymi 2026-08-27: „Publiszki" → Pudliszki, „brandend" → branded,
+ * „thrashowe" → trashowe oraz domknięcie nawiasu przy LPP, które
+ * przy okazji przestaje przypisywać CCC do tej grupy.
+ */
+const AKAPITY = [
+  'Absolwentka Uniwersytetu Łódzkiego (nowe media i kultura cyfrowa) oraz PWSFTViT (fotografia).',
+  'Fotografuje przede wszystkim ludzi (moda i reportaż), ale bliskie jej są również kompozycje foodowe/trashowe stille.',
+  'Pracowała z Rimmel, Allegro, Esotiq, Robert Kupisz i Henderson, Pudliszki, Kodano Optyk, Butik Optique itd.',
+  'Tworzy również dużo realizacji branded content z influencerami dla takich marek jak Zalando, LPP (Reserved, Cropp, House), CCC czy Inditex (Pull&Bear).',
+];
+
+/**
+ * Na źródle telefon i mail są zwykłym tekstem, co na telefonie zmusza
+ * do przepisywania numeru ręcznie. U nas są odnośnikami.
+ *
+ * `zewnetrzny` steruje `target`/`rel` (decyzja klienta z 2026-08-27):
+ * tylko Instagram wyprowadza odwiedzającego z portfolio, więc tylko on
+ * dostaje nową kartę. `tel:` i `mailto:` są ŚWIADOMIE wyłączone z tej
+ * reguły — to protokoły przekazywane systemowi (aplikacja telefonu,
+ * klient poczty), nie nawigacja w przeglądarce, więc target="_blank"
+ * zostawiłby po nich pustą, martwą kartę. Nie „ujednolicaj" tego
+ * z powrotem na wszystkie odnośniki.
+ */
+const KONTAKT = [
+  { etykieta: 'tel', tekst: '883 180 410', href: 'tel:+48883180410', zewnetrzny: false },
+  { etykieta: 'mail', tekst: 'polasobun@gmail.com', href: 'mailto:polasobun@gmail.com', zewnetrzny: false },
+  { etykieta: 'instagram', tekst: '@polasobun', href: 'https://www.instagram.com/polasobun/', zewnetrzny: true },
+];
+
+/**
+ * 260 px, nie 331 px jak na źródle, i to na KAŻDYM ekranie.
+ * Plik ma 379 px i to jedyna wersja, jaką oddaje CDN Formatu. Pełna
+ * szerokość kolumny na telefonie oznaczałaby skalowanie 2,7x w górę przy
+ * dpr 3; 260 px zbija je do 2,1x. Świadomy wybór ostrości nad wiernością.
+ * Gdy klientka przyśle oryginał, wraca 331 px.
+ */
+const PORTRET_PX = 260;
+---
+
+<Base title="Contact — Pola Sobuń">
+  <NaglowekKontakt />
+
+  <div class="pb-page-end">
+    <div class="px-gutter pt-topbar pb-section">
+      <h1 class="text-text text-title font-bold leading-none tracking-display sm:text-display lg:text-display-lg">
+        Contact Me
+      </h1>
+    </div>
+
+    <div class="flex flex-col gap-section px-gutter lg:flex-row lg:items-start lg:gap-block">
+      <Image
+        src={portret}
+        format="webp"
+        width={PORTRET_PX}
+        height={PORTRET_PX}
+        alt="Pola Sobuń"
+        loading="eager"
+        class="block shrink-0"
+      />
+
+      <div class="flex max-w-prose flex-col gap-card">
+        <h2 class="text-text text-lead font-bold leading-none tracking-title">Pola Sobuń</h2>
+
+        {AKAPITY.map((akapit) => (
+          <p class="text-body-sm leading-prose text-[color:var(--color-body)]">{akapit}</p>
+        ))}
+
+        <dl class="mt-tight flex flex-col gap-stack">
+          {KONTAKT.map(({ etykieta, tekst, href, zewnetrzny }) => (
+            <div class="flex gap-tight">
+              <dt class={`text-muted text-label font-medium uppercase leading-caps tracking-nav`}>
+                {etykieta}
+              </dt>
+              <dd>
+                <a
+                  href={href}
+                  target={zewnetrzny ? '_blank' : undefined}
+                  rel={zewnetrzny ? 'noopener noreferrer' : undefined}
+                  class="text-text text-body-sm underline underline-offset-4 leading-caps"
+                >
+                  {tekst}
+                </a>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+
+    <footer class="border-border mt-rule px-gutter pt-rule">
+      <p class="text-muted text-label font-normal uppercase leading-none tracking-nav">
+        Copyright © All rights reserved.
+      </p>
+    </footer>
+  </div>
+</Base>
