@@ -207,6 +207,23 @@ Pusta tablica z `getEntriesByType` NIE jest dowodem, że środowisko nie
 raportuje LCP — ten błąd kosztował jeden pełny przebieg bramki ryzyka
 (task 0, pierwszy przebieg).
 
+PUŁAPKA: EMULACJĘ dpr USTAW PRZED NAWIGACJĄ, nie po. Przeglądarka
+wybiera wariant z `srcset` przy PARSOWANIU dokumentu i już go nie
+zmienia. Ustawienie `deviceScaleFactor` na wczytanej stronie nie
+przełącza obrazu — wygląda wtedy, jakby `srcset` nie działał.
+Zmierzone 2026-08-27 na `/contact`: dpr ustawione po wczytaniu dawało
+wariant 1x, ustawione przed nawigacją — wariant 1.45x, jak należy.
+
+PUŁAPKA: `naturalWidth` PRZY `srcset` Z DESKRYPTORAMI GĘSTOŚCI zwraca
+rozmiar SKORYGOWANY O GĘSTOŚĆ, nie rzeczywisty rozmiar pliku. Dla
+wariantu 377 px z deskryptorem `1.45x` zgłasza 377 / 1,45 = 260.
+Liczenie skalowania z `naturalWidth` daje wtedy wynik, jakby poprawka
+nic nie dała. Skalowanie licz z RZECZYWISTEGO rozmiaru pobranego pliku:
+sprawdź `performance.getEntriesByType('resource')`, który plik faktycznie
+poleciał, i zmierz go. Na `/contact` przy dpr 2: potrzeba 520 px,
+pobrany plik ma 377 px, skalowanie 1,38x — a `naturalWidth` sugerowało
+2,01x, czyli brak zmiany.
+
 CZAS BUILDA NA ZIMNO — PRAWDZIWA WARTOŚĆ ODNIESIENIA. Zmierzone
 2026-08-27, `/usr/bin/time -p`, `dist` i `node_modules/.astro` usunięte,
 bez innych obciążeń: 6m48s przed projektem (kod c37f003), 6m10s po.
