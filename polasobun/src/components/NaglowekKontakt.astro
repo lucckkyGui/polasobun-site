@@ -1,0 +1,52 @@
+---
+/**
+ * Pasek nawigacji podstrony CONTACT.
+ *
+ * Wizualnie identyczny z paskiem siatki, ale statyczny: cztery kategorie
+ * to odnośniki do strony głównej, nie przyciski filtrujące. Klasy są
+ * świadomie zduplikowane wobec Gallery.tsx — wyciągnięcie wspólnego
+ * komponentu wymagałoby przebudowy wyspy React, której zachowanie
+ * potwierdziliśmy dopiero pomiarem produkcyjnym. Patrz specyfikacja,
+ * sekcja „Rozważone i odrzucone".
+ *
+ * Kategorie prowadzą do `/` bez ustawiania filtra — siatka otwiera się
+ * na ALL. Ustawianie filtra z adresu wymagałoby zmian w Gallery.tsx.
+ */
+const KATEGORIE = ['All', 'Commercial', 'Portraits', 'Food'];
+
+/* Wspólne klasy pozycji nawigacji — jedno miejsce zamiast pięciu kopii. */
+const POZYCJA = 'text-label font-medium uppercase leading-none tracking-nav';
+---
+
+<header
+  class="bg-bg border-border sticky top-0 z-20 flex flex-col items-start gap-tight border-b px-gutter py-header sm:flex-row sm:items-center sm:justify-between sm:gap-0"
+>
+  <div class="flex w-full items-center justify-between sm:w-auto">
+    <a
+      href="/"
+      class={`text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark`}
+    >
+      Pola Sobuń
+    </a>
+
+    {/*
+      Na telefonie CONTACT siedzi w wierszu wordmarku, nie w nawigacji.
+      Zmierzone przy 412 px: cztery kategorie zajmują 297 z 298 dostępnych
+      pikseli, czyli zapas wynosi 1 px. Piąta pozycja rozsadziłaby wiersz.
+      Wiersz wordmarku ma ~174 px wolnego, a nagłówek jest sticky nad
+      53 ekranami siatki, więc nie chcemy go pogrubiać o drugą linię.
+    */}
+    <span class={`text-text ${POZYCJA} sm:hidden`} aria-current="page">Contact</span>
+  </div>
+
+  <nav class="flex items-center gap-tight sm:gap-gutter">
+    {KATEGORIE.map((etykieta) => (
+      <a href="/" class={`text-text ${POZYCJA} opacity-[0.38]`}>{etykieta}</a>
+    ))}
+    {/* Od sm CONTACT wraca na koniec paska, za odstępem większym niż
+        między filtrami — sygnał, że opuszcza stronę, a nie filtruje. */}
+    <span class={`text-text ${POZYCJA} hidden sm:ml-topbar sm:inline`} aria-current="page">
+      Contact
+    </span>
+  </nav>
+</header>
