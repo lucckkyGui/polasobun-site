@@ -223,7 +223,7 @@ Plik `netlify.toml` w folderze jest już skonfigurowany — Netlify sam go odczy
    Dane (host, login, hasło) dostajesz od firmy hostingowej.
 2. Wejdź do katalogu strony na serwerze — zwykle `public_html/`, `htdocs/` albo `www/`.
 3. Wgraj **zawartość** folderu `polasobun-site` (a nie sam folder!):
-   `index.html`, `robots.txt`, `sitemap.xml`, `_headers` i cały katalog `assets/`.
+   `index.html`, `_headers` i cały katalog `assets/`.
    Plików `BRIEF.md`, `README.md` i `.gitignore` wgrywać nie trzeba.
 4. Wejdź na `https://polasobun.com` — powinno działać od razu.
 
@@ -260,8 +260,6 @@ jest **w JS**, a nie w JSON-ie ładowanym `fetch`-em (`file://` to zablokuje).
 | `assets/favicon.svg` | monogram `PS`, jasne litery na `#0A0A0A`, viewBox 64×64, litery jako ścieżki (bez zależności od fontu) |
 | `assets/favicon-dark.svg` | wariant odwrócony — ciemne litery na `#EDEDE8` |
 | `assets/og.jpg` | karta Open Graph 1200×630, wygenerowana z `assets/img/lg/work-20.jpg` |
-| `robots.txt` | `Allow: /` + wskazanie sitemapy |
-| `sitemap.xml` | jeden URL, `lastmod 2026-08-04` |
 | `netlify.toml` | publish dir `.`, nagłówki bezpieczeństwa, CSP, cache |
 | `_headers` | to samo dla Netlify/Cloudflare Pages w formacie `_headers` |
 | `.gitignore` | `.DS_Store`, `node_modules/`, `*.log`, `.vscode/` |
@@ -351,11 +349,18 @@ niezależnie od CSP.
 
 ## Znane niespójności do wyprostowania
 
-- **`canonical` vs `sitemap.xml`** — `index.html` deklaruje
+- **`canonical` vs `sitemap.xml` — ROZWIĄZANE.** Ten prototyp w korzeniu
+  miał `index.html` deklarujący
   `<link rel="canonical" href="https://polasobun.com/">` (bez `www`),
-  a `robots.txt` i `sitemap.xml` wskazują `https://www.polasobun.com/`.
-  Trzeba wybrać jeden wariant, poprawić drugi i ustawić na hostingu
-  przekierowanie 301 z odrzuconego na wybrany. To samo dotyczy `og:url`.
+  podczas gdy stare `robots.txt` i `sitemap.xml` w korzeniu wskazywały
+  `https://www.polasobun.com/` — niespójność między dwoma ręcznie
+  utrzymywanymi źródłami prawdy. Oba pliki zostały usunięte z korzenia;
+  produkcyjna strona to teraz projekt Astro w `polasobun/`, gdzie
+  sitemapa i robots.txt są generowane, nie ręcznie pisane, i liczą się
+  z tej samej wartości `site` co `canonical` — patrz
+  `polasobun/src/pages/sitemap.xml.ts`, `polasobun/src/pages/robots.txt.ts`
+  oraz `canonical` w `polasobun/src/layouts/Base.astro`. Rozbieżności
+  między nimi nie da się już popełnić przez przeoczenie.
 
 ## Co warto dorobić
 

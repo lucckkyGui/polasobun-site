@@ -94,7 +94,7 @@ Przy portfolio fotograficznym obraz wygrywa z tekstem.
 inlineStylesheets: 'always' w astro.config. Arkusz ma ~12 kB, próg Astro
 to 4 kB, więc bez tego był osobnym blokującym żądaniem. Po wstrzyknięciu:
 zero żądań CSS, FCP 668-1028 ms zamiast ~1557 ms szacowanych przez
-narzędzie. Koszt: 18 stron niesie własną kopię, HTML łącznie 65 -> 126 kB
+narzędzie. Koszt: 19 stron niesie własną kopię, HTML łącznie 65 -> 132 kB
 po gzipie, index.html 13 -> 17 kB.
 
 Lokalnie wyglądało to na wymianę, nie wygraną: wstrzyknięty CSS parsuje
@@ -332,7 +332,7 @@ czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 
 ## Pomiar wydajności
 @vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
-18 stronach. Świadomy wyjątek od reguły „zero zależności".
+19 stronach. Świadomy wyjątek od reguły „zero zależności".
 
 Zbiera dane wyłącznie na Vercelu — a skoro produkcja tam stoi, jest to
 bez znaczenia. Na localhoście skrypt daje 404 na
@@ -351,6 +351,104 @@ się wysłać link klientce.
 
 Root directory MUSI zostać `polasobun` — projekt Astro siedzi
 w podkatalogu, obok starej strony statycznej w roocie repo.
+
+## SEO — sitemapa, robots.txt, canonical
+Build generuje 19 stron, wszystkie 19 z dokładnie jednym
+`<link rel="canonical">` (src/layouts/Base.astro). Sitemapa
+(src/pages/sitemap.xml.ts) ma 17 adresów: stronę główną, `/contact`
+i 15 kampanii spod `/work/<slug>`. robots.txt (src/pages/robots.txt.ts)
+jest generowany, nie statyczny plik.
+
+`site` W astro.config.mjs JEST JEDYNĄ WARTOŚCIĄ DO ZMIANY PO
+PRZEŁĄCZENIU DNS. Z niej liczą się adresy w sitemapie, adres w
+`canonical` i wybór gałęzi robots.txt (patrz niżej) — wszystkie trzy
+mechanizmy czytają `Astro.site`/`site` z tej jednej wartości konfiguracji,
+żadnego z nich nie trzeba zmieniać osobno.
+
+ROBOTS.TXT BLOKUJE WSZYSTKO, DOPÓKI HOST KOŃCZY SIĘ NA `.vercel.app`
+(`Disallow: /`, bez linii `Sitemap:`). To celowe: chroni pozycję
+klientki w wyszukiwarce, bo `www.polasobun.com` nadal serwuje starą
+witrynę z Formatu, a Google mogłoby uznać tymczasowy adres Vercela za
+kanoniczny. Konsekwencja: NOWA STRONA NIE POJAWI SIĘ W GOOGLE DO DNIA
+PRZEPROWADZKI. Po zmianie `site` na docelową domenę blokada znika —
+ale TO JEST PRAWDĄ TYLKO O DOMENIE DOCELOWEJ, nie o adresie Vercela.
+`robots.txt.ts` rozgałęzia się po wartości `site` z konfiguracji, nie po
+hoście żądania — przy `output: 'static'` inaczej się nie da: powstaje
+JEDEN plik `dist/robots.txt`, wspólny dla każdego adresu, pod którym
+odpowiada dane wdrożenie. W dniu przełączenia DNS `polasobun.com/robots.txt`
+faktycznie odblokuje się (`Allow: /` + `Sitemap:`), ale
+`polasobun-site.vercel.app/robots.txt` i każde wdrożenie podglądowe
+`polasobun-site-<hash>.vercel.app` odpowiedzą TYM SAMYM plikiem — czyli
+też `Allow: /`. Blokada chroni adres Vercela dokładnie dopóki jest on
+jedyną kopią i przestaje chronić w sekundzie, w której powstaje duplikat.
+Zostaje wtedy tylko `canonical` — działa, ale miękko i z opóźnieniem
+tygodni.
+
+INSTRUKCJA NA DZIEŃ PRZEŁĄCZENIA DNS (dwa kroki, w tej kolejności):
+
+1. Zmienić `site` w `astro.config.mjs` na docelową domenę.
+2. Dodać plik `vercel.json` w katalogu `polasobun/` z przekierowaniem
+   aliasu Vercela na domenę docelową:
+
+   ```json
+   {
+     "redirects": [
+       {
+         "source": "/:path*",
+         "has": [{ "type": "host", "value": "polasobun-site.vercel.app" }],
+         "destination": "https://polasobun.com/:path*",
+         "permanent": true
+       }
+     ]
+   }
+   ```
+
+   NIE TWORZYĆ TEGO PLIKU DZISIAJ. To instrukcja na przyszłość — dodany
+   teraz przekierowywałby żywą stronę na `polasobun.com`, który DZIŚ
+   W OGÓLE NIE ODPOWIADA, czyli wyłączyłby witrynę.
+
+DECYZJA OTWARTA DO PODJĘCIA W DNIU PRZEŁĄCZENIA — `www` czy bez `www`.
+Dziś klientka jest na `www.polasobun.com`, `polasobun.com` bez `www` nie
+odpowiada, a plan mówi o przełączeniu na `https://polasobun.com` (bez
+`www`). Jeśli `site` zostanie ustawiony na adres bez `www`, a Vercel przy
+dodawaniu domeny z istniejącym rekordem `www` domyślnie zaproponuje
+przekierowanie NA `www`, to wszystkie 19 adresów kanonicznych i
+wszystkich 17 adresów w sitemapie wskaże URL-e, które się przekierowują.
+Google to toleruje, ale to ten sam gatunek błędu, który cała ta zmiana ma
+wyeliminować. Wariant, który zostanie wybrany, musi trafić do `site` co
+do znaku, a z odrzuconego wariantu ma prowadzić przekierowanie 301 — nie
+rozstrzygać tego z wyprzedzeniem, decyzja zapada dopiero w dniu
+przełączenia.
+
+PUŁAPKA: `Disallow` i `noindex` SIĘ WYKLUCZAJĄ. Zablokowany robot nigdy
+nie pobiera strony, więc nigdy nie widzi jej nagłówków ani meta-tagów —
+dołożenie `noindex` obok `Disallow` to kod, który nic nie robi, bo
+przeglądarka indeksująca się do niego nie dostanie. Żeby faktycznie
+zdjąć adres z wyników wyszukiwania, trzeba roboty WPUŚCIĆ i dopiero wtedy
+podać im `noindex`. Klient zdecydował 2026-08-27, że zostajemy przy
+`Disallow`: ryzykiem jest najwyżej goły adres bez tytułu w wynikach,
+znikający po przełączeniu domeny dzięki canonical — nie warto tego
+ryzyka wymieniać na tymczasowe wpuszczenie robotów.
+
+`/contact` I `/contact/` OBA ZWRACAJĄ 200 BEZ PRZEKIEROWANIA (zmierzone
+2026-08-27) — Astro buduje w formacie `directory` przy domyślnym
+`trailingSlash: ignore`, Vercel między wariantami nie przekierowuje.
+Stąd `canonical` w Base.astro normalizujący do wariantu bez ukośnika:
+bez niego wyszukiwarka widziałaby dwa adresy z identyczną treścią.
+
+SITEMAPA CELOWO NIE MA `lastmod`, `changefreq` ANI `priority`. `lastmod`
+liczony z daty builda twierdziłby, że wszystkie strony zmieniły się
+dzisiaj — także przy wdrożeniu dotykającym jednego pliku. Google
+ignoruje `changefreq`/`priority` od lat i nie ufa `lastmod`, któremu nie
+może zaufać. Siedemnaście prawdziwych adresów jest warte więcej niż
+siedemnaście adresów z trzema zmyślonymi atrybutami każdy.
+
+KOLEKCJE `_portraits` I `_food` MAJĄ STRONY, ALE NIE SĄ W SITEMAPIE —
+build generuje `/work/_portraits` i `/work/_food` (stąd 19 stron przy
+17 adresach w sitemapie), ale nie prowadzi do nich żaden odnośnik w
+nawigacji ani w siatce, a ich treść dubluje to, co już jest pod
+zakładkami PORTRAITS i FOOD. Zero kolekcji w sitemapie jest wynikiem
+filtra `!projekt.collection` w sitemap.xml.ts, nie przeoczeniem.
 
 ## Twarde reguły
 - Animujemy WYŁĄCZNIE transform i opacity. Nigdy width/height/blur/box-shadow/background.
