@@ -100,6 +100,14 @@ Jeśli podmiana lekkiego kadru na ostry liczy się jako nowe malowanie, LCP wró
 - Consumes: nic.
 - Produces: decyzję „idziemy dalej" albo „wracamy do klienta". Żadnego kodu.
 
+**BŁĄD PROJEKTU TEJ SONDY, wykryty dopiero w zadaniu 4.** Poniższa sonda
+podmienia obraz na RÓWNY rozmiarem naturalnym, więc nie może wykryć
+problemu, który miała wykryć — a wykryła go dopiero produkcyjna podmiana
+440→1000. Jeśli kiedykolwiek powtarzasz tę bramkę, wariant startowy MUSI
+mieć mniejszy rozmiar naturalny niż docelowy, dokładnie jak w prawdziwym
+mechanizmie. Sonda dała fałszywe przejście i kosztowała pełny przebieg
+zadań 2-4.
+
 - [ ] **Step 1: Wygeneruj dwa warianty testowe**
 
 ```bash
@@ -324,8 +332,22 @@ W `src/pages/index.astro`, obok istniejących `TILE_WIDTH` / `TILE_HEIGHT`, zast
  *
  * Proporcja obu musi być identyczna (4:5), inaczej podmiana przesunie
  * układ i CLS przestanie być zerowy.
+ *
+ * 440 px, a nie 400 — i to NIE jest zaokrąglenie w górę. LCP raportuje
+ * MNIEJSZY z dwóch obszarów: naturalny albo wyświetlany. Kafel zajmuje
+ * 412 px na stanowisku i 430 px na iPhonie, więc kadr 400 px liczył się
+ * jako 400x500 = 200 000, a ostry jako pełne 412x515 = 212 180. Podmiana
+ * była przez to WIĘKSZYM malowaniem i wystawiała nowy, późny kandydat
+ * LCP — zmierzone 6288 ms zamiast 3564 ms. Te 5,7% obszaru kosztowały
+ * 4,7 sekundy metryki.
+ *
+ * Kadr lekki musi więc być NIE MNIEJSZY niż miejsce, które wypełnia.
+ * 440 px pokrywa 412 i 430 z zapasem. Ostrzeżenie: siatka jest
+ * jednokolumnowa do 639 px, więc urządzenie o szerokości 440-639 px
+ * odtworzy ten sam problem. Wśród realnych telefonów takich nie ma
+ * (najszerszy to 430), ale gdyby się pojawiły — trzeba podnieść 440.
  */
-const LEKKI = { width: 400, height: 500 };
+const LEKKI = { width: 440, height: 550 };
 const OSTRY = { width: 1000, height: 1250 };
 
 /**
@@ -679,6 +701,22 @@ został odrzucony przez próg entropii; podnieś jakość wariantu lekkiego
 - [ ] **Step 5: Dopisz wyniki do planu**
 
 Wpisz zmierzone liczby pod tym zadaniem. Jeśli cel LCP nie został osiągnięty, **nie przechodź automatycznie do zadania 5** — zgłoś to klientowi razem z liczbami; eksperymenty warunkowe mają dołożyć ostatnie setki milisekund, nie uratować projekt.
+
+#### Wyniki pomiaru (2026-08-27)
+
+Pełne surowe dane (trzy próby) w `.superpowers/sdd/2026-08-27-dwustopniowe-ladowanie-siatki/task-4-report.md`.
+
+| Miara | Odniesienie | Cel | Zmierzone (mediana z 3) | Wynik |
+|---|---|---|---|---|
+| LCP | 3564 ms | < 2000 ms | **6288 ms** (próby: 6288, 6232, 6500) | **NIE** |
+| FCP | — | — | 1184 ms (próby: 1272, 1184, 716) | — |
+| CLS | 0,00 | 0,00 | 0,000 | TAK |
+| Puste kafle / 10 ekranów | 1 | 0 | 1 → `0,0,0,0,0,0,0,0,0,1` | NIE |
+| Bajty / obrazów na starcie | 607 kB / 6 | — | 514 kB / 10 | — |
+
+Ostatni kandydat LCP we wszystkich trzech próbach: `IMG`, `02.C4qR0zlJ_2f0vP8.webp` (wariant OSTRY), w t równym LCP (6232–6500 ms) — nie wariant lekki, jak wymaga warunek przejścia Step 3. Podmiana `src` z lekkiego na ostry wystawia nowy kandydat LCP na tej realnej stronie: mechanizm z zadania 3 „pierwsze opróżnienie bez czekania na scroll" podnosi kafel LCP do pełnej jakości tuż po `load` (który na Slow 4G + 4x CPU sam osiąga się dopiero ok. 6 s), a ta podmiana rejestruje się jako nowy, najpóźniejszy kandydat LCP. To dokładnie ryzyko z bramki zadania 0 — zmaterializowane tu mimo werdyktu „PRZECHODZI" w `task-0-report.md` (sonda zadania 0 testowała odświeżenie już-ostrego obrazu z cache-bustem, nie prawdziwe przejście lekki→ostry).
+
+**CEL NIEOSIĄGNIĘTY.** LCP nie spadł — wzrósł względem stanu przed zadaniem (3564 → 6288 ms). Nie przechodzę do zadania 5/6 automatycznie; wymaga decyzji klienta i/lub poprawki mechanizmu „pierwsze opróżnienie" z zadania 3 (np. odroczenie go albo wyłączenie dla kafla LCP), zanim eksperymenty warunkowe miałyby sens.
 
 ---
 
