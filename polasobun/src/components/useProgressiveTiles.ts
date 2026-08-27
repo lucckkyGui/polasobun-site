@@ -64,7 +64,8 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
         .forEach((img) => void podnies(img));
     };
 
-    const naScroll = (): void => {
+    /** Odracza opróżnienie o BEZRUCH_MS, licząc od ostatniego sygnału. */
+    const zaplanujOproznienie = (): void => {
       if (timer !== null) window.clearTimeout(timer);
       timer = window.setTimeout(oproznij, BEZRUCH_MS);
     };
@@ -82,7 +83,17 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
           for (const wpis of wpisy) {
             if (!wpis.isIntersecting) continue;
             const img = wpis.target.querySelector<HTMLImageElement>('img[data-pelny]');
-            if (img) kolejka.add(img);
+            if (img) {
+              kolejka.add(img);
+              // Bez tego kolejkę opróżniałoby wyłącznie zdarzenie scroll,
+              // a kliknięcie zakładki go nie generuje — kafle odsłonięte
+              // zmianą filtra (display:none -> block) utykałyby na wersji
+              // lekkiej, bo obserwator już je unobserve()'ował i nie
+              // odpali się dla nich ponownie. Podczas przewijania obserwator
+              // i tak strzela seriami, więc licznik resetuje się dokładnie
+              // tak jak wcześniej.
+              zaplanujOproznienie();
+            }
             obserwator?.unobserve(wpis.target);
           }
         },
@@ -92,10 +103,10 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
         obserwator.observe(kafel);
       }
 
-      window.addEventListener('scroll', naScroll, { passive: true });
+      window.addEventListener('scroll', zaplanujOproznienie, { passive: true });
       // Pierwsze opróżnienie bez czekania na scroll — użytkownik może
       // w ogóle nie ruszyć strony, a pierwszy ekran ma się doostrzyć.
-      timer = window.setTimeout(oproznij, BEZRUCH_MS);
+      zaplanujOproznienie();
     };
 
     if (document.readyState === 'complete') uruchom();
@@ -105,7 +116,7 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
       zywy = false;
       obserwator?.disconnect();
       window.removeEventListener('load', uruchom);
-      window.removeEventListener('scroll', naScroll);
+      window.removeEventListener('scroll', zaplanujOproznienie);
       if (timer !== null) window.clearTimeout(timer);
     };
   }, [gridRef]);
