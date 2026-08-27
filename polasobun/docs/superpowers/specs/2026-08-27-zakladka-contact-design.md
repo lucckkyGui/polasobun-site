@@ -16,7 +16,7 @@ wizualnym naszej strony.
    nasze tokeny, nasz rytm. Ze źródła bierzemy treść i strukturę układu.
 2. **CONTACT w pasku nawigacji, za większym odstępem** od czterech
    filtrów — sygnał, że robi coś innego niż one.
-3. **Portret w wersji 380 px**, bez czekania na oryginał od klientki.
+3. **Portret w wersji 379 px**, bez czekania na oryginał od klientki.
 4. **Stopka i Instagram wyłącznie na `/contact`**, nie na całej stronie.
 5. **Błędy w tekście źródłowym poprawiamy** (patrz „Treść").
 
@@ -112,7 +112,7 @@ https://www.instagram.com/polasobun/ (`rel="noopener"`).
 
 ## Portret
 
-Plik pobrany z CDN-u Formatu w jedynej dostępnej wersji **380×380** i
+Plik pobrany z CDN-u Formatu w jedynej dostępnej wersji **379×379** i
 zacommitowany do `src/assets`, żeby strona nie zależała od podpisanego
 adresu, który może wygasnąć.
 
@@ -120,16 +120,16 @@ Rozmiar wyświetlania: **260 px**, zamiast 331 px ze źródła — i to na
 KAŻDYM ekranie, także na telefonie.
 
 To jawne odstępstwo od układu źródła, które na telefonie pokazuje portret
-na całą szerokość kolumny (~344 px). Przy pliku 380 px pełna szerokość
+na całą szerokość kolumny (~344 px). Przy pliku 379 px pełna szerokość
 oznaczałaby skalowanie 2,7× w górę przy dpr 3. Ograniczenie do 260 px
 zmniejsza je do 2,1× kosztem mniejszego zdjęcia — świadomy wybór ostrości
 nad wiernością, zgodny z decyzją „wygląd jak nasza strona".
 
 | Ekran | Potrzeba | Mamy | Skalowanie |
 |---|---|---|---|
-| Desktop, dpr 1 | 260 px | 380 px | 0,7× w dół — ostro |
-| Laptop retina, dpr 2 | 520 px | 380 px | 1,4× w górę |
-| Telefon, dpr 3 | 780 px | 380 px | 2,1× w górę |
+| Desktop, dpr 1 | 260 px | 379 px | 0,7× w dół — ostro |
+| Laptop retina, dpr 2 | 520 px | 379 px | 1,4× w górę |
+| Telefon, dpr 3 | 780 px | 379 px | 2,1× w górę |
 
 **Na telefonie portret będzie miękki i nic tego nie zmieni poza
 oryginalnym plikiem.** 260 px to najlepsze, co da się wycisnąć bez robienia
@@ -138,7 +138,7 @@ i wtedy rozmiar wraca do 331 px.
 
 CDN Formatu podpisuje adresy HMAC-iem związanym z konkretnymi parametrami
 kadru i rozmiaru: sprawdzone 2026-08-27, żądania o 1200×1200 i 2000×2000
-zwracają 403. 380×380 to jedyna dostępna wersja.
+zwracają 403. 379×379 to jedyna dostępna wersja.
 
 ## Rozważone i odrzucone
 

@@ -52,7 +52,7 @@ hex" jest spełniona.
 
 | Plik | Odpowiedzialność |
 |---|---|
-| `src/assets/portret-pola-sobun.jpg` (nowy) | portret 380×380 |
+| `src/assets/portret-pola-sobun.jpg` (nowy) | portret 379×379 |
 | `src/components/NaglowekKontakt.astro` (nowy) | statyczny pasek dla `/contact` |
 | `src/pages/contact.astro` (nowy) | treść strony |
 | `src/components/Gallery.tsx` (zmiana) | jeden odnośnik CONTACT |
@@ -66,7 +66,7 @@ hex" jest spełniona.
 
 **Interfaces:**
 - Consumes: nic.
-- Produces: `src/assets/portret-pola-sobun.jpg`, 380×380 JPEG. Zadanie 2 importuje go przez `astro:assets`.
+- Produces: `src/assets/portret-pola-sobun.jpg`, 379×379 JPEG. Zadanie 2 importuje go przez `astro:assets`.
 
 - [ ] **Step 1: Pobierz portret z CDN-u Formatu**
 
@@ -78,7 +78,7 @@ curl -sS -o src/assets/portret-pola-sobun.jpg \
   'https://format.creatorcdn.com/9a234d0f-c1fb-45cf-ac51-6d9c21eaaced/0/0/0/248,530,2257,2537,380,380/0-0-0/3b6be306-b3a5-49be-8805-d269bc448000/1/2/IMG_6192.JPG?fjkss=exp=2103445444~hmac=79777c3265dd2c7ac3b23fc880bfdc7e83d05fd7f8a10fba03a9a5ab190115e1'
 ```
 
-- [ ] **Step 2: Sprawdź, że to naprawdę obraz 380×380**
+- [ ] **Step 2: Sprawdź, że to naprawdę obraz 379×379**
 
 ```bash
 cd polasobun
@@ -89,7 +89,7 @@ console.log(m.format, m.width + 'x' + m.height, Math.round((await import('node:f
 "
 ```
 
-**Warunek przejścia:** `jpeg 380x380`, waga około 26 kB.
+**Warunek przejścia:** `jpeg 379x379`, waga około 26 kB.
 
 Jeśli wyszedł plik o zerowej długości albo HTML z komunikatem błędu — adres wygasł albo został unieważniony. **Nie kombinuj z innymi parametrami** (wrócą 403). Zatrzymaj się i zgłoś, że portret trzeba pozyskać od klientki.
 
@@ -100,7 +100,7 @@ cd /Users/bartlomiejsurma/Developer/polasobun-site/.claude/worktrees/astro-proje
 LC_ALL=C LANG=C git add polasobun/src/assets/portret-pola-sobun.jpg
 LC_ALL=C LANG=C git commit -m "feat: portret na strone kontaktowa
 
-Jedyna wersja, jaka oddaje CDN Formatu — 380x380. Zadania o wieksze
+Jedyna wersja, jaka oddaje CDN Formatu — 379x379. Zadania o wieksze
 rozmiary wracaja z 403, bo adres jest podpisany HMAC-iem zwiazanym
 z konkretnym kadrem. Commitujemy lokalnie, zeby strona nie zalezala
 od cudzego adresu.
@@ -215,7 +215,7 @@ const KONTAKT = [
 
 /**
  * 260 px, nie 331 px jak na źródle, i to na KAŻDYM ekranie.
- * Plik ma 380 px i to jedyna wersja, jaką oddaje CDN Formatu. Pełna
+ * Plik ma 379 px i to jedyna wersja, jaką oddaje CDN Formatu. Pełna
  * szerokość kolumny na telefonie oznaczałaby skalowanie 2,7x w górę przy
  * dpr 3; 260 px zbija je do 2,1x. Świadomy wybór ostrości nad wiernością.
  * Gdy klientka przyśle oryginał, wraca 331 px.
@@ -531,7 +531,7 @@ W stylu istniejących wpisów (fakt, liczba, przestroga) opisz:
 
 - że pasek nawigacji istnieje w **dwóch** miejscach — `Gallery.tsx` i `NaglowekKontakt.astro` — i dlaczego świadomie, z odsyłaczem do specyfikacji,
 - że przy 412 px cztery filtry zajmują **297 z 298 dostępnych pikseli**, więc każda kolejna pozycja musi iść w wiersz wordmarku, a nie w pasek,
-- że portret ma 380 px, bo CDN Formatu podpisuje adresy HMAC-iem i zwraca 403 na inne rozmiary; wyświetlany w 260 px i **na telefonie pozostaje miękki** do czasu otrzymania oryginału,
+- że portret ma 379 px, bo CDN Formatu podpisuje adresy HMAC-iem i zwraca 403 na inne rozmiary; wyświetlany w 260 px i **na telefonie pozostaje miękki** do czasu otrzymania oryginału,
 - że tekst bio zawiera **cztery poprawki wobec źródła** — wypisz je z tabelki ze specyfikacji, bo bez tego ktoś kiedyś „naprawi" je z powrotem do wersji ze strony klientki.
 
 - [ ] **Step 2: Zbuduj po raz ostatni**
@@ -560,7 +560,7 @@ LC_ALL=C LANG=C git push -u origin osurmo/astro-project-setup-df1cf5
 - co powstało i skąd wzięta treść,
 - **tabelkę czterech poprawionych błędów** — to jedyne miejsce, gdzie zmieniamy słowa klientki, i musi być widoczne przy przeglądaniu,
 - pomiar LCP siatki przed i po, z metodyką,
-- ograniczenie portretu (380 px, miękki na telefonie) i co je zdejmie,
+- ograniczenie portretu (379 px, miękki na telefonie) i co je zdejmie,
 - zrzuty obu układów, jeśli narzędzie pozwala je dołączyć,
 - na końcu: `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
