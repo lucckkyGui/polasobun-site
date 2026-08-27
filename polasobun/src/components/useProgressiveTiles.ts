@@ -80,6 +80,15 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
      * zostanie ponownie zauważony i zakolejkowany przy kolejnym
      * przewinięciu.
      *
+     * Mierzymy od ŚRODKA kafla do środka widoku, nie od jego górnej
+     * krawędzi. Miara po `rect.top` jest niesymetryczna o całą wysokość
+     * kafla: przy ekranie 915 px i kaflu 515 px kafel tuż POD widokiem
+     * wypadał na 457 px, a lustrzany kafel tuż NAD widokiem na 972 px,
+     * mimo że oba są w tej samej odległości od oka. Efekt: kafle w dole
+     * przechodziły filtr do ~2,3 ekranu, a te w górze były odcinane już
+     * przy ~1,7 — przewijanie w górę doostrzało mniej niż w dół, i nikt
+     * by tego nie zauważył poza pomiarem.
+     *
      * Odległość liczymy RAZ na kafel, w osobnym kroku przed sort() —
      * rect policzony wewnątrz komparatora liczyłby się O(n log n) razy
      * zamiast O(n). Bez skutków na wynik (layout jest cache'owany do
@@ -92,10 +101,13 @@ export function useProgressiveTiles(gridRef: RefObject<HTMLDivElement | null>): 
       const limit = LIMIT_EKRANOW * window.innerHeight;
 
       doPodniesienia
-        .map((img) => ({
-          img,
-          odleglosc: Math.abs(img.getBoundingClientRect().top - srodek),
-        }))
+        .map((img) => {
+          const prostokat = img.getBoundingClientRect();
+          return {
+            img,
+            odleglosc: Math.abs(prostokat.top + prostokat.height / 2 - srodek),
+          };
+        })
         .filter(({ odleglosc }) => odleglosc <= limit)
         .sort((a, b) => a.odleglosc - b.odleglosc)
         .forEach(({ img }) => void podnies(img));
