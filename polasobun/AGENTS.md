@@ -700,13 +700,19 @@ pomagające zrozumieć zmianę stanu mają zostać. Ruchu tu nie ma.
 ## Zakładka CONTACT
 Specyfikacja: docs/superpowers/specs/2026-08-27-zakladka-contact-design.md.
 
-PASEK NAWIGACJI JEST PEŁNY CO DO PIKSELA. Przy 412 px cztery filtry
-zajmują 297 z 298 dostępnych pikseli — zapas 1 px. Każda kolejna pozycja
-w pasku kategorii go rozsadzi. Dlatego CONTACT ma DWIE kopie w znacznikach,
-sterowane `sm:hidden` / `hidden sm:inline`: na telefonie wskaźnik siedzi
-w wierszu wordmarku (tam jest ~174 px wolnego), od `sm` wraca na koniec
-paska filtrów za większym odstępem. To zamierzony wzorzec, nie duplikacja
-do posprzątania — nie łącz obu kopii w jedną bez ponownego pomiaru 412 px.
+PASEK NAWIGACJI NIE MA ZAPASU NA PIĄTĄ POZYCJĘ. Wcześniej zapisane „297
+z 298 dostępnych pikseli — zapas 1 px" było błędem pomiarowym: zmierzono
+szerokość samego `<nav>`, który jako flex ma szerokość swojej zawartości,
+czyli porównano go z nim samym. Poprawnie: okno 412 px, padding boczny
+nagłówka 2×26 px, dostępne dla treści 360 px; cztery filtry zajmują
+~298 px, więc zapas to 62 px, nie 1 px. Wniosek się mimo to broni: CONTACT
+potrzebuje ~74 px plus 10 px odstępu (84 px), a wolne jest 62 px — piąta
+pozycja faktycznie się nie mieści. Dlatego CONTACT ma DWIE kopie
+w znacznikach, sterowane `sm:hidden` / `hidden sm:inline`: na telefonie
+wskaźnik siedzi w wierszu wordmarku (227 px wolnego przed dołożeniem
+CONTACT, 153 px po), od `sm` wraca na koniec paska filtrów za większym
+odstępem. To zamierzony wzorzec, nie duplikacja do posprzątania — nie
+łącz obu kopii w jedną bez ponownego pomiaru 412 px.
 
 PASEK ISTNIEJE W DWÓCH MIEJSCACH — `src/components/Gallery.tsx` (siatka,
 przyciski filtrujące) i `src/components/NaglowekKontakt.astro` (statyczny

@@ -45,17 +45,23 @@ const POZYCJA = 'text-label font-medium uppercase leading-none tracking-nav';
     <div class="flex w-full items-center justify-between sm:w-auto">
       <a
         href="/"
-        class={`text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark`}
+        class="text-text text-wordmark whitespace-nowrap font-bold uppercase leading-none tracking-wordmark"
       >
         Pola Sobuń
       </a>
 
       {/*
         Na telefonie CONTACT siedzi w wierszu wordmarku, nie w nawigacji.
-        Zmierzone przy 412 px: cztery kategorie zajmują 297 z 298 dostępnych
-        pikseli, czyli zapas wynosi 1 px. Piąta pozycja rozsadziłaby wiersz.
-        Wiersz wordmarku ma ~174 px wolnego, a nagłówek jest sticky nad
-        53 ekranami siatki, więc nie chcemy go pogrubiać o drugą linię.
+        Pierwotnie zapisane „297 z 298 dostępnych pikseli, zapas 1 px" było
+        błędem pomiarowym: zmierzono szerokość samego <nav>, który jako
+        flex ma szerokość swojej zawartości, czyli porównano go z nim
+        samym. Poprawnie: okno 412 px, padding nagłówka 2×26 px, dostępne
+        dla treści 360 px; cztery kategorie zajmują ~298 px, więc zapas to
+        62 px, nie 1 px. Piąta pozycja i tak się nie mieści — potrzebuje
+        ~74 px plus 10 px odstępu (84 px), a wolne jest 62 px. Zmierzone
+        w wierszu wordmarku: 227 px wolnego przed dołożeniem CONTACT,
+        153 px po. Nagłówek jest sticky nad 53 ekranami siatki, więc nie
+        chcemy go pogrubiać o drugą linię.
       */}
       <span class={`text-text ${POZYCJA} sm:hidden`} aria-current="page">Contact</span>
     </div>

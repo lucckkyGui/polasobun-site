@@ -78,9 +78,14 @@ export default function Gallery({ wordmark, children }: Props) {
 
           {/*
             Na telefonie CONTACT siedzi w wierszu wordmarku, nie w rzędzie
-            filtrów. Zmierzone przy 412 px: cztery filtry zajmują 297
-            z 298 dostępnych pikseli, więc piąta pozycja rozsadziłaby
-            wiersz. Nagłówek jest sticky nad 53 ekranami siatki, więc
+            filtrów. Pierwotnie zapisane „297 z 298 dostępnych pikseli"
+            było błędem pomiarowym — zmierzono szerokość samego <nav>,
+            flex o szerokości własnej zawartości, czyli porównano go z nim
+            samym. Poprawnie: okno 412 px, padding nagłówka 2×26 px,
+            dostępne dla treści 360 px; cztery filtry zajmują ~298 px,
+            zapas to 62 px, nie 1 px. Piąta pozycja i tak się nie mieści:
+            potrzebuje ~74 px plus 10 px odstępu (84 px) przy wolnych
+            62 px. Nagłówek jest sticky nad 53 ekranami siatki, więc
             druga linia też odpada.
           */}
           <a
