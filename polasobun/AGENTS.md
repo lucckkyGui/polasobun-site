@@ -331,18 +331,18 @@ przesłonięcia, więc metryka pokazuje ~1 s, a człowiek widzi zdjęcia po
 czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 
 ## Pomiar wydajności
-@vercel/speed-insights wpięty w Base.astro, więc siedzi na wszystkich
-19 stronach. Świadomy wyjątek od reguły „zero zależności".
-
-Zbiera dane wyłącznie na Vercelu — a skoro produkcja tam stoi, jest to
-bez znaczenia. Na localhoście skrypt daje 404 na
-/_vercel/speed-insights/script.js i to jest normalne, nie błąd.
+@vercel/speed-insights zostało usunięte przed przenosinami na
+Cloudflare — działało wyłącznie na Vercelu, migracji by nie przetrwało.
+Analitykę przejmuje Cloudflare Web Analytics wstrzykiwany na brzegu
+sieci; nie wraca do package.json.
 
 ## Deploy
 PRODUKCJA STOI NA VERCELU. Cloudflare Pages zostało odłożone decyzją
 właściciela projektu — nie planuj pod nie niczego, dopóki nie wróci temat.
-Praktyczna konsekwencja: @vercel/speed-insights działa i zbiera dane,
-więc nie ma powodu go usuwać.
+@vercel/speed-insights zostało mimo to usunięte z kodu — działało
+wyłącznie na Vercelu, migracji na Cloudflare by nie przetrwało.
+Analitykę przejmie Cloudflare Web Analytics wstrzykiwany na brzegu
+sieci, poza package.json.
 
 Projekt `polasobun-site` podpięty do repo lucckkyGui/polasobun-site,
 root directory `polasobun`, production branch `main`. Podgląd jest
@@ -493,8 +493,9 @@ filtra `!projekt.collection` w sitemap.xml.ts, nie przeoczeniem.
   transition-duration to 0s, więc elementy bez własnych przejść pozostają
   nietknięte. Nadpisanie duration dokładałoby przejścia tam, gdzie ich nie
   było. Ruch znika, przejścia opacity i koloru zostają.
-- Zero zależności poza: astro, react, tailwind, motion, @vercel/speed-insights.
-  Pytaj przed dodaniem czegokolwiek.
+- Zero zależności poza: astro, react, tailwind, motion. Pytaj przed
+  dodaniem czegokolwiek. Analitykę przejmuje Cloudflare Web Analytics
+  wstrzykiwany na brzegu sieci, więc nie wraca do package.json.
 - Brak zaokrągleń, cieni i gradientów.
 - Animacja wejścia jest zaakceptowana i wdrożona (patrz niżej). Poza nią
   nadal zero animacji bez wyraźnej zgody.

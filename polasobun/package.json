@@ -17,7 +17,6 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "@vercel/speed-insights": "^2.0.0",
     "astro": "^7.2.7",
     "motion": "^13.1.1",
     "react": "^19.2.8",
