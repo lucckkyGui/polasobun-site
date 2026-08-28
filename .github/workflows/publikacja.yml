@@ -1,0 +1,97 @@
+name: Publikacja
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: Pages CMS payload as JSON
+        required: false
+        type: string
+  # 02:00 UTC = 04:00 czasu warszawskiego latem, 03:00 zimą.
+  # GitHub nie przyjmuje stref czasowych w cronie.
+  schedule:
+    - cron: '0 2 * * *'
+
+concurrency:
+  group: publikacja
+  cancel-in-progress: true
+
+jobs:
+  publikuj:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # do przesunięcia znacznika `wydane`
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # potrzebne, żeby zobaczyć znacznik `wydane`
+
+      # Nocne uruchomienie publikuje TYLKO wtedy, gdy main odbiega
+      # od ostatnio wysłanego commita. Uruchomienie ręczne publikuje
+      # zawsze — przycisk ma działać także przy powtórce.
+      - id: sprawdz
+        run: |
+          WYDANE=$(git rev-parse --verify --quiet refs/tags/wydane || echo "")
+          GLOWA=$(git rev-parse HEAD)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$WYDANE" = "$GLOWA" ]; then
+            echo "Nic nowego od ostatniej publikacji ($GLOWA). Pomijam."
+            echo "publikowac=nie" >> "$GITHUB_OUTPUT"
+          else
+            echo "publikowac=tak" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: polasobun/package-lock.json
+
+      - uses: actions/cache@v4
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        with:
+          path: polasobun/node_modules/.astro
+          key: astro-assets-${{ github.sha }}
+          restore-keys: astro-assets-
+
+      - run: npm ci
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+
+      # Bramka 1 — przekierowania zgodne z danymi kampanii.
+      - run: node scripts/sprawdz-przekierowania.mjs
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+
+      - run: npm run build
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+
+      # Bramka 2 — limit plików Cloudflare na planie Free to 20 000.
+      # Zatrzymujemy się na 18 000, żeby zdążyć zareagować.
+      - name: Bramka liczby plików
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+        run: |
+          LICZBA=$(find dist -type f | wc -l)
+          echo "Plików w dist: $LICZBA" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$LICZBA" -gt 18000 ]; then
+            echo "STOP: $LICZBA plików, limit Cloudflare Free to 20 000." >&2
+            exit 1
+          fi
+
+      - name: Wysyłka do Cloudflare
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.127.1 deploy
+
+      # Znacznik `wydane` jest jedyną odpowiedzią na pytanie
+      # "co jest teraz na żywo". Sprawdzasz go przez `git log wydane -1`.
+      - name: Przesuń znacznik wydane
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        run: |
+          git tag -f wydane
+          git push -f origin wydane
