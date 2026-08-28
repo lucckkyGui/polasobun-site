@@ -1,0 +1,12 @@
+# Zasoby z hashem treści w nazwie — 1331 plików WebP plus CSS/JS.
+# Na Vercelu te nagłówki przychodziły z domyślnych ustawień platformy;
+# na Cloudflare trzeba je napisać samemu, inaczej mamy regres
+# wydajnościowy wobec pomiarów zapisanych w AGENTS.md.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonty NIE mają hasha w nazwie, więc immutable byłoby tu kłamstwem —
+# podmiana pliku zostałaby zignorowana przez przeglądarki na rok.
+# Tydzień to kompromis: fonty i tak się nie zmieniają.
+/fonts/*
+  Cache-Control: public, max-age=604800

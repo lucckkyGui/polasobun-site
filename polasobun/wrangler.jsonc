@@ -1,0 +1,10 @@
+{
+  // Statyczny zestaw zasobów bez skryptu Workera. Cloudflare zaleca
+  // Workers Static Assets zamiast Pages dla nowych projektów: nowe
+  // funkcje i optymalizacje idą do Workers, Pages jest utrzymywane.
+  "name": "polasobun",
+  "compatibility_date": "2026-08-28",
+  "assets": {
+    "directory": "./dist"
+  }
+}
