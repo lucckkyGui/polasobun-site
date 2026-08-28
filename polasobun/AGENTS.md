@@ -1,7 +1,9 @@
 # polasobun.com — portfolio fotograficzne
 
 ## Stack
-Astro 7 (static), React islands, Tailwind 4, Motion. Deploy: Cloudflare Pages.
+Astro 7 (static), React islands, Tailwind 4, Motion.
+Deploy: DZIŚ Vercel; migracja na Cloudflare Workers Static Assets jest
+w toku (nie Pages — patrz sekcja „Deploy").
 Node >= 22.12.0 (wymagane przez Astro 7).
 
 typescript jest przypięty do ^6 CELOWO. `astro check` nie działa
@@ -168,6 +170,11 @@ format="webp">` / `getImage({format:'webp'})` fallbacku nie tworzy —
 Bilans dist/_astro: 994 WebP + 1054 JPEG (~554 MB) -> 1331 WebP, 0 JPEG
 (232 MB, suma bajtów plików; `du -sh` na tym samym katalogu raportuje
 266 MB — różnica to rozmiar bloków na dysku, nie rozjazd w danych).
+UWAGA: 1331 to stan Z DNIA TEGO POMIARU, nie liczba obowiązująca dziś.
+Zmierzone ponownie 2026-08-28 (`find dist/_astro -type f -name '*.webp'
+| wc -l`): **1333**. Nie przepisuj 1331 do nowych dokumentów — zmierz.
+Ta liczba została już raz skopiowana bez pomiaru do `public/_headers`
+i do specyfikacji hostingu; obie kopie poprawione.
 Wcześniej zapisane „227 MB" pochodziło sprzed zmiany kadru lekkiego
 z 400 na 440 px (patrz sekcja niżej) i jest nieaktualne.
 
@@ -333,21 +340,65 @@ czterech i pół. Nie optymalizuj pod metrykę, której nikt nie ogląda.
 ## Pomiar wydajności
 @vercel/speed-insights zostało usunięte przed przenosinami na
 Cloudflare — działało wyłącznie na Vercelu, migracji by nie przetrwało.
-Analitykę przejmuje Cloudflare Web Analytics wstrzykiwany na brzegu
-sieci; nie wraca do package.json.
+
+ANALITYKĘ PRZEJMIE CLOUDFLARE WEB ANALYTICS wstrzykiwany na brzegu sieci.
+Czas przyszły jest tu dosłowny: analityka NIE JEST JESZCZE WŁĄCZONA,
+włącza ją zadanie 8 planu hostingu. Działa po stronie platformy, bez
+paczki npm, więc nie wraca do package.json.
+
+To jedyne pełne wyjaśnienie tej decyzji w tym pliku — sekcje „Deploy"
+i „Twarde reguły" tylko się do niego odwołują. Nie kopiuj go z powrotem
+w trzy miejsca.
 
 ## Deploy
-PRODUKCJA STOI NA VERCELU. Cloudflare Pages zostało odłożone decyzją
-właściciela projektu — nie planuj pod nie niczego, dopóki nie wróci temat.
-@vercel/speed-insights zostało mimo to usunięte z kodu — działało
-wyłącznie na Vercelu, migracji na Cloudflare by nie przetrwało.
-Analitykę przejmie Cloudflare Web Analytics wstrzykiwany na brzegu
-sieci, poza package.json.
+MIGRACJA NA CLOUDFLARE JEST W TOKU. Temat wrócił decyzją właściciela
+projektu, więc wcześniejszy zapis „nie planuj pod nie niczego" jest
+NIEAKTUALNY — planuj pod Cloudflare. Celem są **Workers Static Assets,
+nie Pages**: Cloudflare zaleca Workers dla nowych projektów, tam idą nowe
+funkcje i optymalizacje, Pages jest wyłącznie utrzymywane.
 
-Projekt `polasobun-site` podpięty do repo lucckkyGui/polasobun-site,
+DZIŚ PRODUKCJA NADAL STOI NA VERCELU. Przełączenie następuje w zadaniu 7
+planu `docs/superpowers/plans/2026-08-28-hosting-cloudflare-i-domena.md`
+— podpięcie domeny do Workera i zmiana `site`. Do tego momentu żywą
+stroną jest Vercel, a Cloudflare to konfiguracja leżąca w repozytorium,
+nie stan produkcji. Nic z niej nie zostało jeszcze wdrożone.
+
+Co już leży w repo: `polasobun/wrangler.jsonc` (Worker `polasobun`,
+katalog `dist`), `.github/workflows/build.yml` (kontrola builda przy
+pushu do `main`, bez wysyłki) i `.github/workflows/publikacja.yml`
+(build, bramki, `wrangler deploy`).
+
+JEDYNĄ DROGĄ NA PRODUKCJĘ BĘDZIE `publikacja.yml`. Push do `main`
+wyłącznie buduje — wysyłki nie ma. Publikacja idzie z ręcznego
+uruchomienia workflow'a (to samo, co przycisk „Opublikuj stronę"
+w CMS-ie) i wyłącznie z gałęzi `main`; workflow ma to wymuszone
+warunkiem na poziomie joba.
+
+ZNACZNIK `wydane` MÓWI, CO JEST NA ŻYWO. Workflow przesuwa go po każdej
+udanej wysyłce, więc na pytanie „co jest teraz na produkcji" odpowiada
+`git log wydane -1`. Drugiego źródła tej informacji nie ma.
+
+NOCNY CRON JEST DZIŚ ZAKOMENTOWANY w `publikacja.yml` — czeka na sekrety
+Cloudflare i pierwszy udany deploy. Dopóki tak jest, zmiany scalone do
+`main` NIE trafiają na produkcję same, ktoś musi kliknąć.
+
+CZASY BUILDA W GITHUB ACTIONS SĄ NIEZMIERZONE. Mierzą je zadanie 4 kroki
+5 i 8 planu hostingu; do tego czasu nie wpisuj tu żadnej liczby sekund
+dla Actions. Jedyne odniesienie, jakie mamy, jest LOKALNE i nie przenosi
+się wprost na maszynę CI: zimny build 6m10s (patrz „Dwustopniowe
+ładowanie siatki"). Ciepły build w Actions jest OCZEKIWANY jako wyraźnie
+szybszy dzięki cache'owi `node_modules/.astro` — to oczekiwanie, nie
+pomiar, i tak ma tu zostać zapisane, dopóki ktoś go nie zmierzy.
+
+@vercel/speed-insights zostało usunięte z kodu — działało wyłącznie na
+Vercelu, migracji na Cloudflare by nie przetrwało. Analityka: patrz
+sekcja „Pomiar wydajności".
+
+Projekt Vercela `polasobun-site` podpięty do repo lucckkyGui/polasobun-site,
 root directory `polasobun`, production branch `main`. Podgląd jest
 publiczny (Vercel Authentication wyłączone) — świadoma decyzja, żeby dało
-się wysłać link klientce.
+się wysłać link klientce. Vercel gaśnie dopiero w zadaniu 9 planu
+hostingu, nie wcześniej.
 
 Root directory MUSI zostać `polasobun` — projekt Astro siedzi
 w podkatalogu, obok starej strony statycznej w roocie repo.
@@ -494,8 +545,9 @@ filtra `!projekt.collection` w sitemap.xml.ts, nie przeoczeniem.
   nietknięte. Nadpisanie duration dokładałoby przejścia tam, gdzie ich nie
   było. Ruch znika, przejścia opacity i koloru zostają.
 - Zero zależności poza: astro, react, tailwind, motion. Pytaj przed
-  dodaniem czegokolwiek. Analitykę przejmuje Cloudflare Web Analytics
-  wstrzykiwany na brzegu sieci, więc nie wraca do package.json.
+  dodaniem czegokolwiek. Analityka też nie wraca do package.json —
+  Cloudflare Web Analytics działa po stronie platformy (wyjaśnienie:
+  sekcja „Pomiar wydajności").
 - Brak zaokrągleń, cieni i gradientów.
 - Animacja wejścia jest zaakceptowana i wdrożona (patrz niżej). Poza nią
   nadal zero animacji bez wyraźnej zgody.

@@ -11,9 +11,10 @@ publikacji i wyprowadzić domenę z konta Format.com przed 4.10.2026.
 
 **Architektura:** GitHub Actions buduje Astro z cache'em obrazów
 i wysyła statyczny `dist` do Workera przez `wrangler deploy`. Jedyną
-drogą na produkcję jest ręczne uruchomienie workflow'a — push do `main`
-wyłącznie buduje. Nocny cron dopublikowuje, jeśli `main` odbiega od
-znacznika `wydane`.
+drogą na produkcję jest ręczne uruchomienie workflow'a z gałęzi `main` —
+push do `main` wyłącznie buduje. Nocny cron dopublikowuje, jeśli `main`
+odbiega od znacznika `wydane` — ale jest ZAKOMENTOWANY do zadania 4
+kroku 7, bo bez sekretów Cloudflare padałby co noc.
 
 **Stack:** Astro 7 (static), Cloudflare Workers Static Assets, Wrangler,
 GitHub Actions, Cloudflare DNS + Registrar.
@@ -202,11 +203,29 @@ const wiersze = readFileSync(
   .map((w) => w.trim())
   .filter((w) => w && !w.startsWith('#'));
 
+// PIERWSZEŃSTWO: Cloudflare stosuje PIERWSZE pasujące przekierowanie
+// z `_redirects`, nie ostatnie. `Map.set` nadpisuje, więc sam `set`
+// zapamiętałby wpis OSTATNI i bramka porównywałaby co innego, niż zobaczy
+// produkcja — zły wpis wyżej, poprawny niżej i mamy zieloną kontrolę przy
+// złym przekierowaniu na żywo.
+//
+// Zamiast odtwarzać tu pierwszeństwo Cloudflare zatrzymujemy się na
+// duplikacie: zdublowana ścieżka źródłowa w `_redirects` jest zawsze
+// pomyłką, nigdy zamierzonym zapasem. Nie "upraszczaj" tego z powrotem do
+// samego `set` — cicha rozbieżność między bramką a produkcją wraca.
 const znalezione = new Map();
 for (const wiersz of wiersze) {
   const [z, na, kod] = wiersz.split(/\s+/);
   if (kod !== '301') {
     console.error(`BŁĄD: "${wiersz}" nie jest przekierowaniem 301`);
+    process.exit(1);
+  }
+  if (znalezione.has(z)) {
+    console.error(
+      `DUPLIKAT: ścieżka ${z} występuje w _redirects więcej niż raz ` +
+        `(cele: ${znalezione.get(z)} oraz ${na}). Cloudflare zastosuje ` +
+        `pierwszy wpis — usuń nadmiarowy.`,
+    );
     process.exit(1);
   }
   znalezione.set(z, na);
@@ -300,8 +319,39 @@ Oczekiwane: `OK — 15 przekierowań zgodnych z legacyPath`
   // funkcje i optymalizacje idą do Workers, Pages jest utrzymywane.
   "name": "polasobun",
   "compatibility_date": "2026-08-28",
+
+  // MUSI zostać przestawione na `false` w zadaniu 7, zaraz po podpięciu
+  // domeny własnej do Workera. Dopóki jest `true`, strona odpowiada pod
+  // DWOMA adresami naraz — `www.polasobun.com` i `polasobun.workers.dev`.
+  // Ten drugi serwuje ten sam `robots.txt` z `Allow: /` (przy
+  // `output: 'static'` powstaje jeden plik wspólny dla każdego hosta,
+  // patrz src/pages/robots.txt.ts), czyli pełny duplikat treści
+  // konkurujący z domeną klientki o te same zapytania.
+  //
+  // Nie da się tego załatwić plikiem `_headers`: on dopasowuje po
+  // ŚCIEŻCE, nie po hoście, więc `X-Robots-Tag: noindex` trafiłby także
+  // w domenę docelową. Jedyne poprawne wyjście to usunąć duplikat,
+  // a nie go oznaczać — czyli zgasić adres `workers.dev`.
+  //
+  // Zapisane jawnie, mimo że `true` jest domyślne: bez tej linijki nie
+  // ma czego przestawić i pułapka zostaje niewidoczna.
+  "workers_dev": true,
+
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+
+    // Cały projekt normalizuje adresy BEZ ukośnika na końcu: canonical
+    // w src/layouts/Base.astro, wszystkie 17 adresów w sitemap.xml.ts
+    // i cele piętnastu przekierowań 301 w public/_redirects.
+    //
+    // Astro buduje `dist/work/pandora/index.html`, a domyślne
+    // `auto-trailing-slash` serwuje pliki indeksowe katalogów Z ukośnikiem
+    // — czyli `/work/pandora` dostawałoby 307 na `/work/pandora/`. Wtedy
+    // każdy <loc> sitemapy jest adresem, który się przekierowuje,
+    // canonical wskazuje adres przekierowujący, a każde 301 ze starej
+    // strony dostaje drugi skok. `drop-trailing-slash` ustawia serwer
+    // pod tę samą normalizację, którą stosuje reszta projektu.
+    "html_handling": "drop-trailing-slash"
   }
 }
 ```
@@ -366,6 +416,14 @@ curl -sI https://polasobun.<subdomena>.workers.dev/work/pandora | head -1
 ```
 
 Oczekiwane: `HTTP/2 200` dla obu.
+
+`200` na `/work/pandora` (bez ukośnika) to pierwszy sprawdzian ustawienia
+`html_handling: "drop-trailing-slash"` z `wrangler.jsonc`. Astro buduje
+`dist/work/pandora/index.html`, więc przy domyślnym
+`auto-trailing-slash` byłoby tu `307` na `/work/pandora/` — a wtedy
+canonical i wszystkie adresy w sitemapie wskazywałyby adresy
+przekierowujące. Jeśli zobaczysz `307`, sprawdź to ustawienie, zanim
+pójdziesz dalej.
 
 - [ ] **Krok 4: Sprawdź przekierowanie 301 — w tym oba nietypowe**
 
@@ -469,6 +527,16 @@ jobs:
           cache: npm
           cache-dependency-path: polasobun/package-lock.json
 
+      # Bramka przekierowań — ta sama co w `publikacja.yml`, tutaj po to,
+      # żeby rozjazd `_redirects` z polami `legacyPath` w danych kampanii
+      # padł przy pushu do `main`, a nie dopiero pod przyciskiem
+      # „Opublikuj stronę" u klientki. Celowo przed `npm ci`: skrypt
+      # importuje wyłącznie `node:fs`, nie potrzebuje zainstalowanych
+      # zależności, więc nie ma powodu czekać na instalację przed
+      # uruchomieniem najtańszej z kontroli.
+      - run: node scripts/sprawdz-przekierowania.mjs
+        working-directory: polasobun
+
       - run: npm ci
         working-directory: polasobun
 
@@ -503,14 +571,37 @@ name: Publikacja
 on:
   workflow_dispatch:
     inputs:
+      # Pole wymagane przez Pages CMS — bez zadeklarowanego wejścia
+      # `payload` przycisk „Opublikuj stronę" nie może dispatchować tego
+      # workflow'a. Dziś nikt go nie czyta i tak ma zostać.
+      #
+      # NIGDY nie interpoluj `inputs.payload` do bloku `run:`. To treść
+      # sterowana przez użytkownika, a `${{ }}` wkleja ją dosłownie do
+      # skryptu powłoki przed uruchomieniem — czyli daje wstrzyknięcie
+      # poleceń każdemu, kto może uruchomić ten workflow. Jeśli kiedyś
+      # naprawdę trzeba będzie odczytać payload, przekaż go przez `env:`
+      # i sięgnij po zmienną środowiskową w cudzysłowie.
       payload:
         description: Pages CMS payload as JSON
         required: false
         type: string
+
+  # ODKOMENTUJ DOPIERO PO wykonaniu zadania 4 kroku 1 (sekrety
+  # CLOUDFLARE_API_TOKEN i CLOUDFLARE_ACCOUNT_ID w repozytorium) ORAZ
+  # zadania 3 (pierwszy udany deploy). Wcześniej nocny przebieg zastanie
+  # brak znacznika `wydane`, uzna że jest co publikować, zbuduje całość
+  # i wywali się na `wrangler deploy` bez sekretów — czerwony przebieg
+  # i mail co noc, aż ktoś to wyłączy.
+  #
+  # DOPÓKI TO JEST ZAKOMENTOWANE, SIATKA BEZPIECZEŃSTWA NA ZAPOMNIANE
+  # KLIKNIĘCIE NIE DZIAŁA. Zmiany scalone do `main` czekają na produkcji
+  # tak długo, aż ktoś ręcznie uruchomi publikację — nic ich nie dopchnie
+  # samo w nocy.
+  #
   # 02:00 UTC = 04:00 czasu warszawskiego latem, 03:00 zimą.
   # GitHub nie przyjmuje stref czasowych w cronie.
-  schedule:
-    - cron: '0 2 * * *'
+  # schedule:
+  #   - cron: '0 2 * * *'
 
 concurrency:
   group: publikacja
@@ -524,6 +615,14 @@ concurrency:
 jobs:
   publikuj:
     runs-on: ubuntu-latest
+    # Publikujemy WYŁĄCZNIE z `main`. `workflow_dispatch` da się uruchomić
+    # z dowolnego refa, więc bez tego warunku ktoś — albo przycisk w CMS-ie
+    # wskazany na inną gałąź — zbudowałby i wysłał na produkcję zawartość
+    # gałęzi roboczej, a krok „Przesuń znacznik wydane" przestawiłby
+    # `wydane` na commit spoza `main`. Wtedy znika jedyna odpowiedź na
+    # pytanie „co jest teraz na żywo" i teza „jedyna droga na produkcję"
+    # przestaje być czymkolwiek wyegzekwowana.
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write        # do przesunięcia znacznika `wydane`
     timeout-minutes: 30
@@ -673,7 +772,45 @@ Oczekiwane: wszystkie kroki zielone, w podsumowaniu linia
 git fetch --tags --force && git log wydane -1 --oneline
 ```
 
-- [ ] **Krok 7: Zmierz czas CIEPŁEGO builda**
+- [ ] **Krok 7: Odkomentuj nocny cron**
+
+Wyzwalacz `schedule:` w `.github/workflows/publikacja.yml` jest
+zakomentowany i do tego momentu MUSI taki zostać. Odkomentowany
+wcześniej padałby co noc od pierwszej nocy po scaleniu: znacznika
+`wydane` nie ma, więc workflow uznaje, że jest co publikować, buduje
+całość i wywala się na `wrangler deploy` bez sekretów — czerwony przebieg
+i mail, co noc, aż ktoś to wyłączy.
+
+Dopiero teraz oba warunki są spełnione: sekrety są w repozytorium
+(krok 1), a pierwszy deploy przeszedł (zadanie 3) i znacznik `wydane`
+istnieje (krok 6).
+
+Zdejmij `#` z bloku `schedule:` i z linii `- cron: '0 2 * * *'`,
+zostawiając komentarz o strefach czasowych. Usuń akapit „ODKOMENTUJ
+DOPIERO PO…" — po tej zmianie jest już nieprawdą.
+
+```bash
+git add .github/workflows/publikacja.yml
+git commit -m "feat: włączenie nocnego crona publikacji"
+git push
+```
+
+Potwierdź w zakładce **Actions** repozytorium, że nocny przebieg pojawił
+się na liście wyzwalaczy workflow'a „Publikacja":
+
+```bash
+gh workflow view publikacja.yml
+```
+
+Oczekiwane: wśród wyzwalaczy widnieje `schedule`. Pierwszego faktycznego
+przebiegu nocnego spodziewaj się dopiero następnej doby — GitHub potrafi
+opóźnić crona o kilkanaście minut i to jest normalne.
+
+**Dopóki ten krok nie jest odhaczony, siatka bezpieczeństwa na zapomniane
+kliknięcie nie działa** — zmiany scalone do `main` czekają na produkcję,
+aż ktoś ręcznie uruchomi publikację.
+
+- [ ] **Krok 8: Zmierz czas CIEPŁEGO builda**
 
 Uruchom publikację drugi raz, bez żadnych zmian w repozytorium.
 Odczytaj czas kroku `npm run build`.
@@ -684,12 +821,12 @@ przywracania i zapisu cache'u (~232 MB) — dopiero suma tych trzech
 mówi, czy cache się opłaca. Jeśli nie — udokumentuj to i zgłoś, zamiast
 przepisywać liczbę ze specyfikacji.
 
-- [ ] **Krok 8: Zaktualizuj AGENTS.md o zmierzone wartości**
+- [ ] **Krok 9: Zaktualizuj AGENTS.md o zmierzone wartości**
 
 W sekcji „Deploy" zastąp opis Vercela stanem faktycznym: Cloudflare
 Workers, budowanie w Actions, jedyna droga na produkcję to
 `publikacja.yml`, znacznik `wydane`. Wpisz **zmierzone** czasy builda
-zimnego i ciepłego z kroków 5 i 7.
+zimnego i ciepłego z kroków 5 i 8.
 
 ```bash
 git add polasobun/AGENTS.md && git commit -m "docs: deploy na Cloudflare, zmierzone czasy builda"
@@ -837,7 +974,47 @@ z zachowaniem ścieżki i parametrów.
 Kanoniczny jest `www` — tak działa dzisiejsza strona klientki i tak
 wskazują przekierowania z `legacyPath`.
 
-- [ ] **Krok 3: Zmień `site` w `astro.config.mjs`**
+- [ ] **Krok 3: Zgaś adres `workers.dev`**
+
+Dopóki `workers_dev` jest `true`, strona odpowiada pod DWOMA adresami
+naraz: `www.polasobun.com` i `polasobun.workers.dev`. Ten drugi serwuje
+ten sam `robots.txt` — a od kroku 6, kiedy na produkcję trafi `site`
+wskazujący domenę, będzie w nim `Allow: /`. Czyli pełny duplikat treści
+konkurujący z domeną klientki o te same zapytania. `robots.txt` przy
+`output: 'static'` jest JEDNYM plikiem wspólnym dla każdego hosta, więc
+nie da się go rozgałęzić po adresie.
+
+Plikiem `_headers` tego NIE załatwisz: on dopasowuje po ścieżce, nie po
+hoście, więc `X-Robots-Tag: noindex` trafiłby także w domenę docelową.
+Duplikat trzeba usunąć, a nie oznaczyć.
+
+Robimy to TERAZ, przed otwarciem robots.txt w kroku 6 — nie po. Inaczej
+przez okno między jednym a drugim krokiem w sieci stoją dwie
+indeksowalne kopie strony.
+
+W `polasobun/wrangler.jsonc` przestaw:
+
+```jsonc
+  "workers_dev": false,
+```
+
+Scommituj, wypchnij i opublikuj — workflow buduje z `main`, więc bez
+commita zmiana nie dojedzie:
+
+```bash
+git add polasobun/wrangler.jsonc
+git commit -m "feat: wyłączenie adresu workers.dev po podpięciu domeny"
+git push
+gh workflow run publikacja.yml && gh run watch
+curl -sI https://polasobun.workers.dev/ | head -1
+```
+
+Oczekiwane: `curl` NIE zwraca `200` — adres nie odpowiada (błąd
+połączenia albo kod 4xx/5xx od Cloudflare). Jeśli nadal wraca `200`
+z treścią strony, publikacja nie doszła albo zmiana nie została
+scommitowana.
+
+- [ ] **Krok 4: Zmień `site` w `astro.config.mjs`**
 
 Podmień wartość i **przepisz komentarz nad nią** — obecny opisuje stan
 sprzed przełączenia i po tej zmianie byłby nieprawdą:
@@ -855,7 +1032,7 @@ sprzed przełączenia i po tej zmianie byłby nieprawdą:
   site: 'https://www.polasobun.com',
 ```
 
-- [ ] **Krok 4: Zbuduj i sprawdź, że robots.txt się odblokował**
+- [ ] **Krok 5: Zbuduj i sprawdź, że robots.txt się odblokował**
 
 ```bash
 cd polasobun && npm run build
@@ -868,7 +1045,7 @@ Oczekiwane: `robots.txt` **wpuszcza** roboty (nie `Disallow: /`),
 sitemapa ma **17** adresów na nowej domenie, canonical wskazuje
 `https://www.polasobun.com/`.
 
-- [ ] **Krok 5: Commit i publikacja**
+- [ ] **Krok 6: Commit i publikacja**
 
 ```bash
 git add polasobun/astro.config.mjs
@@ -877,7 +1054,7 @@ git push
 gh workflow run publikacja.yml && gh run watch
 ```
 
-- [ ] **Krok 6: Sprawdź żywą domenę**
+- [ ] **Krok 7: Sprawdź żywą domenę**
 
 ```bash
 curl -sI https://www.polasobun.com/ | head -1
@@ -889,7 +1066,7 @@ curl -s  https://www.polasobun.com/robots.txt
 Oczekiwane: `200` na www, `301` na `https://www.polasobun.com/` z gołej
 domeny, `301` na `/work/pandora`, robots wpuszczający roboty.
 
-- [ ] **Krok 7: Zgłoś sitemapę do Google Search Console**
+- [ ] **Krok 8: Zgłoś sitemapę do Google Search Console**
 
 Dodaj własność `https://www.polasobun.com/` i zgłoś
 `https://www.polasobun.com/sitemap.xml`. Bez tego 301-ki działają, ale

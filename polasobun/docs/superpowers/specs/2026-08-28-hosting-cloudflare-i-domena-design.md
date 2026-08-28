@@ -23,7 +23,7 @@ domenę z konta Format.com, zanim wygaśnie 4 października 2026.
 | data wygaśnięcia | **2026-10-04** |
 | status domeny | `clientTransferProhibited`, `clientUpdateProhibited` |
 | rekordy MX | **brak** — na tej domenie nie ma poczty |
-| `dist/_astro` | 1331 plików, 232 MB |
+| `dist/_astro` | 1333 pliki WebP, 232 MB (zmierzone 2026-08-28: `find polasobun/dist/_astro -type f -name '*.webp' \| wc -l`) |
 | nagłówki cache / przekierowania 301 | brak plików `_headers` i `_redirects` |
 
 Format.com sprzedaje domeny przez Tucowsa, a nameservery to DNS
@@ -65,7 +65,7 @@ więc dzisiejszy stan jest naruszeniem regulaminu, nie strefą szarą.
 | kryterium | wartość | nasz stan |
 |---|---|---|
 | żądania do zasobów statycznych | „free and unlimited" | bez limitu |
-| pliki na projekt (plan Free) | 20 000 | ~1360, zapas ~5400 zdjęć |
+| pliki na projekt (plan Free) | 20 000 | 1373, zapas ~4500 zdjęć (wobec bramki 18 000, nie limitu platformy) |
 | rozmiar pliku | 25 MiB | max ~2 MB |
 | buildy na miesiąc | 500 | przewidywane kilka |
 | użytek komercyjny | dozwolony | — |
@@ -117,17 +117,33 @@ Poza zakresem, bez zmian:
 {
   "name": "polasobun",
   "compatibility_date": "2026-08-28",
-  "assets": { "directory": "./dist" }
+  // do przestawienia na false po podpięciu domeny własnej
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "drop-trailing-slash"
+  }
 }
 ```
 
-Bez skryptu Workera — czysto statyczny zestaw zasobów.
+Bez skryptu Workera — czysto statyczny zestaw zasobów. Pełne uzasadnienie
+obu ustawień jest w komentarzach `wrangler.jsonc`; w skrócie:
+
+- `html_handling: "drop-trailing-slash"` — Astro buduje
+  `dist/work/pandora/index.html`, a domyślne `auto-trailing-slash`
+  serwowałoby pliki indeksowe katalogów Z ukośnikiem. Canonical
+  i wszystkie adresy w sitemapie są BEZ ukośnika, więc bez tej wartości
+  każdy `<loc>` wskazywałby adres, który się przekierowuje.
+- `workers_dev: true` — dziś potrzebne, bo pod tym adresem stoi pierwszy
+  deploy. **MUSI zejść na `false` po podpięciu domeny**, inaczej strona
+  odpowiada pod dwoma adresami naraz i `workers.dev` serwuje duplikat
+  treści konkurujący z domeną klientki.
 
 ### `public/_headers`
 
 Na Vercelu nagłówki cache'u dla zasobów z hashem w nazwie przychodziły
 z domyślnych ustawień platformy. Na Cloudflare trzeba je napisać
-samemu; ich brak byłby regresem wydajnościowym na 1331 plikach.
+samemu; ich brak byłby regresem wydajnościowym na 1333 plikach.
 
 Limity: 100 reguł, 2000 znaków na regułę — z ogromnym zapasem.
 

@@ -188,10 +188,24 @@ i tak niesie `[skip ci]`.
 ### Workflow 2 — publikacja
 
 Wyzwalacz: `workflow_dispatch` z wejściem `payload` (wymagane przez
-Pages CMS). `concurrency` z `cancel-in-progress: true`.
+Pages CMS). `concurrency` z **`cancel-in-progress: false`** —
+kolejkujemy, nie anulujemy. Publikacja jest ręczna i rzadka, więc kolejka
+nic nie kosztuje, a anulowanie w środku wysyłki — między `wrangler
+deploy` a przesunięciem znacznika `wydane` — zostawiłoby rozjazd:
+Cloudflare ma już nową treść, a znacznik „co jest na żywo" nadal wskazuje
+starą. Implementacja ma świadomie `false`; nie „poprawiaj" tego na `true`.
 
-Kroki: checkout → Node 22 → `actions/cache` na `node_modules/.astro`
-→ `npm ci` → `npm run build` → bramki → wysyłka.
+Kroki: checkout → Node 22 → `npm ci` → `actions/cache` na
+`node_modules/.astro` → `npm run build` → bramki → wysyłka.
+
+**PUŁAPKA: `actions/cache` MUSI stać ZA `npm ci`, nigdy przed.** `npm ci`
+czyści całą zawartość `node_modules` przed instalacją, łącznie z wpisami
+kropkowymi — a `node_modules/.astro` jest domyślnym `cacheDir` Astro.
+Cache przywrócony wcześniej zostaje skasowany kilka sekund później, więc
+build jest zimny za każdym razem i NIE PADA przy tym żaden błąd. Objaw
+jest mylący: wygląda to jak działający cache, który się nie opłaca.
+Ta specyfikacja miała wcześniej odwrotną kolejność i przeszła z nią
+przegląd — złapał to dopiero osobny przegląd implementacji.
 
 Klucz cache'u: `astro-assets-${{ github.sha }}` z
 `restore-keys: astro-assets-`. Przywraca ostatni dostępny cache
