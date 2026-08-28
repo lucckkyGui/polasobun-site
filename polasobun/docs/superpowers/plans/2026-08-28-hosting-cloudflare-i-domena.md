@@ -428,6 +428,16 @@ To jest zamierzone — o to chodzi w przycisku „Opublikuj" — ale znaczy
 też, że jej konto GitHub pośrednio dysponuje tokenem Cloudflare.
 Włącz na jej koncie uwierzytelnianie dwuskładnikowe.
 
+**PUŁAPKA, KTÓRA ZEPSUŁA PIERWSZĄ WERSJĘ TEGO ZADANIA.** Krok
+`actions/cache` MUSI stać **za** `npm ci`, nigdy przed. `npm ci` czyści całą
+zawartość `node_modules` przed instalacją, łącznie z wpisami kropkowymi —
+a `node_modules/.astro` (235 MB) jest domyślnym `cacheDir` Astro. Cache
+przywrócony wcześniej zostaje skasowany kilka sekund później, więc build jest
+zimny za każdym razem i nie pada przy tym żaden błąd. Objaw jest mylący:
+wygląda to jak działający cache, który się nie opłaca. Pierwsza wersja tego
+planu miała tę kolejność odwrotnie i przeszła przegląd implementacji — złapał
+to dopiero osobny przegląd zadania.
+
 - [ ] **Krok 2: Napisz workflow kontrolny `build.yml`**
 
 Push do `main` wyłącznie buduje. Wysyłki nie ma — jedyną drogą na
@@ -447,6 +457,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -456,19 +469,23 @@ jobs:
           cache: npm
           cache-dependency-path: polasobun/package-lock.json
 
+      - run: npm ci
+        working-directory: polasobun
+
       # Klucz z SHA plus restore-keys na prefiks: przywraca OSTATNI
       # dostępny cache niezależnie od zawartości, więc Astro przelicza
       # tylko nowe zdjęcia. Gdyby kluczem był hash folderu zdjęć, każde
       # dołożone zdjęcie unieważniałoby całość i build byłby zimny
       # za każdym razem. Nie "poprawiaj" tego na hash treści.
+      # Ten krok musi stać PO `npm ci`: `npm ci` czyści całą zawartość
+      # `node_modules` przed instalacją (łącznie z wpisami kropkowymi), więc
+      # cache przywrócony wcześniej zostałby skasowany, a build byłby zimny
+      # mimo pozornie działającego cache'u.
       - uses: actions/cache@v4
         with:
           path: polasobun/node_modules/.astro
           key: astro-assets-${{ github.sha }}
           restore-keys: astro-assets-
-
-      - run: npm ci
-        working-directory: polasobun
 
       - run: npm run build
         working-directory: polasobun
@@ -476,7 +493,9 @@ jobs:
 
 - [ ] **Krok 3: Napisz workflow publikacji `publikacja.yml`**
 
-Podstaw dokładną wersję Wranglera ustaloną w zadaniu 3 za `<WERSJA>`.
+Wersja Wranglera przypięta dokładnie: `4.127.1` (sprawdzone
+`npm view wrangler version` 2026-08-28; minimum 4.34.0 — wcześniejsze
+wymuszają stary limit 20 000 plików niezależnie od planu).
 
 ```yaml
 name: Publikacja
@@ -495,13 +514,19 @@ on:
 
 concurrency:
   group: publikacja
-  cancel-in-progress: true
+  # Kolejkowanie, nie anulowanie. Publikacja jest ręczna i rzadka, więc
+  # kolejka nic nie kosztuje. Anulowanie w środku wysyłki — między
+  # `wrangler deploy` a przesunięciem znacznika `wydane` — zostawiłoby
+  # rozjazd: Cloudflare ma nową treść, a `wydane` (jedyne źródło prawdy
+  # "co jest na żywo") nadal wskazywałby starą.
+  cancel-in-progress: false
 
 jobs:
   publikuj:
     runs-on: ubuntu-latest
     permissions:
       contents: write        # do przesunięcia znacznika `wydane`
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -510,9 +535,16 @@ jobs:
       # Nocne uruchomienie publikuje TYLKO wtedy, gdy main odbiega
       # od ostatnio wysłanego commita. Uruchomienie ręczne publikuje
       # zawsze — przycisk ma działać także przy powtórce.
-      - id: sprawdz
+      - name: Sprawdź, czy jest co publikować
+        id: sprawdz
         run: |
-          WYDANE=$(git rev-parse --verify --quiet refs/tags/wydane || echo "")
+          # `^{commit}` wymusza rozwiązanie do SHA commita niezależnie od
+          # rodzaju tagu. `git tag -f wydane` tworzy tag lekki, więc dziś
+          # samo `refs/tags/wydane` by wystarczyło — ale gdyby ktoś kiedyś
+          # założył `wydane` jako tag adnotowany, `rev-parse` bez `^{commit}`
+          # zwróciłby SHA obiektu tagu, porównanie nigdy by się nie zgadzało
+          # i cron publikowałby co noc w nieskończoność, po cichu.
+          WYDANE=$(git rev-parse --verify --quiet refs/tags/wydane^{commit} || echo "")
           GLOWA=$(git rev-parse HEAD)
           if [ "${{ github.event_name }}" = "schedule" ] && [ "$WYDANE" = "$GLOWA" ]; then
             echo "Nic nowego od ostatniej publikacji ($GLOWA). Pomijam."
@@ -528,6 +560,27 @@ jobs:
           cache: npm
           cache-dependency-path: polasobun/package-lock.json
 
+      # Bramka 1 — przekierowania zgodne z danymi kampanii. Celowo przed
+      # `npm ci`: skrypt importuje wyłącznie `node:fs`, nie potrzebuje
+      # zainstalowanych zależności, więc nie ma powodu czekać na instalację
+      # przed uruchomieniem najtańszej z bramek.
+      - run: node scripts/sprawdz-przekierowania.mjs
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+
+      - run: npm ci
+        if: steps.sprawdz.outputs.publikowac == 'tak'
+        working-directory: polasobun
+
+      # Klucz z SHA plus restore-keys na prefiks: przywraca OSTATNI
+      # dostępny cache niezależnie od zawartości, więc Astro przelicza
+      # tylko nowe zdjęcia. Gdyby kluczem był hash folderu zdjęć, każde
+      # dołożone zdjęcie unieważniałoby całość i build byłby zimny
+      # za każdym razem. Nie "poprawiaj" tego na hash treści.
+      # Ten krok musi stać PO `npm ci`: `npm ci` czyści całą zawartość
+      # `node_modules` przed instalacją (łącznie z wpisami kropkowymi), więc
+      # cache przywrócony wcześniej zostałby skasowany, a build byłby zimny
+      # mimo pozornie działającego cache'u.
       - uses: actions/cache@v4
         if: steps.sprawdz.outputs.publikowac == 'tak'
         with:
@@ -535,21 +588,22 @@ jobs:
           key: astro-assets-${{ github.sha }}
           restore-keys: astro-assets-
 
-      - run: npm ci
-        if: steps.sprawdz.outputs.publikowac == 'tak'
-        working-directory: polasobun
-
-      # Bramka 1 — przekierowania zgodne z danymi kampanii.
-      - run: node scripts/sprawdz-przekierowania.mjs
-        if: steps.sprawdz.outputs.publikowac == 'tak'
-        working-directory: polasobun
-
       - run: npm run build
         if: steps.sprawdz.outputs.publikowac == 'tak'
         working-directory: polasobun
 
       # Bramka 2 — limit plików Cloudflare na planie Free to 20 000.
       # Zatrzymujemy się na 18 000, żeby zdążyć zareagować.
+      #
+      # Dolny próg: te kroki nie deklarują `shell:`, więc GitHub uruchamia
+      # je jako `bash -e {0}` — bez `pipefail`. Gdyby `find dist` zawiódł
+      # (np. katalog nie istnieje), kod wyjścia pipeline'u to i tak kod
+      # ostatniej komendy (`wc -l`), a ta na pustym wejściu wypisze "0"
+      # i zakończy się sukcesem. Bez dolnego progu taka cicha awaria
+      # przechodziłaby przez bramkę i wysyłała pusty albo drastycznie
+      # okrojony `dist` na produkcję. Dziś jest 1373 plików; próg 500
+      # łapie katastrofalne obcięcie, a nie zadziała przy zwykłym
+      # usunięciu jednej kampanii przez klientkę.
       - name: Bramka liczby plików
         if: steps.sprawdz.outputs.publikowac == 'tak'
         working-directory: polasobun
@@ -560,6 +614,10 @@ jobs:
             echo "STOP: $LICZBA plików, limit Cloudflare Free to 20 000." >&2
             exit 1
           fi
+          if [ "$LICZBA" -lt 500 ]; then
+            echo "STOP: tylko $LICZBA plików w dist — podejrzanie mało, coś poszło nie tak." >&2
+            exit 1
+          fi
 
       - name: Wysyłka do Cloudflare
         if: steps.sprawdz.outputs.publikowac == 'tak'
@@ -567,7 +625,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@<WERSJA> deploy
+        run: npx --yes wrangler@4.127.1 deploy
 
       # Znacznik `wydane` jest jedyną odpowiedzią na pytanie
       # "co jest teraz na żywo". Sprawdzasz go przez `git log wydane -1`.
