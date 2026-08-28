@@ -195,8 +195,16 @@ deploy` a przesunięciem znacznika `wydane` — zostawiłoby rozjazd:
 Cloudflare ma już nową treść, a znacznik „co jest na żywo" nadal wskazuje
 starą. Implementacja ma świadomie `false`; nie „poprawiaj" tego na `true`.
 
-Kroki: checkout → Node 22 → `npm ci` → `actions/cache` na
-`node_modules/.astro` → `npm run build` → bramki → wysyłka.
+Job jest bramkowany `if: github.ref == 'refs/heads/main'` — bez tego
+uruchomienie z dowolnej gałęzi wysłałoby ją na produkcję i przestawiło
+na nią znacznik `wydane`.
+
+Kroki: checkout → **sprawdzenie, czy jest co publikować** (nocne
+uruchomienie pomija, gdy `main` nie odbiega od znacznika `wydane`;
+ręczne publikuje zawsze) → Node 22 → bramka przekierowań → `npm ci`
+→ `actions/cache` na `node_modules/.astro` → `npm run build` →
+bramka liczby plików → wysyłka → przesunięcie znacznika `wydane`.
+Każdy krok po pierwszym niesie warunek z tego sprawdzenia.
 
 **PUŁAPKA: `actions/cache` MUSI stać ZA `npm ci`, nigdy przed.** `npm ci`
 czyści całą zawartość `node_modules` przed instalacją, łącznie z wpisami

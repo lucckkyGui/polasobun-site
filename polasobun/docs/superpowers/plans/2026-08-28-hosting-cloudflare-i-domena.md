@@ -976,6 +976,20 @@ wskazują przekierowania z `legacyPath`.
 
 - [ ] **Krok 3: Zgaś adres `workers.dev`**
 
+**Najpierw potwierdź, że domena własna odpowiada.** Ten krok wyłącza adres
+zapasowy, więc kolejność jest kwestią odwracalności: dopóki `workers.dev`
+żyje, masz gdzie wrócić. Krok 1 podpiął domenę do Workera, więc sprawdzian
+ma sens już teraz — nie czekaj z nim do kroku 7.
+
+```bash
+curl -sI https://www.polasobun.com/ | head -1
+curl -s  https://www.polasobun.com/ | grep -c "format.com" || echo "0 śladów Formatu"
+```
+
+Oczekiwane: `HTTP/2 200` oraz zero śladów Formatu w treści. Jeśli któreś
+nie wychodzi — **nie gaś `workers.dev`**, wróć do kroku 1.
+
+
 Dopóki `workers_dev` jest `true`, strona odpowiada pod DWOMA adresami
 naraz: `www.polasobun.com` i `polasobun.workers.dev`. Ten drugi serwuje
 ten sam `robots.txt` — a od kroku 6, kiedy na produkcję trafi `site`
