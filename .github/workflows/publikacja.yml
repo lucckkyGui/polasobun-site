@@ -3,14 +3,37 @@ name: Publikacja
 on:
   workflow_dispatch:
     inputs:
+      # Pole wymagane przez Pages CMS — bez zadeklarowanego wejścia
+      # `payload` przycisk „Opublikuj stronę" nie może dispatchować tego
+      # workflow'a. Dziś nikt go nie czyta i tak ma zostać.
+      #
+      # NIGDY nie interpoluj `inputs.payload` do bloku `run:`. To treść
+      # sterowana przez użytkownika, a `${{ }}` wkleja ją dosłownie do
+      # skryptu powłoki przed uruchomieniem — czyli daje wstrzyknięcie
+      # poleceń każdemu, kto może uruchomić ten workflow. Jeśli kiedyś
+      # naprawdę trzeba będzie odczytać payload, przekaż go przez `env:`
+      # i sięgnij po zmienną środowiskową w cudzysłowie.
       payload:
         description: Pages CMS payload as JSON
         required: false
         type: string
+
+  # ODKOMENTUJ DOPIERO PO wykonaniu zadania 4 kroku 1 (sekrety
+  # CLOUDFLARE_API_TOKEN i CLOUDFLARE_ACCOUNT_ID w repozytorium) ORAZ
+  # zadania 3 (pierwszy udany deploy). Wcześniej nocny przebieg zastanie
+  # brak znacznika `wydane`, uzna że jest co publikować, zbuduje całość
+  # i wywali się na `wrangler deploy` bez sekretów — czerwony przebieg
+  # i mail co noc, aż ktoś to wyłączy.
+  #
+  # DOPÓKI TO JEST ZAKOMENTOWANE, SIATKA BEZPIECZEŃSTWA NA ZAPOMNIANE
+  # KLIKNIĘCIE NIE DZIAŁA. Zmiany scalone do `main` czekają na produkcji
+  # tak długo, aż ktoś ręcznie uruchomi publikację — nic ich nie dopchnie
+  # samo w nocy.
+  #
   # 02:00 UTC = 04:00 czasu warszawskiego latem, 03:00 zimą.
   # GitHub nie przyjmuje stref czasowych w cronie.
-  schedule:
-    - cron: '0 2 * * *'
+  # schedule:
+  #   - cron: '0 2 * * *'
 
 concurrency:
   group: publikacja
@@ -24,6 +47,14 @@ concurrency:
 jobs:
   publikuj:
     runs-on: ubuntu-latest
+    # Publikujemy WYŁĄCZNIE z `main`. `workflow_dispatch` da się uruchomić
+    # z dowolnego refa, więc bez tego warunku ktoś — albo przycisk w CMS-ie
+    # wskazany na inną gałąź — zbudowałby i wysłał na produkcję zawartość
+    # gałęzi roboczej, a krok „Przesuń znacznik wydane" przestawiłby
+    # `wydane` na commit spoza `main`. Wtedy znika jedyna odpowiedź na
+    # pytanie „co jest teraz na żywo" i teza „jedyna droga na produkcję"
+    # przestaje być czymkolwiek wyegzekwowana.
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write        # do przesunięcia znacznika `wydane`
     timeout-minutes: 30

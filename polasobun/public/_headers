@@ -1,4 +1,4 @@
-# Zasoby z hashem treści w nazwie — 1331 plików WebP plus CSS/JS.
+# Zasoby z hashem treści w nazwie — 1333 pliki WebP plus CSS/JS.
 # Na Vercelu te nagłówki przychodziły z domyślnych ustawień platformy;
 # na Cloudflare trzeba je napisać samemu, inaczej mamy regres
 # wydajnościowy wobec pomiarów zapisanych w AGENTS.md.

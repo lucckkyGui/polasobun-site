@@ -23,6 +23,16 @@ jobs:
           cache: npm
           cache-dependency-path: polasobun/package-lock.json
 
+      # Bramka przekierowań — ta sama co w `publikacja.yml`, tutaj po to,
+      # żeby rozjazd `_redirects` z polami `legacyPath` w danych kampanii
+      # padł przy pushu do `main`, a nie dopiero pod przyciskiem
+      # „Opublikuj stronę" u klientki. Celowo przed `npm ci`: skrypt
+      # importuje wyłącznie `node:fs`, nie potrzebuje zainstalowanych
+      # zależności, więc nie ma powodu czekać na instalację przed
+      # uruchomieniem najtańszej z kontroli.
+      - run: node scripts/sprawdz-przekierowania.mjs
+        working-directory: polasobun
+
       - run: npm ci
         working-directory: polasobun
 

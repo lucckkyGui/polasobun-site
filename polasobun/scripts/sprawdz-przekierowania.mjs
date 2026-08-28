@@ -26,11 +26,29 @@ const wiersze = readFileSync(
   .map((w) => w.trim())
   .filter((w) => w && !w.startsWith('#'));
 
+// PIERWSZEŃSTWO: Cloudflare stosuje PIERWSZE pasujące przekierowanie
+// z `_redirects`, nie ostatnie. `Map.set` nadpisuje, więc sam `set`
+// zapamiętałby wpis OSTATNI i bramka porównywałaby co innego, niż zobaczy
+// produkcja — zły wpis wyżej, poprawny niżej i mamy zieloną kontrolę przy
+// złym przekierowaniu na żywo.
+//
+// Zamiast odtwarzać tu pierwszeństwo Cloudflare zatrzymujemy się na
+// duplikacie: zdublowana ścieżka źródłowa w `_redirects` jest zawsze
+// pomyłką, nigdy zamierzonym zapasem. Nie "upraszczaj" tego z powrotem do
+// samego `set` — cicha rozbieżność między bramką a produkcją wraca.
 const znalezione = new Map();
 for (const wiersz of wiersze) {
   const [z, na, kod] = wiersz.split(/\s+/);
   if (kod !== '301') {
     console.error(`BŁĄD: "${wiersz}" nie jest przekierowaniem 301`);
+    process.exit(1);
+  }
+  if (znalezione.has(z)) {
+    console.error(
+      `DUPLIKAT: ścieżka ${z} występuje w _redirects więcej niż raz ` +
+        `(cele: ${znalezione.get(z)} oraz ${na}). Cloudflare zastosuje ` +
+        `pierwszy wpis — usuń nadmiarowy.`,
+    );
     process.exit(1);
   }
   znalezione.set(z, na);
