@@ -11,6 +11,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -20,19 +23,23 @@ jobs:
           cache: npm
           cache-dependency-path: polasobun/package-lock.json
 
+      - run: npm ci
+        working-directory: polasobun
+
       # Klucz z SHA plus restore-keys na prefiks: przywraca OSTATNI
       # dostępny cache niezależnie od zawartości, więc Astro przelicza
       # tylko nowe zdjęcia. Gdyby kluczem był hash folderu zdjęć, każde
       # dołożone zdjęcie unieważniałoby całość i build byłby zimny
       # za każdym razem. Nie "poprawiaj" tego na hash treści.
+      # Ten krok musi stać PO `npm ci`: `npm ci` czyści całą zawartość
+      # `node_modules` przed instalacją (łącznie z wpisami kropkowymi), więc
+      # cache przywrócony wcześniej zostałby skasowany, a build byłby zimny
+      # mimo pozornie działającego cache'u.
       - uses: actions/cache@v4
         with:
           path: polasobun/node_modules/.astro
           key: astro-assets-${{ github.sha }}
           restore-keys: astro-assets-
-
-      - run: npm ci
-        working-directory: polasobun
 
       - run: npm run build
         working-directory: polasobun
