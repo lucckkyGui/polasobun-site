@@ -70,7 +70,28 @@ for (const [plik, mod] of Object.entries(wpisy)) {
         `cover (string) i photos (tablica).`,
     );
   }
-  wgSlugu.set(wpis.slug, wpis as Project);
+  /*
+   * Typ Project obiecuje `year: number | null` i `client: string | null` —
+   * czyli te dwa pola mają być ZAWSZE obecne, nigdy `undefined`. To jednak
+   * obietnica typu, nie walidacja w runtime: JSON z panelu Pages CMS (albo
+   * ręczna edycja, albo skrypt migracyjny) nie przechodzi przez kompilator
+   * i nie musi jej dotrzymać — wystarczy, że pominie klucz zamiast zapisać
+   * go jako null. [slug].astro sprawdza `!== null`, licząc na tę obietnicę:
+   * `undefined !== null` jest prawdą, więc taki wpis przeszedłby przez
+   * warunek, a `String(undefined)` wydrukowałby na stronie kampanii widoczny
+   * napis "undefined". Normalizujemy tutaj, w jedynym wejściu do danych, więc
+   * każdy dzisiejszy i przyszły konsument dostaje już tylko `number | null`
+   * i `string | null`, zgodnie z typem. `??`, nie `||`: `year: 0` i
+   * `client: ''` to prawdziwe wartości, nie brak danych — nie wolno ich tu
+   * zgubić. `legacyPath` i `collection` NIE są normalizowane: typ deklaruje
+   * je jako opcjonalne (`?`), więc ich brak to poprawny, zamierzony stan.
+   */
+  const znormalizowany: Project = {
+    ...(wpis as Project),
+    year: wpis.year ?? null,
+    client: wpis.client ?? null,
+  };
+  wgSlugu.set(znormalizowany.slug, znormalizowany);
 }
 
 /**
