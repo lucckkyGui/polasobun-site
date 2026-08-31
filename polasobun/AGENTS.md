@@ -680,10 +680,12 @@ korzenia, więc wskazują w głąb `polasobun/`. Panel jest hostowany:
 `app.pagescms.org`, dostęp przez aplikację GitHub, konto klientki z rolą
 Write i włączonym 2FA.
 
-Instrukcja dla klientki: `INSTRUKCJA.md` w korzeniu. Pisana bez żargonu,
-dla osoby nietechnicznej. Cytuje etykiety z `.pages.yml` DOSŁOWNIE —
-zmieniasz tam `label`, zmień i w INSTRUKCJI. Notatki dla wykonawcy siedzą
-w niej jako komentarze HTML; szukaj `NOTATKA DLA WYKONAWCY`.
+Instrukcja dla klientki: `INSTRUKCJA.md` w korzeniu, dziesięć sekcji.
+Pisana bez żargonu, dla osoby nietechnicznej. Cytuje etykiety
+z `.pages.yml` DOSŁOWNIE — zmieniasz tam `label`, zmień i w INSTRUKCJI.
+Notatki dla wykonawcy siedzą w niej jako komentarze HTML; szukaj
+`NOTATKA DLA WYKONAWCY`. Numery sekcji są w niej używane jako odsyłacze
+i cytowane też tutaj — dokładasz sekcję, przejrzyj oba pliki.
 
 KOLEJNOŚĆ, OKŁADKA I WYBÓR DO ALL SĄ DANYMI, NIE KONWENCJĄ NAZW.
 `photos` (kolejność), `cover` (okładka), `featured` (wybór do ALL) to pola
@@ -707,7 +709,7 @@ NOCNY PRZEBIEG JEST DZIŚ WYŁĄCZONY. W `publikacja.yml` wyzwalacz
 `schedule` (cron `0 2 * * *`) jest ZAKOMENTOWANY — czeka na sekrety
 `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` i pierwszy udany wyjazd.
 Dopóki tak jest, zapomniane kliknięcie NIE naprawia się samo, a zmiany
-scalone do `main` czekają, aż ktoś kliknie. `INSTRUKCJA.md` sekcja 8
+scalone do `main` czekają, aż ktoś kliknie. `INSTRUKCJA.md` sekcja 9
 opisuje ten stan i nosi komentarz z listą tego, co przepisać po
 odkomentowaniu crona — wtedy zapomniane kliknięcie naprawi się do rana,
 ale praca zostawiona na noc w połowie też pojedzie na żywo.
@@ -748,7 +750,7 @@ ZDJĘCIA WGRANE PRZEZ PANEL NORMALIZUJE `normalizacja.yml`
 albo `src/assets/portret/**`): dłuższy bok 2560 px, JPEG q82 4:4:4, bez
 EXIF-u, wyłącznie pliki faktycznie będące JPEG-ami. To siatka
 bezpieczeństwa, nie plan A — surowy plik ZOSTAJE W HISTORII na zawsze,
-dlatego INSTRUKCJA.md sekcja 9 daje klientce preset eksportu. Nie próbuj
+dlatego INSTRUKCJA.md sekcja 10 daje klientce preset eksportu. Nie próbuj
 tego naprawiać `--amend` z force-pushem: panel pisze na tę samą gałąź
 i wyścig jest realny.
 
@@ -1048,6 +1050,15 @@ Wyświetlany w 260 px na KAŻDYM ekranie (zamiast 331 px ze źródła), żeby
 ograniczyć skalowanie: 0,7× w dół przy dpr 1, 1,4× w górę przy dpr 2,
 2,1× w górę przy dpr 3 — na telefonie miękki mimo to. Zdejmie to dopiero
 oryginalny plik od klientki, podmiana wtedy to jedna linia.
+
+SAMO WGRANIE WIĘKSZEGO PLIKU NIC NIE DA — `PORTRET_PX` i `densities`
+w `contact.astro` są na sztywno i dobrane pod dzisiejsze 379 px. Klientka
+podmienia plik z panelu (pole „Portret", media `portret`), ale ostrość
+wraca dopiero po zmianie w kodzie: 331 px i przeliczone `densities`.
+`INSTRUKCJA.md` sekcja 7 mówi jej wprost, żeby wgrała i dała znać —
+to jest ta prośba, na którą trzeba odpowiedzieć. Portret musi leżeć
+BEZPOŚREDNIO w `src/assets/portret/`: glob `zdjeciaPortretu` to
+`../assets/portret/*.jpg`, jeden poziom, podfolder wywala `Brak portretu:`.
 
 TEKST BIO ZAWIERA CZTERY POPRAWKI WOBEC STRONY ŹRÓDŁOWEJ — jedyne
 miejsce, gdzie zmieniamy słowa klientki, decyzją klienta. Nie „naprawiać"

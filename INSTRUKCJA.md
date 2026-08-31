@@ -7,7 +7,7 @@ Dwie rzeczy, które warto wiedzieć od razu:
 
 - **Zapisanie zmiany to nie to samo co pokazanie jej na stronie.**
   Zapisane zmiany czekają. Na stronę trafiają dopiero po kliknięciu
-  przycisku **Opublikuj stronę** — sekcja 7.
+  przycisku **Opublikuj stronę** — sekcja 8.
 - **Nic nie psujesz.** Strona zmienia się wtedy, kiedy Ty tego chcesz,
   a każdą zmianę da się cofnąć. Jeśli coś wygląda inaczej, niż tu
   opisano — zadzwoń, zamiast zgadywać.
@@ -32,10 +32,11 @@ Notatki dla Ciebie są w tym pliku wyłącznie jako komentarze HTML
    - **Kolejność kampanii** — w jakiej kolejności ustawiają się
      na stronie głównej,
    - **Strona kontaktowa** — Twój tekst o sobie, portret i dane
-     kontaktowe,
+     kontaktowe (sekcja 7),
    - **Zdjęcia kampanii** — wszystkie pliki zdjęć, poukładane
      w foldery,
-   - **Portret na stronie kontaktowej** — jeden plik z Twoim zdjęciem.
+   - **Portret na stronie kontaktowej** — jeden plik z Twoim zdjęciem
+     (sekcja 7).
 
 Uwaga na powtórzoną nazwę: **Zdjęcia kampanii** to i nazwa spisu
 wszystkich plików ze zdjęciami, i nazwa pola wewnątrz kampanii.
@@ -71,7 +72,7 @@ zostanie taka, jaka była, nic się nie zepsuje, ale zmiana nie wejdzie,
 dopóki plik nie znajdzie się we właściwym miejscu.
 
 Zapisanie to dopiero połowa roboty. Żeby zdjęcia pojawiły się na
-stronie, przejdź do sekcji 7.
+stronie, przejdź do sekcji 8.
 
 <!--
 NOTATKA DLA WYKONAWCY — sekcja 2.
@@ -208,7 +209,95 @@ także zmiany w innych kampaniach. To zabezpieczenie, nie awaria:
 strona nie pokaże kampanii, o której nie wiadomo, w którym miejscu
 ma stanąć.
 
-## 7. Jak opublikować
+## 7. Jak zmienić stronę kontaktową
+
+Strona kontaktowa to trzy rzeczy: tekst o sobie, portret i dane
+kontaktowe. Wszystkie trzy zmieniasz sama, w jednym miejscu — wejdź
+w **Strona kontaktowa**.
+
+### Tekst o sobie
+
+Pole **Bio** to lista akapitów: **jeden wpis to jeden akapit** na
+stronie. Dziś są cztery.
+
+Nie wklejaj całego tekstu do jednego wpisu i nie rozdzielaj akapitów
+pustymi wierszami — dodaj tyle wpisów, ile chcesz mieć akapitów.
+Wpisy możesz poprawiać, dodawać i usuwać.
+
+### Portret
+
+Pole **Portret** wskazuje zdjęcie, które stoi obok tekstu.
+
+1. Przygotuj plik tak samo jak zdjęcia do kampanii — sekcja 10.
+2. Wgraj go i wskaż w polu **Portret**.
+3. Zapisz zmiany.
+
+**Zanim wgrasz lepszy plik, przeczytaj to.** Dzisiejszy portret jest
+mały i na telefonie wychodzi miękko. Sam większy plik tego nie naprawi:
+zdjęcie dalej pokaże się w tej samej wielkości co teraz, bo ta wielkość
+jest dobrana pod ograniczenia obecnego pliku. **Wgraj nowy portret
+i daj mi znać** — muszę wtedy poprawić jedno ustawienie po swojej
+stronie. Dopiero razem to zadziała.
+
+### Dane kontaktowe
+
+Pole **Dane kontaktowe** to lista pozycji — dziś trzy: telefon, mail
+i Instagram. Każda pozycja jest zwinięta do samej etykiety, więc widzisz
+krótką listę. Kliknij pozycję, żeby ją rozwinąć.
+
+W każdej pozycji są cztery rzeczy do wypełnienia:
+
+- **Etykieta** — podpis z lewej strony: `tel`, `mail`, `instagram`.
+  Na stronie pokazuje się WIELKIMI LITERAMI, niezależnie od tego, jak
+  ją wpiszesz.
+- **Widoczny tekst** — to, co ludzie przeczytają: `883 180 410`,
+  `polasobun@gmail.com`, `@polasobun`.
+- **Odnośnik** — co się stanie po kliknięciu. Trzy wzory, trzymaj się
+  ich co do znaku:
+  - telefon: `tel:` i numer z kierunkowym kraju, bez spacji —
+    `tel:+48883180410`,
+  - mail: `mailto:` i adres — `mailto:polasobun@gmail.com`,
+  - Instagram albo inna strona: pełny adres razem z `https://` —
+    `https://www.instagram.com/polasobun/`.
+- **Otwiera nową kartę** — zaznacz **tylko** przy odnośnikach do innych
+  stron, czyli dziś przy Instagramie. Wtedy Instagram otworzy się w nowej
+  karcie, a Twoja strona zostanie w swojej — odwiedzający jej nie traci.
+  **Nie zaznaczaj przy telefonie
+  i mailu.** One nie otwierają żadnej strony, tylko uruchamiają telefon
+  albo program pocztowy — zaznaczenie zostawiłoby po nich pustą, martwą
+  kartę.
+
+Pozycje możesz dodawać i usuwać. Kolejność na stronie jest taka sama
+jak na liście.
+
+Na koniec zapisz zmiany. Na stronie zobaczysz je dopiero po
+opublikowaniu — sekcja 8.
+
+<!--
+NOTATKA DLA WYKONAWCY — sekcja 7.
+1. Wygląd list („Bio" jako `text` z `list: true`, „Dane kontaktowe" jako
+   `object` z `list.collapsible.summary: '{fields.etykieta}'`) opisany
+   z konfiguracji, NIE ze zrzutu ekranu. Zwłaszcza zdanie „każda pozycja
+   jest zwinięta do samej etykiety" wymaga potwierdzenia przy kroku 4
+   planu — jeśli panel renderuje to inaczej, popraw ten akapit.
+2. PORTRET, dlaczego samo wgranie nie wystarczy: `contact.astro` ma na
+   sztywno `PORTRET_PX = 260` i `densities={[1, 1.45]}` (1,45 × 260 =
+   377 ≤ 379 px, czyli maksimum, jakie udźwignie dzisiejszy plik).
+   Po dostaniu prawdziwego oryginału wraca 331 px i trzeba przeliczyć
+   `densities` — komentarz w `contact.astro` mówi to samo. Instrukcja
+   celowo nie podaje klientce ani liczb, ani nazw ustawień: ma wgrać
+   plik i dać znać.
+3. Portret musi leżeć BEZPOŚREDNIO w `src/assets/portret/` — glob
+   `zdjeciaPortretu` to `../assets/portret/*.jpg`, jeden poziom. Podfolder
+   założony z panelu wywali `Brak portretu:` przy budowaniu. Ten sam
+   rodzaj pułapki co przy zdjęciach kampanii (sekcja 2).
+4. Stary plik portretu zostaje w folderze, tylko przestaje być wskazany.
+   To nie jest problem — nie każ klientce niczego kasować.
+5. `normalizacja.yml` obejmuje też `src/assets/portret/**`, więc portret
+   przechodzi tę samą normalizację co zdjęcia kampanii.
+-->
+
+## 8. Jak opublikować
 
 To ten moment, w którym zmiany trafiają na stronę.
 
@@ -226,7 +315,7 @@ w kolejności. Wtedy strona zostaje w poprzedniej, działającej wersji
 i czeka, aż się to poprawi.
 
 <!--
-NOTATKA DLA WYKONAWCY — sekcja 7, punkt 4.
+NOTATKA DLA WYKONAWCY — sekcja 8, punkt 4.
 Celowo „swoją stronę", bez adresu. Dziś `polasobun/astro.config.mjs`
 ma `site: 'https://polasobun-site.vercel.app'` — adres techniczny,
 tymczasowy; `www.polasobun.com` nadal serwuje starą witrynę z Formatu,
@@ -236,7 +325,7 @@ klientki wstaw docelowy adres w tym punkcie ORAZ w sekcji 6 krok 3
 (przykład `polasobun.com/work/TO-POLE`), jeśli miałby się różnić.
 -->
 
-## 8. Co się dzieje, jeśli zapomnisz kliknąć
+## 9. Co się dzieje, jeśli zapomnisz kliknąć
 
 Nic złego. Zmiany zostają zapisane i czekają.
 
@@ -257,7 +346,7 @@ widoczna. Weź to za nawyk — skończona zmiana kończy się kliknięciem.
 
 <!--
 =========================================================================
-NOTATKA DLA WYKONAWCY — sekcja 8. NAJWAŻNIEJSZA W TYM PLIKU.
+NOTATKA DLA WYKONAWCY — sekcja 9. NAJWAŻNIEJSZA W TYM PLIKU.
 =========================================================================
 Ta sekcja opisuje STAN NA DZIŚ: w `.github/workflows/publikacja.yml`
 wyzwalacz `schedule` (cron '0 2 * * *') jest ZAKOMENTOWANY i czeka na
@@ -274,15 +363,15 @@ bilansu naraz:
 Drugi punkt trzeba napisać klientce WPROST — dziś jest odwrotnie niż
 będzie, więc nawyk „mogę zostawić w połowie" przestanie być bezpieczny.
 DO PRZEPISANIA WTEDY, LISTA ZAMKNIĘTA:
-  - cała sekcja 8, razem z akapitem o zostawianiu pracy w połowie;
+  - cała sekcja 9, razem z akapitem o zostawianiu pracy w połowie;
   - wstęp, drugi punkt: „Strona zmienia się wtedy, kiedy Ty tego
     chcesz" — przestanie być prawdą;
-  - wstęp, pierwszy punkt i sekcja 7: „Na stronę trafiają dopiero
+  - wstęp, pierwszy punkt i sekcja 8: „Na stronę trafiają dopiero
     po kliknięciu" wymaga wtedy zastrzeżenia „albo w nocy".
 =========================================================================
 -->
 
-## 9. Jak przygotować zdjęcia przed wgraniem
+## 10. Jak przygotować zdjęcia przed wgraniem
 
 Ustaw w Lightroomie albo Capture One taki eksport i zapisz go sobie
 jako gotowe ustawienie:
