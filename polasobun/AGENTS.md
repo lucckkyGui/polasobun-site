@@ -310,7 +310,7 @@ widoku ALL do wybranych kadrów, nie samych optymalizacji technicznych:
 ALL pokazywało 101 kafli zamiast 359. (W dzisiejszym kodzie nie ma
 stałej o nazwie MAX_W_ALL — sprawdzone: `grep -rn 'MAX_W_ALL' src/` nic
 nie zwraca. Ograniczenie działa dziś inaczej: ALL renderuje sumę pól
-`featured` z projects.json, bez osobnego limitu, co daje 100 kafli —
+`featured` z wpisów kampanii, bez osobnego limitu, co daje 100 kafli —
 patrz sekcja „Kolejność zdjęć w siatce" niżej.)
 
 Spadek węzłów wymagających układu z 1241 na 324 to bezpośredni dowód,
@@ -637,24 +637,120 @@ docelowej platformie.
   więc nas to nie dotyczy — ale nie wracaj do entry.slug.
 
 ## Model danych
-src/content/projects.json — jeden wpis = jedna kampania.
-src/content/projects.ts — typ Project + eksport `projects`.
-src/assets/photos/<slug>/ — zdjęcia projektu. 01.jpg to zawsze okładka.
+src/content/projects/<slug>.json — JEDEN PLIK NA KAMPANIĘ (17 plików).
+Wspólny src/content/projects.json NIE ISTNIEJE — rozpadł się w migracji.
+src/content/order.json — kolejność kampanii: tablica slugów pod kluczem
+`kolejnosc`. Jedyne źródło kolejności; nazwy plików wpisów nie znaczą nic.
+src/content/projects.ts — typ Project + eksport `projects`. Skleja jedno
+z drugim i RZUCA przy rozjeździe: duplikat slugu w order.json, slug bez
+pliku wpisu, plik wpisu spoza order.json.
+src/assets/photos/<slug>/ — zdjęcia projektu.
 Nazwa folderu MUSI odpowiadać slugowi.
 src/assets/photos/_portraits/ i _food/ — zdjęcia spoza nazwanych kampanii.
+src/assets/portret/ — portret na /contact. Osobny folder, żeby dało się
+go podmienić z panelu.
+
+OKŁADKA TO POLE `cover` WE WPISIE, NIE KONWENCJA NAZWY PLIKU. `01.jpg`
+nie znaczy już nic — to zwykłe zdjęcie jak każde inne. Gdy klientka
+wskaże inną okładkę, zmienia się JEDNA WARTOŚĆ w jej wpisie; NIE
+przenumerowuj folderu i nie wracaj do konwencji. Kolejność zdjęć na
+stronie kampanii bierze się z tablicy `photos`, wybór do ALL z tablicy
+`featured` — obie trzymają pełne ścieżki `/photos/<slug>/<plik>.jpg`.
+Migracja (zadania 1-4) przeniosła te trzy rzeczy — kolejność, okładkę
+i wybór do ALL — z nazw plików do danych. To był cały jej sens.
 
 Źródłem prawdy dla zdjęć jest ~/Documents/pola sobun.com/KLIENCI/<slug>/.
 Do repo trafiają wersje pod web: dłuższy bok max 2560 px, JPEG q82
-(mozjpeg, 4:4:4), przenumerowane na 01.jpg…NN.jpg wg kolejności nazw
-w źródle. 1370 MB oryginałów → 202 MB w repo. Nie commituj oryginałów.
-Okładką jest 01.jpg, czyli pierwszy plik alfabetycznie ze źródła —
-jeśli klientka wskaże inną, przenumeruj folder, nie zmieniaj konwencji.
+(mozjpeg, 4:4:4). 1370 MB oryginałów → 202 MB w repo. Nie commituj
+oryginałów. Dzisiejsze pliki w repo nazywają się 01.jpg…NN.jpg po
+imporcie ze źródła — to już tylko ślad po historii, nie konwencja
+i nie umowa: panel wgrywa pliki pod ich własnymi nazwami.
 
 year pochodzi wyłącznie od klientki lub z jej istniejącej strony.
 Nigdy nie uzupełniaj danymi z makiety ani wnioskowaniem.
 Lata w Portfolio.dc.html to placeholdery narzędzia do makiet — nie dane.
 Sprawdzone 2026-08-25: polasobun.com nie podaje nigdzie roku realizacji,
 więc wszystkie year są null.
+
+## CMS — panel klientki (Pages CMS)
+
+Konfiguracja: `.pages.yml` w KORZENIU repozytorium, nie w `polasobun/`.
+Panel wymaga tego pliku w korzeniu; ścieżki w nim są względne wobec
+korzenia, więc wskazują w głąb `polasobun/`. Panel jest hostowany:
+`app.pagescms.org`, dostęp przez aplikację GitHub, konto klientki z rolą
+Write i włączonym 2FA.
+
+Instrukcja dla klientki: `INSTRUKCJA.md` w korzeniu. Pisana bez żargonu,
+dla osoby nietechnicznej. Cytuje etykiety z `.pages.yml` DOSŁOWNIE —
+zmieniasz tam `label`, zmień i w INSTRUKCJI. Notatki dla wykonawcy siedzą
+w niej jako komentarze HTML; szukaj `NOTATKA DLA WYKONAWCY`.
+
+KOLEJNOŚĆ, OKŁADKA I WYBÓR DO ALL SĄ DANYMI, NIE KONWENCJĄ NAZW.
+`photos` (kolejność), `cover` (okładka), `featured` (wybór do ALL) to pola
+we wpisie kampanii; kolejność kampanii to `order.json`. `01.jpg` przestało
+cokolwiek znaczyć. Szczegóły: sekcja „Model danych" wyżej.
+
+SORTOWANIE NAZW PLIKÓW TO `a.localeCompare(b)` BEZ OPCJI. Nie zamieniaj
+na sortowanie numeryczne ani na `{ numeric: true }`. `_portraits` ma 114
+plików z numeracją trzycyfrową i dzisiejsza kolejność to
+`10.jpg, 100.jpg, 101.jpg, …, 11.jpg` — zmiana kolatora przestawia
+galerię i wywala dowód identyczności `dist` z zadania 1.
+
+JEDYNA DROGA NA PRODUKCJĘ TO `publikacja.yml`. Uruchamia go przycisk
+„Opublikuj stronę" z panelu (`workflow_dispatch`) albo ręczne
+uruchomienie. Workflow publikuje WYŁĄCZNIE z `main`
+(`if: github.ref == 'refs/heads/main'`). Znacznik `wydane` jest jedyną
+odpowiedzią na pytanie „co jest teraz na żywo" — `git log wydane -1`.
+Niczym innym na produkcję nie wysyłamy.
+
+NOCNY PRZEBIEG JEST DZIŚ WYŁĄCZONY. W `publikacja.yml` wyzwalacz
+`schedule` (cron `0 2 * * *`) jest ZAKOMENTOWANY — czeka na sekrety
+`CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` i pierwszy udany wyjazd.
+Dopóki tak jest, zapomniane kliknięcie NIE naprawia się samo, a zmiany
+scalone do `main` czekają, aż ktoś kliknie. `INSTRUKCJA.md` sekcja 8
+opisuje ten stan i nosi komentarz z listą tego, co przepisać po
+odkomentowaniu crona — wtedy zapomniane kliknięcie naprawi się do rana,
+ale praca zostawiona na noc w połowie też pojedzie na żywo.
+
+PIĘĆ NIEPEWNYCH OPCJI KONFIGURACJI — NIEZWERYFIKOWANE, stan na
+2026-08-31. Zadanie 5 krok 4 wymaga klikania w panelu (konto klientki
+plus przeglądarka), więc nie zostało wykonane. W specyfikacji te opcje są
+OCZEKIWANE, nie zmierzone; nie polegaj na nich. Do sprawdzenia, każde
+z zapisaniem wyniku TUTAJ:
+
+  1. Czy `photos` (`image`, `multiple`) da się przeciągać myszką?
+     Test: kampania `pandora`, przestaw dwa zdjęcia, zapisz, obejrzyj
+     `src/content/projects/pandora.json`.
+  2. Czy `kolejnosc` (typ `reference`, `multiple`) da się przeciągać?
+     To samo na `order.json`.
+  3. Czy `value: '{fields.slug}'` zapisuje sam slug, czy ścieżkę pliku?
+     `order.json` MUSI zostać tablicą `["pandora", "rimmel", …]`. Jeśli
+     panel zapisze ścieżki, `projects.ts` przestanie działać — wtedy albo
+     szablon do zmiany, albo `projects.ts` do dopasowania.
+  4. Czy `pattern: '^[a-z0-9_-]+$'` działa na polu typu `string`?
+     Test: slug `Wielkie Litery`. Jeśli panel przyjmie, opcja jest
+     ignorowana: usuń linię z `.pages.yml` i odnotuj to tu.
+  5. Czy `_portraits` i `_food` otwierają się i zapisują BEZ zmiany nazwy
+     pliku? Szablon `filename: '{fields.slug}.json'` slugifikuje wartość,
+     ale nazywa wyłącznie NOWE wpisy — to trzeba potwierdzić, nie założyć.
+
+Nie wpisuj tu wyników, których nie zobaczyłeś na ekranie.
+
+PUŁAPKA: ZDJĘCIA MUSZĄ LEŻEĆ W `photos/<slug>/`. `projects.ts` czyta je
+globem `../assets/photos/*/*.jpg` — dokładnie jeden poziom folderu. Plik
+wgrany przez panel do korzenia `photos/` nie wejdzie do mapy, a
+`zdjecie()` rzuci `Brak pliku zdjęcia:` przy budowaniu. Awaria jest
+bezpieczna (publikacja pada, produkcja zostaje stara), ale dla klientki
+nieczytelna — dlatego INSTRUKCJA.md sekcja 2 mówi o folderze wprost.
+
+ZDJĘCIA WGRANE PRZEZ PANEL NORMALIZUJE `normalizacja.yml`
+(`scripts/normalizuj-zdjecia.mjs`; push na `main` w `src/assets/photos/**`
+albo `src/assets/portret/**`): dłuższy bok 2560 px, JPEG q82 4:4:4, bez
+EXIF-u, wyłącznie pliki faktycznie będące JPEG-ami. To siatka
+bezpieczeństwa, nie plan A — surowy plik ZOSTAJE W HISTORII na zawsze,
+dlatego INSTRUKCJA.md sekcja 9 daje klientce preset eksportu. Nie próbuj
+tego naprawiać `--amend` z force-pushem: panel pisze na tę samą gałąź
+i wyścig jest realny.
 
 ## Kolejność zdjęć w siatce
 ROUND-ROBIN po sesjach: najpierw pierwsze zdjęcie z każdej sesji, potem
@@ -663,8 +759,9 @@ wychodziło po kilkanaście kadrów z rzędu z tej samej kampanii.
 Zweryfikowane po zmianie: w widoku ALL ZERO sąsiadujących kafli z tej
 samej sesji.
 
-O tym, co trafia do ALL, decyduje pole `featured` w projects.json —
-lista nazw plików w kolejności od najmocniejszego kadru. Wybrane RĘCZNIE
+O tym, co trafia do ALL, decyduje pole `featured` we wpisie kampanii —
+lista ścieżek `/photos/<slug>/<plik>.jpg` w kolejności od najmocniejszego
+kadru. Wybrane RĘCZNIE
 z arkuszy stykowych (skrypt generujący je: patrz historia gita), po
 sześć na sesję poza allegro, które ma tylko cztery kadry poza okładką.
 Kryterium: czytelność z kafla wielkości znaczka — mocna plama koloru,
@@ -719,7 +816,7 @@ Pole tags przyjmuje wyłącznie: commercial | portraits | food.
 ALL NIE jest brakiem filtra — to pełnoprawny widok. Cztery zakładki
 pokazują dwa różne rodzaje kafli:
   ALL         wszystkie pojedyncze zdjęcia, BEZ podpisów i bez linków
-  COMMERCIAL  okładki kampanii (01.jpg), Z podpisem i linkiem /work/<slug>
+  COMMERCIAL  okładki kampanii (pole `cover`), Z podpisem i linkiem /work/<slug>
   PORTRAITS   zdjęcia z folderów tagowanych portraits, bez podpisów
   FOOD        zdjęcia z folderów tagowanych food, bez podpisów
 
@@ -943,7 +1040,7 @@ blokowym. Nie wracać do `display: contents` na elemencie z rolą
 landmarku.
 
 PORTRET MA 379 PX I NA TELEFONIE POZOSTAJE MIĘKKI. Plik
-`src/assets/portret-pola-sobun.jpg`: 379×379 (nie 380 — parametry adresu
+`src/assets/portret/portret-pola-sobun.jpg`: 379×379 (nie 380 — parametry adresu
 CDN mówią 380, ale Format zaokrągla w dół), 26 kB. CDN Formatu podpisuje
 adresy HMAC-iem związanym z konkretnym kadrem i rozmiarem: żądania
 o 1200×1200 i 2000×2000 wracają z 403, 379×379 to jedyna dostępna wersja.
