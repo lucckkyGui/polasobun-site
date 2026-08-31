@@ -1,5 +1,10 @@
 /**
- * Jednorazowa migracja modelu danych.
+ * Jednorazowa migracja modelu danych. JUŻ WYKONANA — commit 3c49ea5.
+ *
+ * Zostaje w drzewie jako dokumentacja tego, JAK migracja przebiegła
+ * (skąd wzięła się kolejność w photos i która nazwa została okładką).
+ * Uruchomić się go już nie da: src/content/projects.json, czyli jedyne
+ * jego źródło, został w tym samym commicie usunięty. Nie ma czego migrować.
  *
  * Z jednego projects.json robi plik per kampania plus order.json,
  * i przenosi kolejność zdjęć oraz okładkę z konwencji nazw plików
@@ -11,7 +16,7 @@
  * 10.jpg, 100.jpg, ..., 11.jpg. Kolator numeryczny przestawiłby
  * galerię.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,7 +24,23 @@ const tu = dirname(fileURLToPath(import.meta.url));
 const tresc = join(tu, '..', 'src', 'content');
 const zdjecia = join(tu, '..', 'src', 'assets', 'photos');
 
-const dane = JSON.parse(readFileSync(join(tresc, 'projects.json'), 'utf8'));
+/*
+ * Gołe ENOENT z readFileSync niczego by nie wyjaśniło — kto tu trafi,
+ * zobaczyłby awarię zamiast informacji, że skrypt jest historyczny.
+ */
+const zrodlo = join(tresc, 'projects.json');
+if (!existsSync(zrodlo)) {
+  console.error(
+    'Ten skrypt jest historyczny i nie ma czego migrować.\n' +
+      'Migracja została wykonana w commicie 3c49ea5, a src/content/projects.json\n' +
+      'usunięty w tym samym commicie. Aktualny model danych to\n' +
+      'src/content/projects/<slug>.json (plik per kampania) plus\n' +
+      'src/content/order.json (kolejność kampanii).',
+  );
+  process.exit(1);
+}
+
+const dane = JSON.parse(readFileSync(zrodlo, 'utf8'));
 
 mkdirSync(join(tresc, 'projects'), { recursive: true });
 

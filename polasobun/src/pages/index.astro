@@ -34,15 +34,45 @@ const tiles: Tile[] = [];
  *       ani tagu portraits/food, nie trafiłoby do żadnej zakładki —
  *       jest pomijane i zostaje na stronie swojej kampanii.
  */
+/*
+ * OKŁADKA NIE WCHODZI DO SIATKI ZDJĘĆ — ani przez `wybrane`, ani przez
+ * `reszta`, bo obie gałęzie prowadzą do kafli obok kafla kampanii:
+ * w ALL okładka dublowałaby kafel z COMMERCIAL, a w PORTRAITS i FOOD
+ * stanęłaby tuż obok niego. Kolekcje (_portraits, _food) są spod tej
+ * reguły wyjęte: nie mają kafla kampanii, więc u nich okładka jest
+ * zwykłym zdjęciem i zostaje.
+ *
+ * Reguła MUSI stać w kodzie i w obu gałęziach. Do migracji trzymała ją
+ * konwencja: `cover` to zawsze było `01.jpg`, a `featured` kurowane ręcznie
+ * nigdy `01.jpg` nie zawierało. Panel tę konwencję kasuje — klientka
+ * wskaże jako okładkę kadr już obecny w `featured`, bo to rzecz najbardziej
+ * naturalna, i bez filtru na `wybrane` zobaczyłaby go dwa razy.
+ */
 const kolejki = projects.map((project) => {
-  const wybrane = (project.featured ?? []).filter((s) => project.photos.includes(s));
-  const wybraneZbior = new Set(wybrane);
-  // Okładka nie wchodzi do ALL: pokazuje ją kafel kampanii w COMMERCIAL,
-  // więc w ALL witałaby drugi raz. Kolekcje (_portraits, _food) nie mają
-  // kafla kampanii, więc u nich okładka zostaje.
-  const reszta = project.photos.filter(
-    (s) => !wybraneZbior.has(s) && (project.collection || s !== project.cover),
+  const jestOkladka = (s: string) => !project.collection && s === project.cover;
+
+  /*
+   * `featured` może wskazywać zdjęcie, którego nie ma już w `photos` —
+   * klientka usunęła kadr w panelu, ale nie wyczyściła wyboru do ALL.
+   * Odrzucamy taki wpis, żeby build przeżył zwykłą edycję (to sytuacja
+   * normalna, nie awaria), ale GŁOŚNO: ciche odrzucanie niedopasowanych
+   * kadrów wysypało pierwsze podejście do tej migracji — zniknęły 64 kafle
+   * i nic tego nie zgłosiło. Ostrzeżenie idzie do logu builda, czyli tam,
+   * gdzie ktoś je zobaczy.
+   */
+  const nieznane = (project.featured ?? []).filter((s) => !project.photos.includes(s));
+  if (nieznane.length) {
+    console.warn(
+      `UWAGA: kampania "${project.slug}" ma w featured zdjęcia spoza photos — ` +
+        `pomijam: ${nieznane.join(', ')}`,
+    );
+  }
+
+  const wybrane = (project.featured ?? []).filter(
+    (s) => project.photos.includes(s) && !jestOkladka(s),
   );
+  const wybraneZbior = new Set(wybrane);
+  const reszta = project.photos.filter((s) => !wybraneZbior.has(s) && !jestOkladka(s));
   return { project, wybrane, reszta };
 });
 

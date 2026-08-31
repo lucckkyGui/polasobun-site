@@ -28,9 +28,9 @@ export interface Project {
    */
   cover: string;
   /**
-   * Wszystkie zdjęcia kampanii, W KOLEJNOŚCI WYŚWIETLANIA. Strona
-   * /work/<slug> renderuje dokładnie tę listę, w tej kolejności.
-   * Klientka układa ją przeciąganiem w panelu.
+   * Pełna lista zdjęć kampanii, w kolejności ustalonej przez klientkę
+   * przeciąganiem w panelu. Kolejność jest częścią danych — przestała
+   * być pochodną nazw plików.
    */
   photos: string[];
   /**
@@ -51,8 +51,26 @@ const wpisy = import.meta.glob<{ default: Project }>('./projects/*.json', {
 });
 
 const wgSlugu = new Map<string, Project>();
-for (const mod of Object.values(wpisy)) {
-  wgSlugu.set(mod.default.slug, mod.default);
+for (const [plik, mod] of Object.entries(wpisy)) {
+  /*
+   * Parametr typu przy import.meta.glob to TWIERDZENIE, nie walidacja —
+   * Vite niczego nie sprawdza, a JSON z panelu nie przechodzi przez
+   * kompilator. Wpis bez pola `photos` wywaliłby się dopiero w index.astro
+   * jako "Cannot read properties of undefined (reading 'includes')", bez
+   * wskazania pliku. Sprawdzamy tutaj, póki wiemy, skąd wpis pochodzi.
+   */
+  const wpis = mod.default as Partial<Project> | undefined;
+  if (
+    typeof wpis?.slug !== 'string' ||
+    typeof wpis.cover !== 'string' ||
+    !Array.isArray(wpis.photos)
+  ) {
+    throw new Error(
+      `Niepoprawny wpis kampanii w ${plik}: wymagane slug (string), ` +
+        `cover (string) i photos (tablica).`,
+    );
+  }
+  wgSlugu.set(wpis.slug, wpis as Project);
 }
 
 /**
@@ -60,7 +78,21 @@ for (const mod of Object.values(wpisy)) {
  * Steruje dwiema rzeczami naraz: kolejnością kafli w COMMERCIAL
  * i rundami round-robina w ALL.
  */
-export const projects: Project[] = (order.kolejnosc as string[]).map((slug) => {
+const kolejnosc = order.kolejnosc as string[];
+
+/*
+ * Zdublowany slug renderowałby kampanię dwa razy — dwa identyczne kafle
+ * w COMMERCIAL. Sprawdzamy to OSOBNO, bo poprzednia bramka porównywała
+ * liczności i dało się ją oszukać: duplikat w order.json plus jeden nowy
+ * plik wpisu dają równe liczby, więc wyjątek nie padał, nowa kampania
+ * była niewidoczna, a zdublowana szła dwa razy.
+ */
+const powtorzone = [...new Set(kolejnosc.filter((slug, i) => kolejnosc.indexOf(slug) !== i))];
+if (powtorzone.length) {
+  throw new Error(`Powtórzone slugi w order.json: ${powtorzone.join(', ')}`);
+}
+
+export const projects: Project[] = kolejnosc.map((slug) => {
   const wpis = wgSlugu.get(slug);
   if (!wpis) throw new Error(`order.json wskazuje nieistniejącą kampanię "${slug}"`);
   return wpis;
@@ -69,13 +101,16 @@ export const projects: Project[] = (order.kolejnosc as string[]).map((slug) => {
 /*
  * Kampania spoza order.json byłaby niewidoczna na stronie głównej, ale
  * nadal generowałaby /work/<slug> i wpis w sitemapie. Cicha rozbieżność
- * jest gorsza niż zerwany build — dlatego rzucamy.
+ * jest gorsza niż zerwany build — dlatego rzucamy. Porównujemy ZBIORY,
+ * nie liczności: tylko to wyłapie brakujący wpis niezależnie od tego, czy
+ * order.json ma gdzie indziej duplikat.
  */
-if (projects.length !== wgSlugu.size) {
-  const brakujace = [...wgSlugu.keys()].filter(
-    (slug) => !(order.kolejnosc as string[]).includes(slug),
+const wKolejnosci = new Set(kolejnosc);
+const pozaKolejnoscia = [...wgSlugu.keys()].filter((slug) => !wKolejnosci.has(slug));
+if (pozaKolejnoscia.length) {
+  throw new Error(
+    `Kampanie mają plik wpisu, ale nie ma ich w order.json: ${pozaKolejnoscia.join(', ')}`,
   );
-  throw new Error(`Kampanie spoza order.json: ${brakujace.join(', ')}`);
 }
 
 /**
