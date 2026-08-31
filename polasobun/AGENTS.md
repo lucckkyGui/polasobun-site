@@ -581,6 +581,28 @@ Przestrzenie --radius-*, --shadow-*, --inset-shadow-*, --drop-shadow-*
 są wykasowane (: initial) — brak zaokrągleń i cieni jest wymuszony na
 poziomie tokenów, nie tylko umową.
 
+## Tailwind 4 — KOMENTARZ POTRAFI ZMIENIĆ ZBUDOWANY CSS
+
+`global.css` każe Tailwindowi skanować `src/**` przez `@source`, a skan
+NIE ODRÓŻNIA kodu od komentarza ani od zwykłej prozy. Nazwa napisana
+w komentarzu jako samotny wyraz trafia do skanu tak samo jak klasa
+w znacznikach. Część nazw metod tablicowych pokrywa się z nazwami
+własności CSS, więc Tailwind generuje wtedy odpowiadające im utility
+razem z całym zestawem `@property`.
+
+Zmierzone 2026-08-31 przy pisaniu bramki walidującej w `projects.ts`:
+JEDNO takie słowo w komentarzu dokleiło **1205 bajtów do każdej z 19
+stron** — arkusz idzie inline (`inlineStylesheets: 'always'`), więc koszt
+mnoży się przez liczbę stron — i wywaliło dowód identyczności `dist`.
+
+Praktyczna reguła: w komentarzach w `src/**` nazwy metod pisz SKLEJONE
+z nawiasem, w formie `nazwa(...)`. Dotyczy to każdego pliku pod `src/`,
+nie tylko tego, w którym pułapka wyszła.
+
+Objaw jest mylący: `dist` rozjeżdża się po zmianie, która nie dotknęła
+ani jednej linii kodu wykonywalnego. Zanim zaczniesz szukać w logice,
+sprawdź `dist/_astro/*.css`.
+
 ## Tailwind 4 — kaskada warstw
 Reguły filtrowania siatki (display:none po data-filter) leżą w global.css
 POZA @layer. To celowe: styl bez warstwy wygrywa w kaskadzie z każdą
