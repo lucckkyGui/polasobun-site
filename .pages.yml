@@ -1,0 +1,140 @@
+# Konfiguracja panelu na app.pagescms.org. Plik MUSI leżeć w korzeniu
+# repozytorium; ścieżki są względne wobec repo, więc wskazują w głąb
+# polasobun/.
+
+media:
+  - name: zdjecia
+    label: Zdjęcia kampanii
+    input: polasobun/src/assets/photos
+    output: /photos
+    categories: [image]
+    extensions: [jpg, jpeg]
+  - name: portret
+    label: Portret na stronie kontaktowej
+    input: polasobun/src/assets/portret
+    output: /portret
+    categories: [image]
+    extensions: [jpg, jpeg]
+
+content:
+  - name: kampanie
+    label: Kampanie
+    type: collection
+    path: polasobun/src/content/projects
+    format: json
+    filename: '{fields.slug}.json'
+    view:
+      primary: title
+      fields: [title, client, tags]
+    fields:
+      - name: title
+        label: Nazwa
+        type: string
+        required: true
+      - name: slug
+        label: Adres strony
+        type: string
+        required: true
+        # Bez wzorca literówka w slugu tworzy kampanię wskazującą
+        # nieistniejący folder zdjęć i wywala build dopiero przy
+        # publikacji. Jeśli panel odrzuci `pattern` jako nieznaną opcję,
+        # usuń tę linię i zapisz to w AGENTS.md — sam opis niżej zostaje.
+        pattern: '^[a-z0-9_-]+$'
+        description: >-
+          polasobun.com/work/TO-POLE. Małe litery, bez polskich znaków
+          i spacji. Po opublikowaniu NIE zmieniaj — zepsuje odnośniki.
+      - name: client
+        label: Klient
+        type: string
+      - name: year
+        label: Rok
+        type: number
+      - name: tags
+        label: Zakładki
+        type: select
+        options:
+          multiple: true
+          values: [commercial, portraits, food]
+      - name: cover
+        label: Okładka
+        type: image
+        description: >-
+          Kafel tej kampanii w zakładce COMMERCIAL. Jeśli wskażesz zdjęcie,
+          które jest też wśród kadrów na stronę główną, zniknie ono
+          z zakładki ALL — żeby nie pokazywać go dwa razy.
+        options:
+          media: zdjecia
+      - name: featured
+        label: Kadry na stronę główną
+        type: image
+        description: >-
+          Od najmocniejszego. Kryterium to czytelność z kafla wielkości
+          znaczka: mocna plama koloru, jeden bohater, kontrast.
+        options:
+          media: zdjecia
+          multiple: { max: 6 }
+          unique: true
+      - name: photos
+        label: Zdjęcia kampanii
+        type: image
+        description: Kolejność jak na stronie kampanii. Przeciągaj, żeby zmienić.
+        options:
+          media: zdjecia
+          multiple: true
+          unique: true
+      - name: collection
+        label: Galeria zbiorcza
+        type: boolean
+        description: Zaznaczone tylko dla _portraits i _food. Nie ruszaj.
+      - name: legacyPath
+        label: Stary adres
+        type: string
+        description: Adres na dawnej stronie. Nie dodawaj nowych.
+
+  - name: kolejnosc
+    label: Kolejność kampanii
+    type: file
+    path: polasobun/src/content/order.json
+    format: json
+    fields:
+      - name: kolejnosc
+        label: Kolejność
+        type: reference
+        options:
+          collection: kampanie
+          multiple: true
+          value: '{fields.slug}'
+          label: '{fields.title}'
+
+  - name: kontakt
+    label: Strona kontaktowa
+    type: file
+    path: polasobun/src/content/contact.json
+    format: json
+    fields:
+      - name: akapity
+        label: Bio
+        type: text
+        list: true
+      - name: portret
+        label: Portret
+        type: image
+        options:
+          media: portret
+      - name: kontakt
+        label: Dane kontaktowe
+        type: object
+        list:
+          collapsible:
+            summary: '{fields.etykieta}'
+        fields:
+          - { name: etykieta, label: Etykieta, type: string }
+          - { name: tekst, label: Widoczny tekst, type: string }
+          - { name: href, label: Odnośnik, type: string }
+          - { name: zewnetrzny, label: Otwiera nową kartę, type: boolean }
+
+actions:
+  - name: publikuj
+    label: Opublikuj stronę
+    workflow: publikacja.yml
+    ref: current
