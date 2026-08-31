@@ -692,11 +692,21 @@ KOLEJNOŚĆ, OKŁADKA I WYBÓR DO ALL SĄ DANYMI, NIE KONWENCJĄ NAZW.
 we wpisie kampanii; kolejność kampanii to `order.json`. `01.jpg` przestało
 cokolwiek znaczyć. Szczegóły: sekcja „Model danych" wyżej.
 
-SORTOWANIE NAZW PLIKÓW TO `a.localeCompare(b)` BEZ OPCJI. Nie zamieniaj
-na sortowanie numeryczne ani na `{ numeric: true }`. `_portraits` ma 114
-plików z numeracją trzycyfrową i dzisiejsza kolejność to
-`10.jpg, 100.jpg, 101.jpg, …, 11.jpg` — zmiana kolatora przestawia
-galerię i wywala dowód identyczności `dist` z zadania 1.
+ŻYWY KOD NIE SORTUJE DZIŚ NAZW PLIKÓW. Kolejność zdjęć bierze się z pola
+`photos` we wpisie kampanii — migracja przeniosła ją z nazw do danych.
+`grep -rn localeCompare src/ scripts/` trafia wyłącznie w jedno miejsce:
+`scripts/migruj-model.mjs`.
+
+REGUŁA O KOLATORZE DOTYCZY WYŁĄCZNIE `migruj-model.mjs` — skryptu
+jednorazowego, już nieuruchamialnego, zostawionego jako ślad migracji.
+Ma znaczenie w jednym jedynym przypadku: gdyby ktoś ten skrypt odtwarzał
+albo pisał na jego wzór drugi. Sortowanie było tam `a.localeCompare(b)`
+BEZ OPCJI — nie numeryczne, nie `{ numeric: true }`. `_portraits` ma 114
+plików z numeracją trzycyfrową, więc do `photos` weszła wtedy kolejność
+`10.jpg, 100.jpg, 101.jpg, …, 11.jpg`. Odtworzenie skryptu z innym
+kolatorem przepisałoby `photos`, przestawiło galerię i wywaliło dowód
+identyczności `dist` z zadania 1. Podmiana kolatora w DZISIEJSZYM kodzie
+nie zmienia niczego — nie ma tam czego przestawiać.
 
 JEDYNA DROGA NA PRODUKCJĘ TO `publikacja.yml`. Uruchamia go przycisk
 „Opublikuj stronę" z panelu (`workflow_dispatch`) albo ręczne
@@ -714,7 +724,7 @@ opisuje ten stan i nosi komentarz z listą tego, co przepisać po
 odkomentowaniu crona — wtedy zapomniane kliknięcie naprawi się do rana,
 ale praca zostawiona na noc w połowie też pojedzie na żywo.
 
-PIĘĆ NIEPEWNYCH OPCJI KONFIGURACJI — NIEZWERYFIKOWANE, stan na
+SZEŚĆ NIEPEWNYCH OPCJI KONFIGURACJI — NIEZWERYFIKOWANE, stan na
 2026-08-31. Zadanie 5 krok 4 wymaga klikania w panelu (konto klientki
 plus przeglądarka), więc nie zostało wykonane. W specyfikacji te opcje są
 OCZEKIWANE, nie zmierzone; nie polegaj na nich. Do sprawdzenia, każde
@@ -735,6 +745,13 @@ z zapisaniem wyniku TUTAJ:
   5. Czy `_portraits` i `_food` otwierają się i zapisują BEZ zmiany nazwy
      pliku? Szablon `filename: '{fields.slug}.json'` slugifikuje wartość,
      ale nazywa wyłącznie NOWE wpisy — to trzeba potwierdzić, nie założyć.
+  6. Czy `pattern` działa na PODPOLU listy obiektów? Chodzi o `href`
+     („Odnośnik") w `kontakt` — inne miejsce w drzewie niż `slug`
+     z punktu 4, więc jedno nie dowodzi drugiego i trzeba sprawdzić oba.
+     Test: w „Dane kontaktowe" wpisz w „Odnośnik" wartość `mailto polasobun`
+     (bez dwukropka) i spróbuj zapisać. Jeśli panel przyjmie, opcja jest
+     na tym poziomie ignorowana: usuń linię `pattern` z `.pages.yml`,
+     zostaw `description`, i odnotuj wynik tu.
 
 Nie wpisuj tu wyników, których nie zobaczyłeś na ekranie.
 
@@ -753,6 +770,21 @@ bezpieczeństwa, nie plan A — surowy plik ZOSTAJE W HISTORII na zawsze,
 dlatego INSTRUKCJA.md sekcja 10 daje klientce preset eksportu. Nie próbuj
 tego naprawiać `--amend` z force-pushem: panel pisze na tę samą gałąź
 i wyścig jest realny.
+
+SKRYPT MA TEŻ DOLNY PRÓG: `MIN_DLUZSZY_BOK = 1000`. Obraz o dłuższym boku
+poniżej 1000 px jest POMIJANY w całości, z komunikatem. Powód: normalizacja
+ma okiełznać surowe eksporty z aparatu i Lightrooma, a plik już głęboko
+poniżej progu 2560 px jest ręcznie dobranym zasobem — przekodowanie nic
+mu nie zmniejsza, a odbiera jakość przy każdym przebiegu. Konkretny
+powód, dla którego ten próg powstał: dzisiejszy `portret-pola-sobun.jpg`
+ma 379×379, chromę 4:2:0, EXIF i profil ICC, więc bez progu skrypt uznałby
+go za wymagający poprawy i przekodował ZARAZ PO SCALENIU tej gałęzi (dla
+`normalizacja.yml` przeniesienie pliku do `src/assets/portret/` to plik
+dodany). `dist` przestałby być identyczny w minutę po scaleniu.
+CZEGO TEN PRÓG NIE ROBI: mały plik z EXIF-em nie zostanie z niego
+oczyszczony. Świadomy kompromis — ryzykiem jest zdjęcie prosto z aparatu
+z lokalizacją w metadanych, a takie pliki są duże i progu nie przejdą.
+Prawdziwy portret od klientki też będzie duży i zostanie znormalizowany.
 
 ## Kolejność zdjęć w siatce
 ROUND-ROBIN po sesjach: najpierw pierwsze zdjęcie z każdej sesji, potem
@@ -930,7 +962,21 @@ pojawieniem się nakładki.
 
 Zdjęcie wybrane w index.astro (stała INTRO): rimmel/01 — mocno graficzne,
 wysokokontrastowe. Split-flap rozbija kadr na kafelki, więc czytelna plama
-koloru działa lepiej niż subtelny portret. Zmiana to podmiana slugu.
+koloru działa lepiej niż subtelny portret. Zmiana to podmiana ścieżki.
+
+STAŁA `INTRO` TRZYMA ŚCIEŻKĘ DO TREŚCI EDYTOWALNEJ PRZEZ KLIENTKĘ —
+i to jest jej jedyna słabość. `/photos/rimmel/01.jpg` jest JEDNOCZEŚNIE
+zwykłym zdjęciem kampanii `rimmel`, widocznym w polu „Zdjęcia kampanii"
+w panelu. Klientka może je skasować albo przenieść, nie mając pojęcia,
+że napędza animację wejścia: żadne pole w `.pages.yml` na nie nie
+wskazuje, więc panel nijak jej tego nie sygnalizuje. Skutek jest wtedy
+taki, że PUBLIKACJA STAJE. Awaria jest bezpieczna (produkcja zostaje
+stara), a `index.astro` rzuca własnym, samowyjaśniającym komunikatem
+zamiast gołego `Brak pliku zdjęcia:` — mówi, po co ten plik był
+potrzebny i że naprawa to wskazanie innego kadru w stałej `INTRO`.
+Wybór kadru zostaje decyzją projektową, nie treścią do edycji; gdyby
+kiedyś miał trafić do panelu, to jako osobne pole, nie przez zdanie się
+na to, że klientka akurat tego zdjęcia nie ruszy.
 
 Generowane są DWA warianty: 900 px i 1800 px, wybierane po
 szerokość_okna × dpr z progiem 1100. Wcześniej szło jedno 1920 px ważące

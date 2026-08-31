@@ -224,6 +224,20 @@ Nie wklejaj całego tekstu do jednego wpisu i nie rozdzielaj akapitów
 pustymi wierszami — dodaj tyle wpisów, ile chcesz mieć akapitów.
 Wpisy możesz poprawiać, dodawać i usuwać.
 
+**Cztery miejsca w tym tekście są celowo poprawione** względem starej
+strony. Jeśli przepiszesz akapity ze starej strony, wrócą tam błędy.
+Zmienione zostały dokładnie te słowa:
+
+- **Pudliszki** — na starej stronie stoi „Publiszki".
+- **branded content** — na starej stronie „brandend content".
+- **trashowe** — na starej stronie „thrashowe".
+- **nawias przy LPP** — na starej stronie nawias otwarty przy LPP nigdy
+  się nie zamyka i wychodzi z tego, że CCC należy do LPP. Teraz jest
+  `LPP (Reserved, Cropp, House), CCC czy Inditex (Pull&Bear)`, czyli CCC
+  stoi osobno — bo to osobna firma.
+
+Poza tymi czterema miejscami tekst jest dokładnie taki, jaki był.
+
 ### Portret
 
 Pole **Portret** wskazuje zdjęcie, które stoi obok tekstu.
@@ -293,8 +307,10 @@ NOTATKA DLA WYKONAWCY — sekcja 7.
    rodzaj pułapki co przy zdjęciach kampanii (sekcja 2).
 4. Stary plik portretu zostaje w folderze, tylko przestaje być wskazany.
    To nie jest problem — nie każ klientce niczego kasować.
-5. `normalizacja.yml` obejmuje też `src/assets/portret/**`, więc portret
-   przechodzi tę samą normalizację co zdjęcia kampanii.
+5. Automatyczna normalizacja obejmuje też `src/assets/portret/**`, ale
+   ma dolny próg `MIN_DLUZSZY_BOK = 1000`: dzisiejszy portret (379 px)
+   jest przez nią POMIJANY, prawdziwy plik od klientki już nie. Powód
+   progu opisuje `polasobun/AGENTS.md`, sekcja o CMS-ie.
 -->
 
 ## 8. Jak opublikować
@@ -309,10 +325,29 @@ To ten moment, w którym zmiany trafiają na stronę.
 4. Odśwież swoją stronę w przeglądarce i obejrzyj zmianę.
 
 Jeśli po kilkunastu minutach nic się nie zmieniło, nie klikaj w kółko —
-zadzwoń. Publikacja umie się sama zatrzymać, kiedy coś jest
-niedokończone: zdjęcie w złym folderze, nowa kampania bez miejsca
-w kolejności. Wtedy strona zostaje w poprzedniej, działającej wersji
-i czeka, aż się to poprawi.
+zadzwoń. Publikacja umie się sama zatrzymać, kiedy coś się nie zgadza.
+Wtedy strona zostaje w poprzedniej, działającej wersji i czeka, aż się
+to poprawi.
+
+Zatrzymać ją potrafi pięć rzeczy. Każda jest odwracalna i żadna niczego
+nie kasuje — to zabezpieczenia, nie awarie:
+
+- **Zdjęcie wgrane do złego folderu.** Przenieś je do folderu tej
+  kampanii — sekcja 2.
+- **Nowa kampania, której nie ma w „Kolejność kampanii".** Dopisz ją
+  tam — sekcja 6, krok 4.
+- **Skasowany plik zdjęcia, które nadal jest na liście w polu „Zdjęcia
+  kampanii".** Otwórz tę kampanię i usuń z pola **Zdjęcia kampanii**
+  kafelek zdjęcia, którego już nie ma. Możesz też zamiast tego wgrać
+  skasowany plik z powrotem — obie drogi są dobre.
+- **Skasowana kampania, która nadal jest w „Kolejność kampanii".**
+  Wejdź w **Kolejność kampanii** i usuń ją z listy.
+- **Skasowane zdjęcie, które napędza animację na wejściu.** Jedno
+  zdjęcie z kampanii RIMMEL rozsypuje się na kafelki, kiedy ktoś wchodzi
+  na stronę główną. Panel nigdzie tego nie pokazuje, więc da się je
+  skasować przez przypadek. Najprościej wgrać ten plik z powrotem, pod
+  tą samą nazwą. Jeśli go nie masz — zadzwoń, wskażę do animacji inne
+  zdjęcie po swojej stronie.
 
 <!--
 NOTATKA DLA WYKONAWCY — sekcja 8, punkt 4.
@@ -383,6 +418,10 @@ Rozmiar:       dłuższy bok 2560 px, bez powiększania
 Przestrzeń:    sRGB
 Metadane:      bez danych aparatu i lokalizacji
 ```
+
+**Nazwa pliku musi kończyć się na `.jpg`.** Końcówka `.jpeg` nie
+zadziała — takiego pliku panel nie przyjmie. Jeśli Twój program zapisuje
+zdjęcia z końcówką `.jpeg`, popraw ją w nazwie pliku przed wgraniem.
 
 Dlaczego akurat tak: pliki prosto z aparatu ważą kilkanaście razy
 więcej, a raz wgrane zostają w historii projektu na stałe — również
