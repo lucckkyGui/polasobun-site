@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { projects, type Project } from '../../content/projects';
+import { projects, zdjecie, type Project } from '../../content/projects';
 
 export function getStaticPaths() {
   // Slug zawsze string — getStaticPaths nie przyjmuje params typu number.
@@ -18,23 +18,13 @@ interface Props {
 const { project } = Astro.props;
 
 /**
- * Zdjęcia projektu. import.meta.glob z eager: true — ścieżka jako string
- * NIE zostałaby zoptymalizowana i wysypałaby się na produkcji.
+ * Zdjęcia w kolejności ustawionej przez klientkę w panelu. Wcześniej
+ * kolejność brała się z sortowania nazw plików; teraz jest danymi.
  */
-const files = import.meta.glob<{ default: ImageMetadata }>(
-  '../../assets/photos/*/*.jpg',
-  { eager: true },
-);
-
-const photos = Object.entries(files)
-  .map(([path, mod]) => {
-    const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
-    return match ? { slug: match[1], name: match[2]!, img: mod.default } : null;
-  })
-  .filter((entry): entry is { slug: string; name: string; img: ImageMetadata } =>
-    entry !== null && entry.slug === project.slug,
-  )
-  .sort((a, b) => a.name.localeCompare(b.name));
+const photos = project.photos.map((sciezka) => ({
+  name: sciezka.slice(sciezka.lastIndexOf('/') + 1),
+  img: zdjecie(sciezka),
+}));
 
 const TAG_LABEL: Record<string, string> = {
   commercial: 'Commercial',
