@@ -40,7 +40,7 @@ Dotyczą KAŻDEGO zadania w tym planie:
   i wysypie się na produkcji.
 - Po każdym zadaniu `npm run build` musi przechodzić (odpala
   `astro check`).
-- **KRYTERIUM ODBIORU zadań 2-5: `dist` bajt w bajt identyczny
+- **KRYTERIUM ODBIORU zadań 2-4: `dist` bajt w bajt identyczny
   z punktem odniesienia z zadania 1.** Nie „wygląda tak samo".
 - **Sortowanie nazw plików to `a.localeCompare(b)` bez opcji.** Nie
   zamieniaj na sortowanie numeryczne. `_portraits` ma 114 plików
@@ -72,12 +72,12 @@ i zamyka się własnym testem.
 - Produkuje: `order.json` o kształcie `{ "kolejnosc": string[] }`.
 - Produkuje: `contact.json` o kształcie
   `{ akapity: string[], kontakt: { etykieta, tekst, href, zewnetrzny }[] }`.
-  Pole `portret` dokłada zadanie 5, razem z przeniesieniem samego pliku —
-  patrz uzasadnienie tam. Konsumuje to zadanie 5.
+  Pole `portret` dokłada zadanie 4, razem z przeniesieniem samego pliku —
+  patrz uzasadnienie tam. Konsumuje to zadanie 4.
 
 - [ ] **Krok 1: Zapisz punkt odniesienia `dist`**
 
-To jest test dla zadań 2-5. Musi powstać **przed** jakąkolwiek zmianą.
+To jest test dla zadań 2-4. Musi powstać **przed** jakąkolwiek zmianą.
 
 ```bash
 cd polasobun && git status --porcelain && git log origin/main..HEAD --oneline
@@ -87,7 +87,7 @@ cp dist/contact/index.html /tmp/contact-odniesienie.html
 wc -l /tmp/dist-odniesienie.txt
 ```
 
-Kopia `contact/index.html` jest potrzebna zadaniu 5: to jedyny plik,
+Kopia `contact/index.html` jest potrzebna zadaniu 4: to jedyny plik,
 któremu wolno się tam zmienić, i trzeba umieć pokazać, że zmienił się
 WYŁĄCZNIE w adresie zasobu portretu.
 
@@ -99,7 +99,7 @@ zakończone **przed** tym krokiem. Jeśli którakolwiek wejdzie w trakcie,
 zapisz punkt odniesienia od nowa i powtórz porównania z zadań 2-4.
 
 Oczekiwane: około 1360 wierszy. **Zapisz dokładną liczbę** — pojawi się
-w każdym z zadań 2-5.
+w każdym z zadań 2-4.
 
 - [ ] **Krok 2: Napisz skrypt migracji**
 
@@ -254,7 +254,7 @@ diff /tmp/dist-odniesienie.txt /tmp/dist-po1.txt && echo "IDENTYCZNY"
 
 Oczekiwane: `IDENTYCZNY`. Powstały wyłącznie nowe pliki danych, których
 żaden kod jeszcze nie czyta. Jeśli się różni — zatrzymaj się, bo cały
-dowód dla zadań 2-5 właśnie przestał działać.
+dowód dla zadań 2-4 właśnie przestał działać.
 
 - [ ] **Krok 8: Commit**
 
@@ -265,13 +265,33 @@ git commit -m "feat: migracja modelu danych na plik per kampania"
 
 ---
 
-### Zadanie 2: `projects.ts` czyta nowe pliki
+### Zadanie 2: `projects.ts` i `index.astro` na nowy model
 
-Konsumenci **nie zmieniają się** — nadal sortują po nazwach. Zmienia
-się wyłącznie źródło danych, więc `dist` musi wyjść identyczny.
+**DLACZEGO TE DWIE ZMIANY WCHODZĄ RAZEM.** Pierwsza wersja tego planu
+rozdzielała je i wymagała identycznego `dist` po samej podmianie loadera.
+To było niewykonalne i wysypało się przy wykonaniu: migracja zapisuje
+`featured` jako pełne ścieżki (`/photos/allegro/02.jpg`), a `index.astro`
+dopasowuje je porównaniem z gołą nazwą pliku (`z.name === nazwa`).
+Dopasowanie cicho nie trafia dla żadnej kampanii — zmierzone: znika
+64 kafli, 11 kampaniom czysto komercyjnym wypada cały udział w widoku ALL,
+w `dist` ubywa 128 wariantów WebP.
+
+Nowy kształt wpisu jest nadzbiorem starego dla `title`, `client`, `year`
+i `tags` — ale NIE dla `featured`, któremu zmienił się typ elementu
+z nazwy pliku na ścieżkę. Dlatego loader i jego jedyny konsument
+`featured` muszą wejść jednym commitem i mieć jedną bramkę.
+
+Gołych nazw plików w danych zostawić się nie da: pole `image` w Pages CMS
+zapisuje ścieżkę z przedrostkiem `output`, a zdjęcia leżą w podfolderach
+per kampania, więc slug musi znaleźć się w wartości.
+
+`work/[slug].astro` i `sitemap.xml.ts` NIE są tym dotknięte — nie czytają
+`featured` ani `photos`, więc przerabia je dopiero zadanie 3.
 
 **Pliki:**
 - Modyfikuj: `src/content/projects.ts` (cały plik)
+- Modyfikuj: `src/pages/index.astro` — wyłącznie blok frontmatter.
+  **Znaczników pod `---` nie ruszaj.**
 - Modyfikuj: `scripts/sprawdz-przekierowania.mjs`
 - Usuń: `src/content/projects.json`
 
@@ -279,11 +299,13 @@ się wyłącznie źródło danych, więc `dist` musi wyjść identyczny.
 - Konsumuje: pliki wpisów i `order.json` z zadania 1.
 - Produkuje: `projects: Project[]` — ta sama nazwa i kolejność co dziś,
   typ rozszerzony o `cover: string` i `photos: string[]`.
-- Produkuje: `zdjecie(sciezka: string): ImageMetadata` — zamienia
-  ścieżkę `/photos/<slug>/<plik>.jpg` na metadane obrazu. Używają tego
-  zadania 3, 4 i 5.
+- Produkuje: `zdjecie(sciezka: string): ImageMetadata` — zamienia ścieżkę
+  `/photos/<slug>/<plik>.jpg` na metadane obrazu. Używa tego zadanie 3.
 - Produkuje: `zdjeciaPortretu: Map<string, ImageMetadata>` — analogicznie
-  dla `/portret/<plik>.jpg`. Używa tego zadanie 5.
+  dla `/portret/<plik>.jpg`. Używa tego zadanie 4.
+- Produkuje: tablice `tiles` i `warianty` o niezmienionym kształcie
+  i kolejności — znaczniki sięgają po indeks, więc obie muszą pozostać
+  równoległe.
 
 - [ ] **Krok 1: Napisz nowy `src/content/projects.ts`**
 
@@ -425,62 +447,7 @@ cd polasobun && git rm src/content/projects.json && npm run build
 
 Oczekiwane: build przechodzi, 19 stron.
 
-- [ ] **Krok 4: Potwierdź identyczność `dist` — to jest test tego zadania**
-
-```bash
-cd polasobun && find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po2.txt
-diff /tmp/dist-odniesienie.txt /tmp/dist-po2.txt && echo "IDENTYCZNY"
-```
-
-Oczekiwane: `IDENTYCZNY`. Jakakolwiek różnica znaczy, że kolejność
-kampanii albo dane wpisów rozjechały się z oryginałem — zatrzymaj się.
-
-- [ ] **Krok 5: Zaktualizuj bramkę przekierowań**
-
-`scripts/sprawdz-przekierowania.mjs` z planu hostingu czyta usunięty
-`projects.json`. Podmień wczytywanie danych na odczyt katalogu wpisów;
-reszta skryptu zostaje bez zmian:
-
-```js
-import { readdirSync, readFileSync } from 'node:fs';
-
-const katalog = new URL('../src/content/projects/', import.meta.url);
-const dane = readdirSync(katalog)
-  .filter((n) => n.endsWith('.json'))
-  .map((n) => JSON.parse(readFileSync(new URL(n, katalog), 'utf8')));
-```
-
-- [ ] **Krok 6: Uruchom bramkę**
-
-```bash
-cd polasobun && node scripts/sprawdz-przekierowania.mjs
-```
-
-Oczekiwane: `OK — 15 przekierowań zgodnych z legacyPath`
-
-- [ ] **Krok 7: Commit**
-
-```bash
-git add polasobun/src/content/projects.ts polasobun/src/content/projects.json \
-        polasobun/scripts/sprawdz-przekierowania.mjs
-git commit -m "feat: projects.ts czyta plik per kampania i order.json"
-```
-
----
-
-### Zadanie 3: `index.astro` na `cover` i `photos`
-
-**Pliki:**
-- Modyfikuj: `src/pages/index.astro` — wyłącznie blok frontmatter
-  (linie 1-~200). **Znaczników pod `---` nie ruszaj.**
-
-**Interfejsy:**
-- Konsumuje: `projects`, `zdjecie()` z zadania 2.
-- Produkuje: tablice `tiles` i `warianty` o niezmienionym kształcie
-  i niezmienionej kolejności — znaczniki sięgają po indeks, więc obie
-  muszą pozostać równoległe.
-
-- [ ] **Krok 1: Podmień import i usuń budowanie mapy z globa**
+- [ ] **Krok 4: Podmień import i usuń budowanie mapy z globa**
 
 Zamień:
 
@@ -498,7 +465,7 @@ Usuń cały blok od `const files = import.meta.glob…` do pętli
 sortującej `for (const list of bySlug.values()) list.sort(…)`.
 Glob przeniósł się do `projects.ts` w zadaniu 2.
 
-- [ ] **Krok 2: Przepisz budowanie kolejek na dane**
+- [ ] **Krok 5: Przepisz budowanie kolejek na dane**
 
 Zamień blok `const kolejki = projects.map(…)` na:
 
@@ -516,7 +483,7 @@ const kolejki = projects.map((project) => {
 });
 ```
 
-- [ ] **Krok 3: Przepisz oba przebiegi**
+- [ ] **Krok 6: Przepisz oba przebiegi**
 
 W przebiegu a) i b) zmienna `zdjecie` z pętli nazywa się teraz tak samo
 jak zaimportowana funkcja — **przemianuj ją na `sciezka`**, inaczej
@@ -541,7 +508,7 @@ oraz `if (!widoki.length) continue;`.
 Także `najwiecejWybranych` i `najdluzszaReszta` liczą się tak jak dziś,
 bo `wybrane` i `reszta` nadal są tablicami.
 
-- [ ] **Krok 4: Przepisz kafel kampanii**
+- [ ] **Krok 7: Przepisz kafel kampanii**
 
 ```ts
 for (const project of projects) {
@@ -560,7 +527,7 @@ for (const project of projects) {
 `zdjecie()` rzuca sam, gdy pliku brak — dotychczasowy jawny `throw`
 na `!cover` jest już zbędny.
 
-- [ ] **Krok 5: Przepisz kadr animacji wejścia**
+- [ ] **Krok 8: Przepisz kadr animacji wejścia**
 
 ```ts
 /**
@@ -576,7 +543,7 @@ const introEntry = zdjecie(INTRO.sciezka);
 Dalej `getImage({ src: introEntry, … })` — bez `.img`, bo `zdjecie()`
 zwraca już `ImageMetadata`.
 
-- [ ] **Krok 6: Zbuduj**
+- [ ] **Krok 9: Zbuduj**
 
 ```bash
 cd polasobun && npm run build
@@ -584,27 +551,57 @@ cd polasobun && npm run build
 
 Oczekiwane: przechodzi, 19 stron.
 
-- [ ] **Krok 7: Potwierdź identyczność `dist` — test tego zadania**
+- [ ] **Krok 10: Potwierdź identyczność `dist` — TO JEST BRAMKA**
 
 ```bash
-cd polasobun && find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po3.txt
-diff /tmp/dist-odniesienie.txt /tmp/dist-po3.txt && echo "IDENTYCZNY"
+cd polasobun && find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po2.txt
+diff /tmp/dist-odniesienie.txt /tmp/dist-po2.txt && echo "IDENTYCZNY"
 ```
 
-Oczekiwane: `IDENTYCZNY`. Różnica w `index.html` znaczy, że kolejność
-kafli się przestawiła — najczęstsza przyczyna to zmiana kolatora przy
-sortowaniu albo pominięcie warunku z okładką.
+Oczekiwane: `IDENTYCZNY`, 1373 pliki. Najczęstsze przyczyny różnicy,
+w kolejności prawdopodobieństwa: `featured` porównywane po nazwie zamiast
+po ścieżce, zmieniony kolator przy sortowaniu, pominięty warunek
+wykluczający okładkę z widoku ALL, kolejność kampanii wzięta z nazw
+plików zamiast z `order.json`.
 
-- [ ] **Krok 8: Commit**
+**Nie dopasowuj kodu, żeby przeszło.** Jeśli nie umiesz wskazać
+przyczyny różnicy — zatrzymaj się i zgłoś.
+
+- [ ] **Krok 11: Zaktualizuj bramkę przekierowań**
+
+`scripts/sprawdz-przekierowania.mjs` czyta usunięty `projects.json`.
+Podmień **wyłącznie** fragment wczytujący dane na odczyt katalogu wpisów;
+reszta skryptu, łącznie z detekcją zduplikowanych ścieżek źródłowych
+i jej komentarzem o pierwszeństwie u Cloudflare, zostaje nietknięta:
+
+```js
+import { readdirSync, readFileSync } from 'node:fs';
+
+const katalog = new URL('../src/content/projects/', import.meta.url);
+const dane = readdirSync(katalog)
+  .filter((n) => n.endsWith('.json'))
+  .map((n) => JSON.parse(readFileSync(new URL(n, katalog), 'utf8')));
+```
+
+- [ ] **Krok 12: Uruchom bramkę**
 
 ```bash
-git add polasobun/src/pages/index.astro
-git commit -m "feat: siatka czyta kolejność i okładkę z danych, nie z nazw plików"
+cd polasobun && node scripts/sprawdz-przekierowania.mjs
+```
+
+Oczekiwane: `OK — 15 przekierowań zgodnych z legacyPath`
+
+- [ ] **Krok 13: Commit**
+
+```bash
+git add polasobun/src/content/projects.ts polasobun/src/content/projects.json \
+        polasobun/src/pages/index.astro polasobun/scripts/sprawdz-przekierowania.mjs
+git commit -m "feat: model danych rządzi kolejnością, okładką i wyborem do ALL"
 ```
 
 ---
 
-### Zadanie 4: `work/[slug].astro` na `photos`
+### Zadanie 3: `work/[slug].astro` na `photos`
 
 **Pliki:**
 - Modyfikuj: `src/pages/work/[slug].astro` — wyłącznie frontmatter.
@@ -656,7 +653,7 @@ git commit -m "feat: strona kampanii renderuje photos w kolejności z danych"
 
 ---
 
-### Zadanie 5: `contact.astro` na `contact.json` i portret pod CMS
+### Zadanie 4: `contact.astro` na `contact.json` i portret pod CMS
 
 **Pliki:**
 - Przenieś: `src/assets/portret-pola-sobun.jpg` → `src/assets/portret/portret-pola-sobun.jpg`
@@ -793,13 +790,13 @@ są gotowe pod panel.
 
 ---
 
-### Zadanie 6: Konfiguracja Pages CMS i podłączenie panelu
+### Zadanie 5: Konfiguracja Pages CMS i podłączenie panelu
 
 **Pliki:**
 - Utwórz: `.pages.yml` (w **korzeniu repozytorium**, nie w `polasobun/`)
 
 **Interfejsy:**
-- Konsumuje: kształt danych z zadań 1-5, `publikacja.yml` z zadania 4
+- Konsumuje: kształt danych z zadań 1-4, `publikacja.yml` z zadania 4
   planu hostingu.
 
 - [ ] **Krok 1: Napisz `.pages.yml`**
@@ -1009,7 +1006,7 @@ slugów — brzydko, ale działa i nie kłamie. Zapisz decyzję w AGENTS.md.
 
 ---
 
-### Zadanie 7: Workflow normalizacji zdjęć
+### Zadanie 6: Workflow normalizacji zdjęć
 
 **Pliki:**
 - Utwórz: `polasobun/scripts/normalizuj-zdjecia.mjs`
@@ -1246,7 +1243,7 @@ stronę — to zamierzone i dowodzi, że lista w danych rządzi, nie folder.
 
 ---
 
-### Zadanie 8: Instrukcja dla klientki i onboarding
+### Zadanie 7: Instrukcja dla klientki i onboarding
 
 **Pliki:**
 - Utwórz: `INSTRUKCJA.md` (w korzeniu repozytorium)
@@ -1317,7 +1314,7 @@ Krótko, dla przyszłych wykonawców:
   zmieniać na numeryczne,
 - że jedyną drogą na produkcję jest `publikacja.yml`, a znacznik
   `wydane` mówi, co jest na żywo,
-- **wyniki weryfikacji pięciu niepewnych opcji z zadania 6** —
+- **wyniki weryfikacji pięciu niepewnych opcji z zadania 5** —
   zmierzone, nie oczekiwane.
 
 - [ ] **Krok 6: Commit**

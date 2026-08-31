@@ -243,19 +243,31 @@ stronie.**
 
 ## Kolejność prac
 
-Numeracja wspólna ze specyfikacją hostingu — B5, B6, B8, B9 i B10 leżą
-tam. Tor B nie ma terminu zewnętrznego i jest niezależny od toru
-domenowego aż do B8.
+Tor CMS-u nie ma terminu zewnętrznego. Zależy od planu hostingu tylko
+w dwóch miejscach: przycisk publikacji wskazuje `publikacja.yml`, a kroki
+wymagające żywej publikacji czekają na sekrety Cloudflare.
 
 ```
-B1   skrypt migracji modelu danych + dowód, że dist jest identyczny
-B2   projects.ts / index.astro / work/[slug].astro / contact.astro
-B3   .pages.yml + podpięcie Pages CMS
-     + weryfikacja trzech niepewnych opcji konfiguracji
-B4   workflow normalizacji zdjęć
-B7   nocny cron dopublikowujący
-B11  README po polsku, preset eksportu, konto GitHub dla klientki
+1   skrypt migracji + punkt odniesienia dist
+2   projects.ts RAZEM z index.astro — jedna bramka, nie dwie
+3   work/[slug].astro
+4   contact.astro + przeniesienie portretu
+5   .pages.yml + podpięcie panelu + weryfikacja pięciu niepewnych opcji
+6   workflow normalizacji zdjęć
+7   INSTRUKCJA.md, preset eksportu, konto GitHub dla klientki
 ```
+
+KROK 2 JEST NIEROZDZIELNY i to jest wynik pomiaru, nie ostrożność.
+Pierwsza wersja planu rozdzielała podmianę loadera od przerobienia
+`index.astro` i wymagała identycznego `dist` po samej podmianie loadera.
+Jest to niewykonalne: migracja zapisuje `featured` jako pełne ścieżki,
+a `index.astro` dopasowuje je porównaniem z gołą nazwą pliku, więc
+dopasowanie cicho nie trafia dla żadnej kampanii. Zmierzone przy próbie
+wykonania: znika 64 kafli, 11 kampaniom czysto komercyjnym wypada cały
+udział w widoku ALL, w `dist` ubywa 128 wariantów WebP.
+
+Nowy kształt wpisu jest nadzbiorem starego dla `title`, `client`, `year`
+i `tags` — ale NIE dla `featured`, któremu zmienił się typ elementu.
 
 B1 przed B2: migracja musi dać identyczny `dist` na **starym** kodzie,
 zanim kod zacznie się zmieniać. Odwrotna kolejność miesza dwie zmienne
