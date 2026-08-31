@@ -862,6 +862,10 @@ content:
       - name: cover
         label: Okładka
         type: image
+        description: >-
+          Kafel tej kampanii w zakładce COMMERCIAL. Jeśli wskażesz zdjęcie,
+          które jest też wśród kadrów na stronę główną, zniknie ono
+          z zakładki ALL — żeby nie pokazywać go dwa razy.
         options:
           media: zdjecia
       - name: featured
@@ -1316,6 +1320,18 @@ Krótko, dla przyszłych wykonawców:
   `wydane` mówi, co jest na żywo,
 - **wyniki weryfikacji pięciu niepewnych opcji z zadania 5** —
   zmierzone, nie oczekiwane.
+
+Przy okazji popraw w AGENTS.md trzy wzmianki, które migracja unieważniła.
+Znajdziesz je grepem, nie zgaduj lokalizacji:
+
+- sekcja „Model danych" twierdzi „01.jpg to zawsze okładka" oraz każe
+  przenumerować folder, gdy klientka wskaże inną — obie rzeczy przestały
+  obowiązywać, bo okładka jest teraz polem `cover`,
+- sekcja „Model danych" opisuje `src/content/projects.json` jako jeden
+  plik z wpisami — dziś jest to katalog `src/content/projects/`
+  plus `order.json`,
+- sekcja „Zakładka CONTACT" podaje ścieżkę portretu bez folderu
+  `portret/`.
 
 - [ ] **Krok 6: Commit**
 
