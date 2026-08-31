@@ -1,0 +1,30 @@
+{
+  "slug": "pudliszki",
+  "title": "PUDLISZKI",
+  "client": "Pudliszki",
+  "year": null,
+  "tags": [
+    "commercial",
+    "food"
+  ],
+  "legacyPath": "/pudliszki",
+  "cover": "/photos/pudliszki/01.jpg",
+  "photos": [
+    "/photos/pudliszki/01.jpg",
+    "/photos/pudliszki/02.jpg",
+    "/photos/pudliszki/03.jpg",
+    "/photos/pudliszki/04.jpg",
+    "/photos/pudliszki/05.jpg",
+    "/photos/pudliszki/06.jpg",
+    "/photos/pudliszki/07.jpg",
+    "/photos/pudliszki/08.jpg"
+  ],
+  "featured": [
+    "/photos/pudliszki/05.jpg",
+    "/photos/pudliszki/07.jpg",
+    "/photos/pudliszki/06.jpg",
+    "/photos/pudliszki/04.jpg",
+    "/photos/pudliszki/03.jpg",
+    "/photos/pudliszki/08.jpg"
+  ]
+}

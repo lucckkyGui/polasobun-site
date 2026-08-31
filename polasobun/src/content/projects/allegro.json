@@ -1,0 +1,24 @@
+{
+  "slug": "allegro",
+  "title": "ALLEGRO",
+  "client": "Allegro",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/allegro",
+  "cover": "/photos/allegro/01.jpg",
+  "photos": [
+    "/photos/allegro/01.jpg",
+    "/photos/allegro/02.jpg",
+    "/photos/allegro/03.jpg",
+    "/photos/allegro/04.jpg",
+    "/photos/allegro/05.jpg"
+  ],
+  "featured": [
+    "/photos/allegro/02.jpg",
+    "/photos/allegro/03.jpg",
+    "/photos/allegro/04.jpg",
+    "/photos/allegro/05.jpg"
+  ]
+}

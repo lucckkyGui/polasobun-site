@@ -1,0 +1,40 @@
+{
+  "slug": "cropp",
+  "title": "CROPP",
+  "client": "Cropp",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/cropp",
+  "cover": "/photos/cropp/01.jpg",
+  "photos": [
+    "/photos/cropp/01.jpg",
+    "/photos/cropp/02.jpg",
+    "/photos/cropp/03.jpg",
+    "/photos/cropp/04.jpg",
+    "/photos/cropp/05.jpg",
+    "/photos/cropp/06.jpg",
+    "/photos/cropp/07.jpg",
+    "/photos/cropp/08.jpg",
+    "/photos/cropp/09.jpg",
+    "/photos/cropp/10.jpg",
+    "/photos/cropp/11.jpg",
+    "/photos/cropp/12.jpg",
+    "/photos/cropp/13.jpg",
+    "/photos/cropp/14.jpg",
+    "/photos/cropp/15.jpg",
+    "/photos/cropp/16.jpg",
+    "/photos/cropp/17.jpg",
+    "/photos/cropp/18.jpg",
+    "/photos/cropp/19.jpg"
+  ],
+  "featured": [
+    "/photos/cropp/06.jpg",
+    "/photos/cropp/10.jpg",
+    "/photos/cropp/02.jpg",
+    "/photos/cropp/16.jpg",
+    "/photos/cropp/08.jpg",
+    "/photos/cropp/17.jpg"
+  ]
+}

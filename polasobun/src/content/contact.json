@@ -1,0 +1,13 @@
+{
+  "akapity": [
+    "Absolwentka Uniwersytetu Łódzkiego (nowe media i kultura cyfrowa) oraz PWSFTViT (fotografia).",
+    "Fotografuje przede wszystkim ludzi (moda i reportaż), ale bliskie jej są również kompozycje foodowe/trashowe stille.",
+    "Pracowała z Rimmel, Allegro, Esotiq, Robert Kupisz i Henderson, Pudliszki, Kodano Optyk, Butik Optique itd.",
+    "Tworzy również dużo realizacji branded content z influencerami dla takich marek jak Zalando, LPP (Reserved, Cropp, House), CCC czy Inditex (Pull&Bear)."
+  ],
+  "kontakt": [
+    { "etykieta": "tel", "tekst": "883 180 410", "href": "tel:+48883180410", "zewnetrzny": false },
+    { "etykieta": "mail", "tekst": "polasobun@gmail.com", "href": "mailto:polasobun@gmail.com", "zewnetrzny": false },
+    { "etykieta": "instagram", "tekst": "@polasobun", "href": "https://www.instagram.com/polasobun/", "zewnetrzny": true }
+  ]
+}

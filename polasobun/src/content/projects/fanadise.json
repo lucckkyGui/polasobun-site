@@ -1,0 +1,30 @@
+{
+  "slug": "fanadise",
+  "title": "JOANNA JĘDRZEJCZYK × FANADISE",
+  "client": "Fanadise",
+  "year": null,
+  "tags": [
+    "commercial",
+    "portraits"
+  ],
+  "legacyPath": "/joanna-jedrzejczyk-x-fanadise",
+  "cover": "/photos/fanadise/01.jpg",
+  "photos": [
+    "/photos/fanadise/01.jpg",
+    "/photos/fanadise/02.jpg",
+    "/photos/fanadise/03.jpg",
+    "/photos/fanadise/04.jpg",
+    "/photos/fanadise/05.jpg",
+    "/photos/fanadise/06.jpg",
+    "/photos/fanadise/07.jpg",
+    "/photos/fanadise/08.jpg"
+  ],
+  "featured": [
+    "/photos/fanadise/07.jpg",
+    "/photos/fanadise/04.jpg",
+    "/photos/fanadise/06.jpg",
+    "/photos/fanadise/03.jpg",
+    "/photos/fanadise/08.jpg",
+    "/photos/fanadise/02.jpg"
+  ]
+}
