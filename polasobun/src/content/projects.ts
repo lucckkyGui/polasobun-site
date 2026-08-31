@@ -58,16 +58,35 @@ for (const [plik, mod] of Object.entries(wpisy)) {
    * kompilator. Wpis bez pola `photos` wywaliłby się dopiero w index.astro
    * jako "Cannot read properties of undefined (reading 'includes')", bez
    * wskazania pliku. Sprawdzamy tutaj, póki wiemy, skąd wpis pochodzi.
+   *
+   * `tags` jest w tej bramce z dokładnie tego samego powodu, co `photos`:
+   * kampania zapisana bez zaznaczonej ani jednej zakładki wywraca się na
+   * `project.tags.filter(...)` w index.astro (dwa miejsca) i na
+   * `project.tags.map(...)` w work/[slug].astro — znowu bez wskazania
+   * pliku. Panel zatrzymuje to wcześniej (`required: true` na polu
+   * `tags` w `.pages.yml`), ale wpis może powstać także poza panelem.
+   *
+   * UWAGA NA BRZMIENIE TEGO KOMENTARZA — nazwy metod trzymaj tu SKLEJONE
+   * Z NAWIASEM, w formie `nazwa(...)`. `global.css` każe Tailwindowi
+   * skanować `src/**` (`@source`), a skan nie odróżnia kodu od komentarza
+   * ani prozy: nazwa metody napisana w zdaniu jako samotny wyraz też do
+   * niego trafia. Część nazw metod tablicowych pokrywa się z nazwami
+   * własności CSS, więc Tailwind generuje wtedy odpowiadające im utility
+   * wraz z całym zestawem @property. Zmierzone przy pisaniu tej bramki:
+   * jedno takie słowo w komentarzu dokleiło 1205 bajtów do KAŻDEJ z 19
+   * stron (CSS idzie inline, `inlineStylesheets: 'always'`) i wywaliło
+   * dowód identyczności `dist`. Ta sama pułapka dotyczy `index.astro`.
    */
   const wpis = mod.default as Partial<Project> | undefined;
   if (
     typeof wpis?.slug !== 'string' ||
     typeof wpis.cover !== 'string' ||
-    !Array.isArray(wpis.photos)
+    !Array.isArray(wpis.photos) ||
+    !Array.isArray(wpis.tags)
   ) {
     throw new Error(
       `Niepoprawny wpis kampanii w ${plik}: wymagane slug (string), ` +
-        `cover (string) i photos (tablica).`,
+        `cover (string), photos (tablica) i tags (tablica).`,
     );
   }
   /*

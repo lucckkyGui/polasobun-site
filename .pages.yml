@@ -3,18 +3,24 @@
 # polasobun/.
 
 media:
+  # WYŁĄCZNIE `jpg`, bez `jpeg`. Kod czyta zdjęcia globami
+  # `../assets/photos/*/*.jpg` i `../assets/portret/*.jpg` (projects.ts) —
+  # wzorce muszą zostać literałami, więc nie da się ich rozszerzyć bez
+  # dublowania globa. Plik `.jpeg` przeszedłby upload i normalizację
+  # (to poprawny JPEG), zapisałby się do `photos`, a wywalił dopiero
+  # publikację komunikatem `Brak pliku zdjęcia:`. Taniej nie wpuścić.
   - name: zdjecia
     label: Zdjęcia kampanii
     input: polasobun/src/assets/photos
     output: /photos
     categories: [image]
-    extensions: [jpg, jpeg]
+    extensions: [jpg]
   - name: portret
     label: Portret na stronie kontaktowej
     input: polasobun/src/assets/portret
     output: /portret
     categories: [image]
-    extensions: [jpg, jpeg]
+    extensions: [jpg]
 
 content:
   - name: kampanie
@@ -52,6 +58,10 @@ content:
       - name: tags
         label: Zakładki
         type: select
+        # Wymagane: kampania bez ani jednej zakładki nie pokazałaby się
+        # w żadnym widoku, a `projects.ts` odrzuciłby ją przy publikacji.
+        # Bramka w panelu zatrzymuje to o krok wcześniej — przy zapisie.
+        required: true
         options:
           multiple: true
           values: [commercial, portraits, food]
@@ -116,6 +126,12 @@ content:
         label: Bio
         type: text
         list: true
+        description: >-
+          Ten tekst ma cztery miejsca poprawione względem starej strony:
+          „Pudliszki" (było „Publiszki"), „branded content" (było
+          „brandend"), „trashowe" (było „thrashowe") oraz nawias przy
+          LPP domknięty tak, żeby CCC nie należało do tej grupy. Jeśli
+          przepiszesz akapity ze starej strony, wrócą tam błędy.
       - name: portret
         label: Portret
         type: image
@@ -130,7 +146,23 @@ content:
         fields:
           - { name: etykieta, label: Etykieta, type: string }
           - { name: tekst, label: Widoczny tekst, type: string }
-          - { name: href, label: Odnośnik, type: string }
+          # Literówka w `mailto:` albo `tel:` przechodzi publikację i zostawia
+          # martwy odnośnik na stronie kontaktowej — żadna bramka w kodzie
+          # tego nie łapie, bo to poprawny string. Wzorzec dopuszcza tylko
+          # trzy formy, których ten projekt używa (sprawdzone wobec
+          # `polasobun/src/content/contact.json`). TA SAMA NIEPEWNOŚĆ CO
+          # PRZY `slug`: obsługa `pattern` na podpolu listy obiektów jest
+          # NIEZWERYFIKOWANA na ekranie. Jeśli panel odrzuci `pattern`
+          # jako nieznaną opcję albo po prostu ją zignoruje, usuń tę linię
+          # — opis niżej zostaje i to on niesie zasadę dla klientki.
+          - name: href
+            label: Odnośnik
+            type: string
+            pattern: '^(tel:\+?[0-9]+|mailto:[^@\s]+@[^@\s]+\.[^@\s]+|https://\S+)$'
+            description: >-
+              Trzy dozwolone formy: `tel:` z numerem bez spacji,
+              `mailto:` z adresem, albo pełny adres strony
+              zaczynający się od `https://`.
           - { name: zewnetrzny, label: Otwiera nową kartę, type: boolean }
 
 actions:

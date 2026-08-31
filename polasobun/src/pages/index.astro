@@ -129,7 +129,30 @@ for (const project of projects) {
  */
 const INTRO = { sciezka: '/photos/rimmel/01.jpg', focusY: 30 };
 
-const introEntry = zdjecie(INTRO.sciezka);
+/*
+ * Wybór kadru do animacji jest decyzją projektową, nie treścią do edycji —
+ * dlatego stała, nie pole w danych. Ma to jednak jeden skutek uboczny:
+ * `rimmel/01.jpg` jest JEDNOCZEŚNIE zwykłym zdjęciem kampanii `rimmel`,
+ * które klientka może w panelu skasować albo przenieść. Wtedy publikacja
+ * staje, a domyślne `Brak pliku zdjęcia:` z `zdjecie()` nie mówi ani po co
+ * ten plik był potrzebny, ani gdzie to naprawić. Ktoś czytający log ma
+ * wiedzieć, co zrobić, bez czytania tego kodu — stąd własny komunikat.
+ */
+let introEntry: ImageMetadata;
+try {
+  introEntry = zdjecie(INTRO.sciezka);
+} catch {
+  throw new Error(
+    `Brak zdjęcia napędzającego animację wejścia: ${INTRO.sciezka}. ` +
+      `To zdjęcie nie jest wskazywane przez żadne pole w panelu — stoi ` +
+      `na sztywno w stałej INTRO w src/pages/index.astro. Skoro go nie ` +
+      `ma, zostało skasowane albo przeniesione. NAPRAWA: wpisz w stałej ` +
+      `INTRO ścieżkę do innego kadru, w formie ` +
+      `/photos/<kampania>/<plik>.jpg (plik musi istnieć w ` +
+      `src/assets/photos/<kampania>/). Kadr ma być mocno graficzny ` +
+      `i wysokokontrastowy — split-flap rozbija go na kafelki.`,
+  );
+}
 /*
  * Dwa warianty. Wcześniej szło jedno 1920 px i ważyło 525 kB — największy
  * pojedynczy zasób strony, serwowany także na ekran 412 px szerokości.

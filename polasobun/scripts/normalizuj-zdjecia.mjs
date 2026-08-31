@@ -18,6 +18,7 @@ import { rename } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const DLUZSZY_BOK = 2560;
+const MIN_DLUZSZY_BOK = 1000;
 const JAKOSC = 82;
 
 let poprawione = 0;
@@ -44,7 +45,30 @@ for (const plik of process.argv.slice(2)) {
     continue;
   }
 
-  const zaDuzy = Math.max(meta.width ?? 0, meta.height ?? 0) > DLUZSZY_BOK;
+  // Dolny próg rozmiaru. Normalizacja istnieje po to, żeby okiełznać
+  // eksporty z aparatu i Lightrooma — pliki wielokrotnie za duże. Obraz,
+  // którego dłuższy bok jest już głęboko poniżej progu 2560 px, nie jest
+  // surowym eksportem, tylko ręcznie dobranym zasobem: przekodowanie nic
+  // mu nie zmniejsza, a odbiera jakość przy KAŻDYM przebiegu — JPEG jest
+  // stratny także wtedy, gdy zapisuje te same piksele. Prawdziwe wgranie
+  // od klientki będzie wielokrotnie większe i nadal zostanie
+  // znormalizowane.
+  //
+  // CZEGO TEN PRÓG NIE ROBI: mały plik z EXIF-em NIE zostanie z niego
+  // oczyszczony — wypada z normalizacji w całości, razem ze zdejmowaniem
+  // metadanych. To świadomy kompromis: ryzykiem jest zdjęcie prosto
+  // z aparatu, z lokalizacją w metadanych, a takie pliki są duże i przez
+  // ten próg nie przejdą.
+  const dluzszyBok = Math.max(meta.width ?? 0, meta.height ?? 0);
+  if (dluzszyBok < MIN_DLUZSZY_BOK) {
+    console.log(
+      `pomijam (dłuższy bok ${dluzszyBok} px, poniżej progu ` +
+        `${MIN_DLUZSZY_BOK} px — to nie jest surowy eksport): ${plik}`,
+    );
+    continue;
+  }
+
+  const zaDuzy = dluzszyBok > DLUZSZY_BOK;
   const maExif = Boolean(meta.exif || meta.icc || meta.iptc || meta.xmp);
   const podprobkowany = meta.chromaSubsampling !== '4:4:4';
 
