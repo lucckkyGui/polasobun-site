@@ -14,7 +14,7 @@
  * Wywołanie: node scripts/normalizuj-zdjecia.mjs <plik> [<plik> ...]
  */
 import { statSync } from 'node:fs';
-import { rename, unlink } from 'node:fs/promises';
+import { rename } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const DLUZSZY_BOK = 2560;
@@ -26,8 +26,21 @@ for (const plik of process.argv.slice(2)) {
   let meta;
   try {
     meta = await sharp(plik).metadata();
-  } catch {
-    console.log(`pomijam (nie obraz): ${plik}`);
+  } catch (blad) {
+    console.log(`pomijam (nie udało się odczytać jako obrazu): ${plik} — ${blad.message}`);
+    continue;
+  }
+
+  // Normalizujemy WYŁĄCZNIE JPEG-i. Panel (.pages.yml) ogranicza upload
+  // do [jpg, jpeg], ale ten workflow wyzwala się na ŚCIEŻCE pliku, nie na
+  // źródle zmiany — commit spoza panelu w tych katalogach mógłby przemycić
+  // inny format. Bez tej bramki poszlibyśmy dalej: dla formatów bez
+  // podpróbkowania chrominancji (np. PNG) `chromaSubsampling` jest
+  // `undefined`, więc warunek niżej (`!== '4:4:4'`) ZAWSZE wypada
+  // prawdziwy — skrypt uznałby taki plik za wymagający poprawy i po cichu
+  // nadpisał go bajtami JPEG pod niezmienionym, nie-.jpg rozszerzeniem.
+  if (meta.format !== 'jpeg') {
+    console.log(`pomijam (format ${meta.format}, nie JPEG): ${plik}`);
     continue;
   }
 
@@ -57,7 +70,10 @@ for (const plik of process.argv.slice(2)) {
     .toFile(tymczasowy);
 
   const po = statSync(tymczasowy).size;
-  await unlink(plik);
+  // Samo rename() na POSIX atomowo nadpisuje istniejący cel — osobny
+  // unlink() przed nim jest zbędny i otwierałby okno, w którym plik
+  // docelowy chwilowo nie istnieje. Przerwany przebieg w tym oknie
+  // zostawiłby dziurę zamiast pliku.
   await rename(tymczasowy, plik);
 
   console.log(
