@@ -3,28 +3,7 @@ import { getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Gallery from '../components/Gallery';
 import Intro from '../components/Intro';
-import { projects } from '../content/projects';
-
-/**
- * Wszystkie zdjęcia. import.meta.glob z eager: true — ścieżka jako string
- * NIE zostałaby zoptymalizowana i wysypałaby się na produkcji.
- */
-const files = import.meta.glob<{ default: ImageMetadata }>(
-  '../assets/photos/*/*.jpg',
-  { eager: true },
-);
-
-/** Zdjęcia pogrupowane po slugu, w kolejności nazw plików. */
-const bySlug = new Map<string, { name: string; img: ImageMetadata }[]>();
-for (const [path, mod] of Object.entries(files)) {
-  const match = /\/photos\/([^/]+)\/([^/]+)$/.exec(path);
-  if (!match) continue;
-  const [, slug, name] = match as unknown as [string, string, string];
-  const list = bySlug.get(slug) ?? [];
-  list.push({ name, img: mod.default });
-  bySlug.set(slug, list);
-}
-for (const list of bySlug.values()) list.sort((a, b) => a.name.localeCompare(b.name));
+import { projects, zdjecie } from '../content/projects';
 
 interface Tile {
   key: string;
@@ -54,19 +33,15 @@ const tiles: Tile[] = [];
  *       obecne w PORTRAITS i FOOD. Zdjęcie, które nie ma ani `featured`,
  *       ani tagu portraits/food, nie trafiłoby do żadnej zakładki —
  *       jest pomijane i zostaje na stronie swojej kampanii.
- *
- *    Okładka (01.jpg) nie wchodzi do ALL: pokazuje ją kafel kampanii
- *    w COMMERCIAL, więc w ALL witałaby drugi raz. Kolekcje (_portraits,
- *    _food) nie mają kafla kampanii, więc u nich okładka może zostać.
  */
 const kolejki = projects.map((project) => {
-  const wszystkie = bySlug.get(project.slug) ?? [];
-  const wybrane = (project.featured ?? [])
-    .map((nazwa) => wszystkie.find((z) => z.name === nazwa))
-    .filter((z): z is (typeof wszystkie)[number] => z !== undefined);
-  const wybraneNazwy = new Set(wybrane.map((z) => z.name));
-  const reszta = wszystkie.filter(
-    (z) => !wybraneNazwy.has(z.name) && (project.collection || z.name !== '01.jpg'),
+  const wybrane = (project.featured ?? []).filter((s) => project.photos.includes(s));
+  const wybraneZbior = new Set(wybrane);
+  // Okładka nie wchodzi do ALL: pokazuje ją kafel kampanii w COMMERCIAL,
+  // więc w ALL witałaby drugi raz. Kolekcje (_portraits, _food) nie mają
+  // kafla kampanii, więc u nich okładka zostaje.
+  const reszta = project.photos.filter(
+    (s) => !wybraneZbior.has(s) && (project.collection || s !== project.cover),
   );
   return { project, wybrane, reszta };
 });
@@ -75,12 +50,12 @@ const kolejki = projects.map((project) => {
 const najwiecejWybranych = Math.max(...kolejki.map((k) => k.wybrane.length));
 for (let runda = 0; runda < najwiecejWybranych; runda++) {
   for (const { project, wybrane } of kolejki) {
-    const zdjecie = wybrane[runda];
-    if (!zdjecie) continue;
+    const sciezka = wybrane[runda];
+    if (!sciezka) continue;
     const widoki: string[] = ['all', ...project.tags.filter((tag) => tag !== 'commercial')];
     tiles.push({
-      key: `${project.slug}/${zdjecie.name}`,
-      img: zdjecie.img,
+      key: sciezka,
+      img: zdjecie(sciezka),
       cats: widoki.join(' '),
       alt: project.title,
     });
@@ -91,13 +66,13 @@ for (let runda = 0; runda < najwiecejWybranych; runda++) {
 const najdluzszaReszta = Math.max(...kolejki.map((k) => k.reszta.length));
 for (let runda = 0; runda < najdluzszaReszta; runda++) {
   for (const { project, reszta } of kolejki) {
-    const zdjecie = reszta[runda];
-    if (!zdjecie) continue;
+    const sciezka = reszta[runda];
+    if (!sciezka) continue;
     const widoki: string[] = project.tags.filter((tag) => tag !== 'commercial');
     if (!widoki.length) continue;
     tiles.push({
-      key: `${project.slug}/${zdjecie.name}`,
-      img: zdjecie.img,
+      key: sciezka,
+      img: zdjecie(sciezka),
       cats: widoki.join(' '),
       alt: project.title,
     });
@@ -107,11 +82,9 @@ for (let runda = 0; runda < najdluzszaReszta; runda++) {
 /** 2. Kafle kampanii — tylko COMMERCIAL. Okładka + podpis + link. */
 for (const project of projects) {
   if (project.collection) continue;
-  const cover = bySlug.get(project.slug)?.[0];
-  if (!cover) throw new Error(`Brak zdjęć dla slugu "${project.slug}"`);
   tiles.push({
     key: `cover/${project.slug}`,
-    img: cover.img,
+    img: zdjecie(project.cover),
     cats: 'commercial',
     alt: project.title,
     href: `/work/${project.slug}`,
@@ -124,12 +97,9 @@ for (const project of projects) {
  * split-flap rozbija zdjęcie na kafelki, więc czytelna plama koloru
  * działa lepiej niż subtelny portret.
  */
-const INTRO = { slug: 'rimmel', photo: '01.jpg', focusY: 30 };
+const INTRO = { sciezka: '/photos/rimmel/01.jpg', focusY: 30 };
 
-const introEntry = bySlug.get(INTRO.slug)?.find((p) => p.name === INTRO.photo);
-if (!introEntry) {
-  throw new Error(`Brak zdjęcia ${INTRO.slug}/${INTRO.photo} do animacji wejścia`);
-}
+const introEntry = zdjecie(INTRO.sciezka);
 /*
  * Dwa warianty. Wcześniej szło jedno 1920 px i ważyło 525 kB — największy
  * pojedynczy zasób strony, serwowany także na ekran 412 px szerokości.
@@ -137,8 +107,8 @@ if (!introEntry) {
  * Canvas potrzebuje URL-a, ale zdjęcie i tak przechodzi przez astro:assets.
  */
 const [introMaly, introDuzy] = await Promise.all([
-  getImage({ src: introEntry.img, width: 900, format: 'webp' }),
-  getImage({ src: introEntry.img, width: 1800, format: 'webp' }),
+  getImage({ src: introEntry, width: 900, format: 'webp' }),
+  getImage({ src: introEntry, width: 1800, format: 'webp' }),
 ]);
 const introImage = { maly: introMaly.src, duzy: introDuzy.src, focusY: INTRO.focusY };
 
