@@ -9,5 +9,6 @@
     { "etykieta": "tel", "tekst": "883 180 410", "href": "tel:+48883180410", "zewnetrzny": false },
     { "etykieta": "mail", "tekst": "polasobun@gmail.com", "href": "mailto:polasobun@gmail.com", "zewnetrzny": false },
     { "etykieta": "instagram", "tekst": "@polasobun", "href": "https://www.instagram.com/polasobun/", "zewnetrzny": true }
-  ]
+  ],
+  "portret": "/portret/portret-pola-sobun.jpg"
 }
