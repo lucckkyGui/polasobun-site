@@ -62,7 +62,7 @@ i zamyka się własnym testem.
 - Utwórz: `scripts/migruj-model.mjs`
 - Utwórz (przez skrypt): `src/content/projects/<slug>.json` × 17
 - Utwórz (przez skrypt): `src/content/order.json`
-- Utwórz (przez skrypt): `src/content/contact.json`
+- Utwórz (ręcznie): `src/content/contact.json` — bez pola `portret`
 
 **Interfejsy:**
 - Produkuje: 17 plików wpisów o kształcie
@@ -71,9 +71,9 @@ i zamyka się własnym testem.
   `/photos/<slug>/<plik>.jpg`. Konsumuje to zadanie 2.
 - Produkuje: `order.json` o kształcie `{ "kolejnosc": string[] }`.
 - Produkuje: `contact.json` o kształcie
-  `{ akapity: string[], portret: string, kontakt: { etykieta, tekst, href, zewnetrzny }[] }`,
-  gdzie `portret` jest ścieżką postaci `/portret/<plik>.jpg`
-  (dokłada ją krok 6). Konsumuje to zadanie 5.
+  `{ akapity: string[], kontakt: { etykieta, tekst, href, zewnetrzny }[] }`.
+  Pole `portret` dokłada zadanie 5, razem z przeniesieniem samego pliku —
+  patrz uzasadnienie tam. Konsumuje to zadanie 5.
 
 - [ ] **Krok 1: Zapisz punkt odniesienia `dist`**
 
@@ -83,8 +83,13 @@ To jest test dla zadań 2-5. Musi powstać **przed** jakąkolwiek zmianą.
 cd polasobun && git status --porcelain && git log origin/main..HEAD --oneline
 cd polasobun && rm -rf dist && npm run build
 find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-odniesienie.txt
+cp dist/contact/index.html /tmp/contact-odniesienie.html
 wc -l /tmp/dist-odniesienie.txt
 ```
+
+Kopia `contact/index.html` jest potrzebna zadaniu 5: to jedyny plik,
+któremu wolno się tam zmienić, i trzeba umieć pokazać, że zmienił się
+WYŁĄCZNIE w adresie zasobu portretu.
 
 **Drzewo robocze musi być czyste, a gałąź zsynchronizowana z `main`.**
 Punkt odniesienia jest ważny tylko wtedy, gdy między nim a zadaniem 5
@@ -231,45 +236,30 @@ w tych łańcuchach — nie „poprawiaj" ich drugi raz.
 }
 ```
 
-- [ ] **Krok 6: Przenieś portret do własnego folderu**
-
-Klientka ma móc podmienić portret sama, a plik o dowolnej nazwie nie
-przejdzie przez statyczny import. Folder plus glob to rozwiązuje.
-
-```bash
-cd polasobun && mkdir -p src/assets/portret
-git mv src/assets/portret-pola-sobun.jpg src/assets/portret/portret.jpg
-```
-
-Dopisz do `contact.json` pole `"portret": "/portret/portret.jpg"`.
-
-- [ ] **Krok 7: Zbuduj — nic jeszcze nie czyta nowych plików**
+- [ ] **Krok 6: Zbuduj — nic jeszcze nie czyta nowych plików**
 
 ```bash
 cd polasobun && npm run build
 ```
 
-Oczekiwane: **błąd** — `contact.astro` importuje przeniesiony plik.
-Popraw wyłącznie ścieżkę importu na
-`../assets/portret/portret.jpg`, nic więcej w tym pliku.
-Potem zbuduj ponownie — musi przejść.
+Oczekiwane: przechodzi, 19 stron. Nowe pliki leżą na dysku, ale żaden
+kod ich jeszcze nie importuje, więc build nie ma prawa się zmienić.
 
-- [ ] **Krok 8: Potwierdź, że `dist` się nie zmienił**
+- [ ] **Krok 7: Potwierdź, że `dist` się nie zmienił**
 
 ```bash
 cd polasobun && find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po1.txt
 diff /tmp/dist-odniesienie.txt /tmp/dist-po1.txt && echo "IDENTYCZNY"
 ```
 
-Oczekiwane: `IDENTYCZNY`. Przeniesienie pliku nie zmienia jego treści,
-więc hash wariantów WebP musi zostać ten sam. Jeśli się różni —
-zatrzymaj się, bo cały dowód dla zadań 2-5 właśnie przestał działać.
+Oczekiwane: `IDENTYCZNY`. Powstały wyłącznie nowe pliki danych, których
+żaden kod jeszcze nie czyta. Jeśli się różni — zatrzymaj się, bo cały
+dowód dla zadań 2-5 właśnie przestał działać.
 
-- [ ] **Krok 9: Commit**
+- [ ] **Krok 8: Commit**
 
 ```bash
-git add polasobun/scripts/migruj-model.mjs polasobun/src/content/ \
-        polasobun/src/assets/portret/ polasobun/src/pages/contact.astro
+git add polasobun/scripts/migruj-model.mjs polasobun/src/content/
 git commit -m "feat: migracja modelu danych na plik per kampania"
 ```
 
@@ -666,27 +656,55 @@ git commit -m "feat: strona kampanii renderuje photos w kolejności z danych"
 
 ---
 
-### Zadanie 5: `contact.astro` na `contact.json`
+### Zadanie 5: `contact.astro` na `contact.json` i portret pod CMS
 
 **Pliki:**
-- Modyfikuj: `src/pages/contact.astro` — wyłącznie frontmatter
-  i podmiana `src` w `<Image>`.
+- Przenieś: `src/assets/portret-pola-sobun.jpg` → `src/assets/portret/portret-pola-sobun.jpg`
+- Modyfikuj: `src/content/contact.json` — dochodzi pole `portret`
+- Modyfikuj: `src/pages/contact.astro` — frontmatter i `src` w `<Image>`
 
 **Interfejsy:**
 - Konsumuje: `contact.json` z zadania 1, `zdjeciaPortretu` z zadania 2.
 
-- [ ] **Krok 1: Podmień źródło tekstów**
+**DLACZEGO PORTRET JEST TUTAJ, A NIE W ZADANIU 1.** Nazwa pliku
+źródłowego wchodzi do nazwy zasobu w `dist` — zmierzone:
+`portret-pola-sobun.KCPVauNi_1AlhJP.webp`. Przeniesienie pliku w zadaniu 1
+zepsułoby więc dowód „`dist` identyczny", czyli jedyną rzecz, która
+potwierdza, że migracja 359 zdjęć niczego nie ruszyła. Wersja tego planu
+sprzed przeglądu kazała przenieść portret w zadaniu 1 i dwa kroki dalej
+wymagała identycznego `dist` — te dwa polecenia wykluczały się nawzajem.
+
+Portret zostaje przy swojej nazwie (`portret-pola-sobun.jpg`). Zmiana
+nazwy nie daje nic, a powiększa różnicę, którą trzeba udowodnić.
+
+- [ ] **Krok 1: Przenieś portret i dopisz pole do `contact.json`**
+
+Klientka ma móc podmienić portret sama, a plik o dowolnej nazwie nie
+przejdzie przez statyczny import. Folder plus glob to rozwiązuje.
+
+```bash
+cd polasobun && mkdir -p src/assets/portret
+git mv src/assets/portret-pola-sobun.jpg src/assets/portret/portret-pola-sobun.jpg
+```
+
+Dopisz do `src/content/contact.json` pole:
+
+```json
+  "portret": "/portret/portret-pola-sobun.jpg"
+```
+
+- [ ] **Krok 2: Podmień źródło tekstów i portretu**
 
 Usuń tablice `AKAPITY` i `KONTAKT` wraz z ich obecnymi komentarzami
-i wstaw:
+oraz statyczny import portretu, i wstaw:
 
 ```ts
 import kontaktDane from '../content/contact.json';
 import { zdjeciaPortretu } from '../content/projects';
 
 /**
- * Bio i dane kontaktowe pochodzą z src/content/contact.json, żeby
- * klientka mogła je poprawić w panelu bez dotykania kodu.
+ * Bio, dane kontaktowe i portret pochodzą z src/content/contact.json,
+ * żeby klientka mogła je poprawić w panelu bez dotykania kodu.
  *
  * `zewnetrzny` steruje target/rel: tylko Instagram wyprowadza
  * odwiedzającego z portfolio, więc tylko on dostaje nową kartę.
@@ -702,35 +720,76 @@ const portret = zdjeciaPortretu.get(kontaktDane.portret);
 if (!portret) throw new Error(`Brak portretu: ${kontaktDane.portret}`);
 ```
 
-Usuń poprzedni statyczny import portretu.
+W znacznikach podmień `src={portret}` — reszta atrybutów `<Image>`
+(`width`, `height`, `densities`, `alt`, `loading`, `class`) zostaje
+bez zmian. **Nie ruszaj `PORTRET_PX` ani `densities`** — są dobrane pod
+plik 379 px i przeliczy się je dopiero, gdy klientka wgra większy
+oryginał.
 
-- [ ] **Krok 2: Zbuduj i potwierdź identyczność — test tego zadania**
+- [ ] **Krok 3: Zbuduj**
 
 ```bash
 cd polasobun && npm run build
-find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po5.txt
-diff /tmp/dist-odniesienie.txt /tmp/dist-po5.txt && echo "IDENTYCZNY"
 ```
 
-Oczekiwane: `IDENTYCZNY`. Różnica w `contact/index.html` znaczy, że
-któryś łańcuch został przy przepisywaniu zmieniony — porównaj znak po
-znaku, nie „na oko".
+Oczekiwane: przechodzi, 19 stron.
 
-- [ ] **Krok 3: Commit**
+- [ ] **Krok 4: Potwierdź, że zmieniło się WYŁĄCZNIE to, co miało**
+
+To jest test tego zadania i jedyne miejsce w całej migracji, gdzie
+`dist` wolno się zmienić. Różnica ma być dokładnie dwuskładnikowa:
+warianty zasobu portretu oraz `contact/index.html`, który je adresuje.
 
 ```bash
-git add polasobun/src/pages/contact.astro
-git commit -m "feat: teksty zakładki CONTACT z contact.json"
+cd polasobun && find dist -type f | sort | xargs shasum -a 256 > /tmp/dist-po5.txt
+diff /tmp/dist-odniesienie.txt /tmp/dist-po5.txt \
+  | grep -v 'portret-pola-sobun' | grep -v 'contact/index.html' \
+  && echo "UWAGA: zmieniło się coś poza portretem" || echo "poza portretem bez zmian"
 ```
 
-- [ ] **Krok 4: Opublikuj i sprawdź na żywo**
+Oczekiwane: `poza portretem bez zmian`. Jakikolwiek inny plik na liście
+znaczy, że przepisywanie tekstów zmieniło treść — zatrzymaj się.
+
+Teraz drugi warunek: `contact/index.html` ma się różnić **tylko**
+adresem zasobu portretu, nie treścią.
+
+```bash
+cd polasobun && diff \
+  <(sed -E 's/portret-pola-sobun\.[A-Za-z0-9_-]+\.webp/PORTRET/g' /tmp/contact-odniesienie.html) \
+  <(sed -E 's/portret-pola-sobun\.[A-Za-z0-9_-]+\.webp/PORTRET/g' dist/contact/index.html) \
+  && echo "treść strony kontaktowej IDENTYCZNA"
+```
+
+Oczekiwane: `treść strony kontaktowej IDENTYCZNA`. Jeśli `diff` pokaże
+różnicę w tekście — któryś łańcuch został przy przepisywaniu zmieniony.
+Porównaj znak po znaku, nie „na oko"; cztery poprawki uzgodnione
+2026-08-27 są już w tych łańcuchach i nie wolno ich poprawiać drugi raz.
+
+Możliwe, że hash zasobu w ogóle się nie zmieni — zależy, czy Astro
+liczy go z treści pliku, czy ze ścieżki. Oba wyniki są poprawne;
+zapisz w raporcie, który wystąpił.
+
+- [ ] **Krok 5: Commit**
+
+```bash
+git add polasobun/src/pages/contact.astro polasobun/src/content/contact.json \
+        polasobun/src/assets/portret/
+git commit -m "feat: teksty i portret zakładki CONTACT z contact.json"
+```
+
+- [ ] **Krok 6: Opublikuj i sprawdź na żywo**
+
+**BRAMKA — wymaga wykonanego zadania 4 planu hostingu (sekrety) oraz
+zadania 3 (pierwszy deploy).** Dopóki ich nie ma, pomiń ten krok
+i odnotuj to w raporcie.
 
 ```bash
 git push && gh workflow run publikacja.yml && gh run watch
 ```
 
-Migracja modelu jest zakończona. Strona jest w tym momencie dokładnie
-taka sama jak przed nią — a dane są gotowe pod panel.
+Migracja modelu jest zakończona. Poza portretem, który przeniósł się do
+własnego folderu, strona jest dokładnie taka sama jak przed nią — a dane
+są gotowe pod panel.
 
 ---
 
