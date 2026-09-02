@@ -238,6 +238,30 @@ Build jest 38 s szybszy — nie prawie 5x szybszy, jak sugerowała stara
 wartość „1m24s" zapisana wcześniej w tym pliku (nieodtwarzalna, patrz
 sekcja AVIF). Dominuje dekodowanie 202 MB źródeł, nie liczba wariantów.
 
+CZAS BUILDA W GITHUB ACTIONS — TA LICZBA RZĄDZI POTOKIEM, NIE LOKALNA.
+Zmierzone 2026-09-02 na pierwszym prawdziwym przebiegu po scaleniu
+(`ubuntu-latest`, przebieg 33655889600, `Cache not found` w logu, więc
+pudło potwierdzone, nie założone):
+
+  npm run build, cache PUDŁO      2m18s
+  zapis cache 232 MB              2s (122 MB/s)
+  cały job od startu do końca     2m37s
+
+Trzy pomiary tego samego builda na zimno dają trzy różne wyniki i to nie
+jest sprzeczność, tylko trzy różne maszyny: 6m10s lokalnie 2026-08-27,
+1m31s lokalnie 2026-09-02, 2m18s w Actions. Żadna z liczb lokalnych nie
+opisuje potoku wdrożeniowego — do decyzji o limitach czasu, o AVIF i
+o czymkolwiek innym w CI bierz 2m18s.
+
+Zapis cache okazał się darmowy — 232 MB w dwie sekundy, bo ruch nie
+opuszcza sieci GitHuba. Obawa, że narzut przesyłu zje zysk z cache'u,
+była nieuzasadniona.
+
+CZAS BUILDA NA CIEPŁO W ACTIONS: NIEZMIERZONY. Pierwszy przebieg musiał
+minąć cache'em, żeby go założyć. Zmierz przy najbliższym pushu do `main`
+i dopisz tutaj — lokalnie na ciepło wychodziło 6,94 s, ale to znowu inna
+maszyna i nie wolno tej liczby przenosić.
+
 EKSPERYMENTY WARUNKOWE — oba odrzucone:
   E1 AVIF dla kadru lekkiego: ODRZUCONY. Build na zimno przekroczył
   10 minut wobec ~6-7 minut dla WebP — kryterium czasu builda padło
