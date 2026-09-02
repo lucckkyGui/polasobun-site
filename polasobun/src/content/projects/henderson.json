@@ -1,0 +1,29 @@
+{
+  "slug": "henderson",
+  "title": "HENDERSON",
+  "client": "Henderson",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/henderson",
+  "cover": "/photos/henderson/01.jpg",
+  "photos": [
+    "/photos/henderson/01.jpg",
+    "/photos/henderson/02.jpg",
+    "/photos/henderson/03.jpg",
+    "/photos/henderson/04.jpg",
+    "/photos/henderson/05.jpg",
+    "/photos/henderson/06.jpg",
+    "/photos/henderson/07.jpg",
+    "/photos/henderson/08.jpg"
+  ],
+  "featured": [
+    "/photos/henderson/04.jpg",
+    "/photos/henderson/05.jpg",
+    "/photos/henderson/08.jpg",
+    "/photos/henderson/02.jpg",
+    "/photos/henderson/03.jpg",
+    "/photos/henderson/06.jpg"
+  ]
+}

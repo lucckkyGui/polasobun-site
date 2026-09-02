@@ -1,0 +1,33 @@
+{
+  "slug": "medity",
+  "title": "MEDITY",
+  "client": "Medity",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/medity",
+  "cover": "/photos/medity/01.jpg",
+  "photos": [
+    "/photos/medity/01.jpg",
+    "/photos/medity/02.jpg",
+    "/photos/medity/03.jpg",
+    "/photos/medity/04.jpg",
+    "/photos/medity/05.jpg",
+    "/photos/medity/06.jpg",
+    "/photos/medity/07.jpg",
+    "/photos/medity/08.jpg",
+    "/photos/medity/09.jpg",
+    "/photos/medity/10.jpg",
+    "/photos/medity/11.jpg",
+    "/photos/medity/12.jpg"
+  ],
+  "featured": [
+    "/photos/medity/04.jpg",
+    "/photos/medity/03.jpg",
+    "/photos/medity/12.jpg",
+    "/photos/medity/09.jpg",
+    "/photos/medity/08.jpg",
+    "/photos/medity/07.jpg"
+  ]
+}

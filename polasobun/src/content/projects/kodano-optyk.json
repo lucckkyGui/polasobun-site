@@ -1,0 +1,31 @@
+{
+  "slug": "kodano-optyk",
+  "title": "KODANO OPTYK",
+  "client": "Kodano",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/kodano-optyk",
+  "cover": "/photos/kodano-optyk/01.jpg",
+  "photos": [
+    "/photos/kodano-optyk/01.jpg",
+    "/photos/kodano-optyk/02.jpg",
+    "/photos/kodano-optyk/03.jpg",
+    "/photos/kodano-optyk/04.jpg",
+    "/photos/kodano-optyk/05.jpg",
+    "/photos/kodano-optyk/06.jpg",
+    "/photos/kodano-optyk/07.jpg",
+    "/photos/kodano-optyk/08.jpg",
+    "/photos/kodano-optyk/09.jpg",
+    "/photos/kodano-optyk/10.jpg"
+  ],
+  "featured": [
+    "/photos/kodano-optyk/07.jpg",
+    "/photos/kodano-optyk/03.jpg",
+    "/photos/kodano-optyk/09.jpg",
+    "/photos/kodano-optyk/08.jpg",
+    "/photos/kodano-optyk/05.jpg",
+    "/photos/kodano-optyk/04.jpg"
+  ]
+}

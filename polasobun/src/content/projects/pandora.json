@@ -1,0 +1,28 @@
+{
+  "slug": "pandora",
+  "title": "PANDORA",
+  "client": "Pandora",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/pandora",
+  "cover": "/photos/pandora/01.jpg",
+  "photos": [
+    "/photos/pandora/01.jpg",
+    "/photos/pandora/02.jpg",
+    "/photos/pandora/03.jpg",
+    "/photos/pandora/04.jpg",
+    "/photos/pandora/05.jpg",
+    "/photos/pandora/06.jpg",
+    "/photos/pandora/07.jpg"
+  ],
+  "featured": [
+    "/photos/pandora/02.jpg",
+    "/photos/pandora/03.jpg",
+    "/photos/pandora/04.jpg",
+    "/photos/pandora/05.jpg",
+    "/photos/pandora/06.jpg",
+    "/photos/pandora/07.jpg"
+  ]
+}

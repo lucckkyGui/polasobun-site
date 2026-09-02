@@ -1,0 +1,33 @@
+{
+  "slug": "lech-easy",
+  "title": "LECH EASY",
+  "client": "Lech",
+  "year": null,
+  "tags": [
+    "commercial",
+    "food"
+  ],
+  "legacyPath": "/lech-easy",
+  "cover": "/photos/lech-easy/01.jpg",
+  "photos": [
+    "/photos/lech-easy/01.jpg",
+    "/photos/lech-easy/02.jpg",
+    "/photos/lech-easy/03.jpg",
+    "/photos/lech-easy/04.jpg",
+    "/photos/lech-easy/05.jpg",
+    "/photos/lech-easy/06.jpg",
+    "/photos/lech-easy/07.jpg",
+    "/photos/lech-easy/08.jpg",
+    "/photos/lech-easy/09.jpg",
+    "/photos/lech-easy/10.jpg",
+    "/photos/lech-easy/11.jpg"
+  ],
+  "featured": [
+    "/photos/lech-easy/02.jpg",
+    "/photos/lech-easy/05.jpg",
+    "/photos/lech-easy/09.jpg",
+    "/photos/lech-easy/07.jpg",
+    "/photos/lech-easy/03.jpg",
+    "/photos/lech-easy/10.jpg"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "wojas",
+  "title": "WOJAS",
+  "client": "Wojas",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/wojas",
+  "cover": "/photos/wojas/01.jpg",
+  "photos": [
+    "/photos/wojas/01.jpg",
+    "/photos/wojas/02.jpg",
+    "/photos/wojas/03.jpg",
+    "/photos/wojas/04.jpg",
+    "/photos/wojas/05.jpg",
+    "/photos/wojas/06.jpg",
+    "/photos/wojas/07.jpg",
+    "/photos/wojas/08.jpg",
+    "/photos/wojas/09.jpg",
+    "/photos/wojas/10.jpg",
+    "/photos/wojas/11.jpg",
+    "/photos/wojas/12.jpg",
+    "/photos/wojas/13.jpg",
+    "/photos/wojas/14.jpg",
+    "/photos/wojas/15.jpg",
+    "/photos/wojas/16.jpg",
+    "/photos/wojas/17.jpg",
+    "/photos/wojas/18.jpg"
+  ],
+  "featured": [
+    "/photos/wojas/18.jpg",
+    "/photos/wojas/05.jpg",
+    "/photos/wojas/02.jpg",
+    "/photos/wojas/06.jpg",
+    "/photos/wojas/14.jpg",
+    "/photos/wojas/12.jpg"
+  ]
+}

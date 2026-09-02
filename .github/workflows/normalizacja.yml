@@ -1,0 +1,69 @@
+name: Normalizacja zdjęć
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'polasobun/src/assets/photos/**'
+      - 'polasobun/src/assets/portret/**'
+
+concurrency:
+  group: normalizacja
+  cancel-in-progress: false
+
+jobs:
+  normalizuj:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: polasobun/package-lock.json
+
+      - run: npm ci
+        working-directory: polasobun
+
+      - id: zmienione
+        run: |
+          # github.event.before bywa zerowe przy pierwszym pushu gałęzi.
+          PRZED='${{ github.event.before }}'
+          if [ -z "$PRZED" ] || [ "$PRZED" = "0000000000000000000000000000000000000000" ]; then
+            PRZED=$(git rev-parse HEAD^ 2>/dev/null || echo "")
+          fi
+          if [ -z "$PRZED" ]; then
+            echo "Brak punktu odniesienia, pomijam." && echo "pliki=" >> "$GITHUB_OUTPUT" && exit 0
+          fi
+          git diff --name-only --diff-filter=AM "$PRZED" '${{ github.sha }}' \
+            -- 'polasobun/src/assets/photos/**' 'polasobun/src/assets/portret/**' \
+            > /tmp/zmienione.txt
+          echo "Zmienione pliki:" && cat /tmp/zmienione.txt
+          echo "pliki=$(wc -l < /tmp/zmienione.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Normalizuj
+        if: steps.zmienione.outputs.pliki != '' && steps.zmienione.outputs.pliki != '0'
+        run: |
+          cd polasobun
+          sed 's|^polasobun/||' /tmp/zmienione.txt | tr '\n' '\0' \
+            | xargs -0 --no-run-if-empty node scripts/normalizuj-zdjecia.mjs \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Commit robiony GITHUB_TOKEN-em z definicji NIE wyzwala kolejnych
+      # workflow'ów, a [skip ci] jest drugim, niezależnym bezpiecznikiem.
+      # Rekursji nie ma z dwóch powodów naraz — to celowe.
+      - name: Zacommituj poprawki
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nic do poprawienia." && exit 0
+          fi
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m "chore: normalizacja wgranych zdjęć [skip ci]"
+          git push

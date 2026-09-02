@@ -2,38 +2,25 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import NaglowekKontakt from '../components/NaglowekKontakt.astro';
-import portret from '../assets/portret-pola-sobun.jpg';
+import kontaktDane from '../content/contact.json';
+import { zdjeciaPortretu } from '../content/projects';
 
 /**
- * Bio klientki, przepisane ze strony źródłowej z czterema poprawkami
- * uzgodnionymi 2026-08-27: „Publiszki" → Pudliszki, „brandend" → branded,
- * „thrashowe" → trashowe oraz domknięcie nawiasu przy LPP, które
- * przy okazji przestaje przypisywać CCC do tej grupy.
- */
-const AKAPITY = [
-  'Absolwentka Uniwersytetu Łódzkiego (nowe media i kultura cyfrowa) oraz PWSFTViT (fotografia).',
-  'Fotografuje przede wszystkim ludzi (moda i reportaż), ale bliskie jej są również kompozycje foodowe/trashowe stille.',
-  'Pracowała z Rimmel, Allegro, Esotiq, Robert Kupisz i Henderson, Pudliszki, Kodano Optyk, Butik Optique itd.',
-  'Tworzy również dużo realizacji branded content z influencerami dla takich marek jak Zalando, LPP (Reserved, Cropp, House), CCC czy Inditex (Pull&Bear).',
-];
-
-/**
- * Na źródle telefon i mail są zwykłym tekstem, co na telefonie zmusza
- * do przepisywania numeru ręcznie. U nas są odnośnikami.
+ * Bio, dane kontaktowe i portret pochodzą z src/content/contact.json,
+ * żeby klientka mogła je poprawić w panelu bez dotykania kodu.
  *
- * `zewnetrzny` steruje `target`/`rel` (decyzja klienta z 2026-08-27):
- * tylko Instagram wyprowadza odwiedzającego z portfolio, więc tylko on
- * dostaje nową kartę. `tel:` i `mailto:` są ŚWIADOMIE wyłączone z tej
- * reguły — to protokoły przekazywane systemowi (aplikacja telefonu,
- * klient poczty), nie nawigacja w przeglądarce, więc target="_blank"
- * zostawiłby po nich pustą, martwą kartę. Nie „ujednolicaj" tego
- * z powrotem na wszystkie odnośniki.
+ * `zewnetrzny` steruje target/rel: tylko Instagram wyprowadza
+ * odwiedzającego z portfolio, więc tylko on dostaje nową kartę.
+ * `tel:` i `mailto:` są ŚWIADOMIE wyłączone z tej reguły — to
+ * protokoły przekazywane systemowi, nie nawigacja w przeglądarce,
+ * więc target="_blank" zostawiłby po nich pustą, martwą kartę.
+ * Nie „ujednolicaj" tego z powrotem na wszystkie odnośniki.
  */
-const KONTAKT = [
-  { etykieta: 'tel', tekst: '883 180 410', href: 'tel:+48883180410', zewnetrzny: false },
-  { etykieta: 'mail', tekst: 'polasobun@gmail.com', href: 'mailto:polasobun@gmail.com', zewnetrzny: false },
-  { etykieta: 'instagram', tekst: '@polasobun', href: 'https://www.instagram.com/polasobun/', zewnetrzny: true },
-];
+const AKAPITY = kontaktDane.akapity;
+const KONTAKT = kontaktDane.kontakt;
+
+const portret = zdjeciaPortretu.get(kontaktDane.portret);
+if (!portret) throw new Error(`Brak portretu: ${kontaktDane.portret}`);
 
 /**
  * 260 px, nie 331 px jak na źródle, i to na KAŻDYM ekranie.

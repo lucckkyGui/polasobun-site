@@ -19,8 +19,9 @@ import { projects } from '../content/projects';
  * Poza korzeniem żaden adres nie kończy się ukośnikiem, spójnie
  * z <link rel="canonical"> i z odnośnikami w kodzie.
  *
- * Escapowanie znaków XML: slug pochodzi z pliku edytowanego ręcznie
- * (projects.json) i TypeScript nie wymusza żadnego wzoru na `slug: string`.
+ * Escapowanie znaków XML: slug pochodzi z wpisu kampanii
+ * (src/content/projects/<slug>.json), który edytuje panel CMS-u —
+ * a TypeScript nie wymusza żadnego wzoru na `slug: string`.
  * `new URL()` koduje procentowo większość problemów w ścieżce, ale nie
  * ampersandę — znakiem legalnym w adresach. Jeden `&` w slugu przechodzi
  * przez `new URL()` nietknięty i produkuje niepoprawny XML, którego parser

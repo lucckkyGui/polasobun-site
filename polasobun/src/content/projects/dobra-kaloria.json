@@ -1,0 +1,31 @@
+{
+  "slug": "dobra-kaloria",
+  "title": "DOBRA KALORIA",
+  "client": "Dobra Kaloria",
+  "year": null,
+  "tags": [
+    "commercial",
+    "food"
+  ],
+  "legacyPath": "/dobra-kaloria",
+  "cover": "/photos/dobra-kaloria/01.jpg",
+  "photos": [
+    "/photos/dobra-kaloria/01.jpg",
+    "/photos/dobra-kaloria/02.jpg",
+    "/photos/dobra-kaloria/03.jpg",
+    "/photos/dobra-kaloria/04.jpg",
+    "/photos/dobra-kaloria/05.jpg",
+    "/photos/dobra-kaloria/06.jpg",
+    "/photos/dobra-kaloria/07.jpg",
+    "/photos/dobra-kaloria/08.jpg",
+    "/photos/dobra-kaloria/09.jpg"
+  ],
+  "featured": [
+    "/photos/dobra-kaloria/04.jpg",
+    "/photos/dobra-kaloria/05.jpg",
+    "/photos/dobra-kaloria/03.jpg",
+    "/photos/dobra-kaloria/08.jpg",
+    "/photos/dobra-kaloria/06.jpg",
+    "/photos/dobra-kaloria/09.jpg"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "slug": "rimmel",
+  "title": "RIMMEL",
+  "client": "Rimmel",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/rimmel",
+  "cover": "/photos/rimmel/01.jpg",
+  "photos": [
+    "/photos/rimmel/01.jpg",
+    "/photos/rimmel/02.jpg",
+    "/photos/rimmel/03.jpg",
+    "/photos/rimmel/04.jpg",
+    "/photos/rimmel/05.jpg",
+    "/photos/rimmel/06.jpg",
+    "/photos/rimmel/07.jpg",
+    "/photos/rimmel/08.jpg",
+    "/photos/rimmel/09.jpg"
+  ],
+  "featured": [
+    "/photos/rimmel/02.jpg",
+    "/photos/rimmel/07.jpg",
+    "/photos/rimmel/09.jpg",
+    "/photos/rimmel/03.jpg",
+    "/photos/rimmel/08.jpg",
+    "/photos/rimmel/04.jpg"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "slug": "bybianco",
+  "title": "BAZIÓŁKA AW",
+  "client": "By Bianco",
+  "year": null,
+  "tags": [
+    "commercial"
+  ],
+  "legacyPath": "/bybianco",
+  "cover": "/photos/bybianco/01.jpg",
+  "photos": [
+    "/photos/bybianco/01.jpg",
+    "/photos/bybianco/02.jpg",
+    "/photos/bybianco/03.jpg",
+    "/photos/bybianco/04.jpg",
+    "/photos/bybianco/05.jpg",
+    "/photos/bybianco/06.jpg",
+    "/photos/bybianco/07.jpg",
+    "/photos/bybianco/08.jpg",
+    "/photos/bybianco/09.jpg",
+    "/photos/bybianco/10.jpg",
+    "/photos/bybianco/11.jpg",
+    "/photos/bybianco/12.jpg",
+    "/photos/bybianco/13.jpg",
+    "/photos/bybianco/14.jpg",
+    "/photos/bybianco/15.jpg",
+    "/photos/bybianco/16.jpg",
+    "/photos/bybianco/17.jpg",
+    "/photos/bybianco/18.jpg",
+    "/photos/bybianco/19.jpg"
+  ],
+  "featured": [
+    "/photos/bybianco/09.jpg",
+    "/photos/bybianco/04.jpg",
+    "/photos/bybianco/03.jpg",
+    "/photos/bybianco/12.jpg",
+    "/photos/bybianco/08.jpg",
+    "/photos/bybianco/17.jpg"
+  ]
+}

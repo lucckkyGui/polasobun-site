@@ -6,11 +6,12 @@
  * zaczynające się od podkreślnika — generatora nie da się postawić
  * w src/pages. Ten skrypt zastępuje generator kontrolą.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
-const dane = JSON.parse(
-  readFileSync(new URL('../src/content/projects.json', import.meta.url), 'utf8'),
-);
+const katalog = new URL('../src/content/projects/', import.meta.url);
+const dane = readdirSync(katalog)
+  .filter((n) => n.endsWith('.json'))
+  .map((n) => JSON.parse(readFileSync(new URL(n, katalog), 'utf8')));
 
 const oczekiwane = new Map(
   dane
