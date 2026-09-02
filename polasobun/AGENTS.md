@@ -257,10 +257,26 @@ Zapis cache okazał się darmowy — 232 MB w dwie sekundy, bo ruch nie
 opuszcza sieci GitHuba. Obawa, że narzut przesyłu zje zysk z cache'u,
 była nieuzasadniona.
 
-CZAS BUILDA NA CIEPŁO W ACTIONS: NIEZMIERZONY. Pierwszy przebieg musiał
-minąć cache'em, żeby go założyć. Zmierz przy najbliższym pushu do `main`
-i dopisz tutaj — lokalnie na ciepło wychodziło 6,94 s, ale to znowu inna
-maszyna i nie wolno tej liczby przenosić.
+CZAS BUILDA NA CIEPŁO W ACTIONS. Zmierzone 2026-09-02, przebieg
+33656513354, `Cache restored from key: astro-assets-...` w logu, więc
+trafienie potwierdzone:
+
+  przywrócenie cache 232 MB        2s
+  npm run build, cache TRAFIONY    8s
+  cały job od startu do końca      24s
+
+CACHE ZAMIENIA 2m18s NA 8s. Siedemnastokrotnie, na każdej publikacji.
+Ta liczba jest jedynym powodem, dla którego `actions/cache` w ogóle tu
+jest — i dlatego kolejność kroków w workflow'ach jest krytyczna, a nie
+kosmetyczna.
+
+PIERWSZA WERSJA TEGO PLANU MIAŁA `actions/cache` PRZED `npm ci` i było
+to niewykrywalne bez pomiaru: `npm ci` czyści cały `node_modules`, więc
+przywrócony chwilę wcześniej `node_modules/.astro` (232 MB) był kasowany
+i build leciał zimny ZAWSZE, bez jednego komunikatu błędu. Objaw
+wyglądałby jak cache, który się nie opłaca. Kosztowałoby to 2m10s na
+każdym wdrożeniu, po cichu, bez końca. Złapał to dopiero przegląd
+czytający kod, nie zielony build.
 
 EKSPERYMENTY WARUNKOWE — oba odrzucone:
   E1 AVIF dla kadru lekkiego: ODRZUCONY. Build na zimno przekroczył
