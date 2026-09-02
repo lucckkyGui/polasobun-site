@@ -1,0 +1,19 @@
+# Adresy ze starej witryny na Format.com. Bez nich tracimy pozycje
+# w wyszukiwarce zbierane od 2020 roku. Pole legacyPath w danych
+# kampanii istnieje wyłącznie pod ten plik.
+# Spójność pilnuje scripts/sprawdz-przekierowania.mjs.
+/pandora                        /work/pandora         301
+/rimmel                         /work/rimmel          301
+/allegro                        /work/allegro         301
+/cropp                          /work/cropp           301
+/wojas                          /work/wojas           301
+/rko-by-rylko                   /work/rko-by-rylko    301
+/henderson                      /work/henderson       301
+/lech-easy                      /work/lech-easy       301
+/pudliszki                      /work/pudliszki       301
+/dobra-kaloria                  /work/dobra-kaloria   301
+/kodano-optyk                   /work/kodano-optyk    301
+/medity                         /work/medity          301
+/joanna-jedrzejczyk-x-fanadise  /work/fanadise        301
+/bybianco                       /work/bybianco        301
+/mardosz-hair-band              /work/mardosz         301

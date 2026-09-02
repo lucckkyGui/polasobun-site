@@ -1,0 +1,41 @@
+{
+  // Statyczny zestaw zasobów bez skryptu Workera. Cloudflare zaleca
+  // Workers Static Assets zamiast Pages dla nowych projektów: nowe
+  // funkcje i optymalizacje idą do Workers, Pages jest utrzymywane.
+  "name": "polasobun",
+  "compatibility_date": "2026-08-28",
+
+  // MUSI zostać przestawione na `false` w zadaniu 7, zaraz po podpięciu
+  // domeny własnej do Workera. Dopóki jest `true`, strona odpowiada pod
+  // DWOMA adresami naraz — `www.polasobun.com` i `polasobun.workers.dev`.
+  // Ten drugi serwuje ten sam `robots.txt` z `Allow: /` (przy
+  // `output: 'static'` powstaje jeden plik wspólny dla każdego hosta,
+  // patrz src/pages/robots.txt.ts), czyli pełny duplikat treści
+  // konkurujący z domeną klientki o te same zapytania.
+  //
+  // Nie da się tego załatwić plikiem `_headers`: on dopasowuje po
+  // ŚCIEŻCE, nie po hoście, więc `X-Robots-Tag: noindex` trafiłby także
+  // w domenę docelową. Jedyne poprawne wyjście to usunąć duplikat,
+  // a nie go oznaczać — czyli zgasić adres `workers.dev`.
+  //
+  // Zapisane jawnie, mimo że `true` jest domyślne: bez tej linijki nie
+  // ma czego przestawić i pułapka zostaje niewidoczna.
+  "workers_dev": true,
+
+  "assets": {
+    "directory": "./dist",
+
+    // Cały projekt normalizuje adresy BEZ ukośnika na końcu: canonical
+    // w src/layouts/Base.astro, wszystkie 17 adresów w sitemap.xml.ts
+    // i cele piętnastu przekierowań 301 w public/_redirects.
+    //
+    // Astro buduje `dist/work/pandora/index.html`, a domyślne
+    // `auto-trailing-slash` serwuje pliki indeksowe katalogów Z ukośnikiem
+    // — czyli `/work/pandora` dostawałoby 307 na `/work/pandora/`. Wtedy
+    // każdy <loc> sitemapy jest adresem, który się przekierowuje,
+    // canonical wskazuje adres przekierowujący, a każde 301 ze starej
+    // strony dostaje drugi skok. `drop-trailing-slash` ustawia serwer
+    // pod tę samą normalizację, którą stosuje reszta projektu.
+    "html_handling": "drop-trailing-slash"
+  }
+}

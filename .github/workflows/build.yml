@@ -1,0 +1,55 @@
+name: Kontrola builda
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: kontrola-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: polasobun/package-lock.json
+
+      # Bramka przekierowań — ta sama co w `publikacja.yml`, tutaj po to,
+      # żeby rozjazd `_redirects` z polami `legacyPath` w danych kampanii
+      # padł przy pushu do `main`, a nie dopiero pod przyciskiem
+      # „Opublikuj stronę" u klientki. Celowo przed `npm ci`: skrypt
+      # importuje wyłącznie `node:fs`, nie potrzebuje zainstalowanych
+      # zależności, więc nie ma powodu czekać na instalację przed
+      # uruchomieniem najtańszej z kontroli.
+      - run: node scripts/sprawdz-przekierowania.mjs
+        working-directory: polasobun
+
+      - run: npm ci
+        working-directory: polasobun
+
+      # Klucz z SHA plus restore-keys na prefiks: przywraca OSTATNI
+      # dostępny cache niezależnie od zawartości, więc Astro przelicza
+      # tylko nowe zdjęcia. Gdyby kluczem był hash folderu zdjęć, każde
+      # dołożone zdjęcie unieważniałoby całość i build byłby zimny
+      # za każdym razem. Nie "poprawiaj" tego na hash treści.
+      # Ten krok musi stać PO `npm ci`: `npm ci` czyści całą zawartość
+      # `node_modules` przed instalacją (łącznie z wpisami kropkowymi), więc
+      # cache przywrócony wcześniej zostałby skasowany, a build byłby zimny
+      # mimo pozornie działającego cache'u.
+      - uses: actions/cache@v4
+        with:
+          path: polasobun/node_modules/.astro
+          key: astro-assets-${{ github.sha }}
+          restore-keys: astro-assets-
+
+      - run: npm run build
+        working-directory: polasobun

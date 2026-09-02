@@ -1,5 +1,4 @@
 ---
-import SpeedInsights from '@vercel/speed-insights/astro';
 import '../styles/global.css';
 
 interface Props {
@@ -36,7 +35,6 @@ const canonical = new URL(sciezka, Astro.site).href;
   </head>
   <body class="bg-bg text-text font-sans">
     <slot />
-    <SpeedInsights />
     <script>
       /*
        * Blokada menu kontekstowego na zdjęciach. DETERENT, nie
